@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="color-scheme" content="light dark">
+<title>Duitku</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" integrity="sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug" crossorigin="anonymous"></script>
+<style>
+:root {
+  --bg: #f4f6f5;
+  --card: #ffffff;
+  --text: #12201c;
+  --muted: #5c6b66;
+  --border: #e2e8e5;
+  --accent: #0f766e;
+  --accent-soft: #ccfbf1;
+  --income: #047857;
+  --expense: #b45309;
+  --danger: #b91c1c;
+  --ok: #047857;
+  --warn: #b45309;
+  --over: #b91c1c;
+  --shadow: 0 1px 2px rgba(18,32,28,.06), 0 8px 24px rgba(18,32,28,.04);
+  --radius: 16px;
+  --nav-h: 68px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1513;
+    --card: #17211e;
+    --text: #e7f0ec;
+    --muted: #9aada6;
+    --border: #2a3a35;
+    --accent: #2dd4bf;
+    --accent-soft: #134e4a;
+    --income: #34d399;
+    --expense: #fbbf24;
+    --danger: #f87171;
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --over: #f87171;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1513; --card: #17211e; --text: #e7f0ec; --muted: #9aada6; --border: #2a3a35;
+  --accent: #2dd4bf; --accent-soft: #134e4a; --income: #34d399; --expense: #fbbf24;
+  --danger: #f87171; --ok: #34d399; --warn: #fbbf24; --over: #f87171; --shadow: none;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.45;
+  min-height: 100dvh;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.app { max-width: 1100px; margin: 0 auto; padding: 12px 16px calc(var(--nav-h) + 24px); }
+header.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px 0 14px;
+}
+header.top h1 { font-size: 1.35rem; margin: 0; letter-spacing: -.02em; }
+.sync { font-size: .8rem; color: var(--muted); min-height: 1.2em; }
+.banner {
+  background: var(--accent-soft); color: var(--text); border-radius: 12px;
+  padding: 10px 12px; font-size: .9rem; margin-bottom: 12px;
+}
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px;
+}
+.grid { display: grid; gap: 10px; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.stat { padding: 12px; }
+.stat .label { color: var(--muted); font-size: .8rem; }
+.stat .value { font-size: 1.15rem; font-weight: 650; margin-top: 2px; }
+.pos { color: var(--income); }
+.neg { color: var(--expense); }
+.month-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.icon-btn, .btn {
+  min-height: 44px; min-width: 44px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--card); padding: 0 14px;
+}
+.btn-primary { background: var(--accent); color: #fff; border-color: transparent; font-weight: 650; }
+.btn-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+.btn-ghost { background: transparent; }
+.fab {
+  position: fixed; right: 16px; bottom: calc(var(--nav-h) + 12px); z-index: 20;
+  min-height: 52px; padding: 0 18px; border-radius: 999px; border: 0;
+  background: var(--accent); color: #fff; font-weight: 700; box-shadow: var(--shadow);
+}
+label.field { display: block; margin-bottom: 10px; }
+label.field span { display: block; font-size: .82rem; color: var(--muted); margin-bottom: 4px; }
+input[type="text"], input[type="email"], input[type="password"], input[type="date"],
+input[type="search"], select, textarea {
+  width: 100%; min-height: 44px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--bg); padding: 8px 12px;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-height: 40px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--card); padding: 6px 12px;
+}
+.row-item { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.row-item:last-child { border-bottom: 0; }
+.muted { color: var(--muted); }
+.small { font-size: .82rem; }
+.bar-track { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 99px; }
+.ok { background: var(--ok); }
+.warn { background: var(--warn); }
+.over { background: var(--over); }
+.tag { font-size: .75rem; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); }
+.tag.ok { background: var(--ok); color: #fff; }
+.tag.warn { background: var(--warn); color: #fff; }
+.tag.over { background: var(--over); color: #fff; }
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; height: var(--nav-h);
+  background: var(--card); border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: repeat(4, 1fr); z-index: 30;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav button { border: 0; background: transparent; min-height: 44px; }
+.nav button[aria-current="page"] { color: var(--accent); font-weight: 700; }
+.screen { display: none; }
+.screen.active { display: block; }
+.modal-back {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 40;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.sheet {
+  background: var(--card); width: min(560px, 100%); max-height: 92dvh; overflow: auto;
+  border-radius: 20px 20px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+}
+.toast-wrap { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 16px); z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { pointer-events: auto; background: var(--text); color: var(--bg); border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.hscroll { display: flex; gap: 8px; overflow-x: auto; }
+.seg { display: flex; gap: 6px; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: transparent; }
+.empty { text-align: center; padding: 28px 8px; color: var(--muted); }
+table.map { width: 100%; border-collapse: collapse; font-size: .85rem; }
+table.map td, table.map th { border-bottom: 1px solid var(--border); padding: 6px; text-align: left; }
+@media (min-width: 900px) {
+  .app { display: grid; grid-template-columns: 200px 1fr; gap: 18px; padding: 20px; }
+  header.top { grid-column: 1 / -1; }
+  .nav {
+    position: sticky; top: 12px; height: auto; display: flex; flex-direction: column;
+    border: 1px solid var(--border); border-radius: var(--radius); align-self: start;
+  }
+  .fab { bottom: 24px; }
+  .toast-wrap { bottom: 24px; left: auto; right: 24px; width: 360px; }
+  .modal-back { align-items: center; }
+  .sheet { border-radius: 20px; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>Duitku</h1>
+      <div class="sync" id="syncStatus" aria-live="polite"></div>
+    </div>
+    <div id="headerExtra"></div>
+  </header>
+  <div id="banner"></div>
+  <nav class="nav" aria-label="Navigasi utama">
+    <button type="button" data-screen="dashboard">Dashboard</button>
+    <button type="button" data-screen="transaksi">Transaksi</button>
+    <button type="button" data-screen="budget">Budget</button>
+    <button type="button" data-screen="lainnya">Lainnya</button>
+  </nav>
+  <main id="main"></main>
+</div>
+<button class="fab" id="fabCatat" type="button">+ Catat</button>
+<div class="toast-wrap" id="toasts" aria-live="polite"></div>
+<div id="modalRoot"></div>
+<script>
+(() => {
+"use strict";
+
+const DEFAULT_EXPENSE = ["Makan","Jajan","Transport","Kos","Pulsa/Internet","Tugas/Print","Hiburan","Lainnya"];
+const DEFAULT_INCOME = ["Uang Saku","Gaji/Freelance","Beasiswa","Lainnya"];
+const PAGE = 50;
+
+const state = {
+  mode: "local",
+  user: null,
+  categories: [],
+  transactions: [],
+  budgets: [],
+  screen: "dashboard",
+  month: monthKey(new Date()),
+  txFilter: { month: "", category: "", type: "", q: "" },
+  txShown: PAGE,
+  sync: "lokal",
+  online: navigator.onLine,
+  pending: [],
+  sb: null,
+  channel: null,
+  writing: new Set(),
+};
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const main = $("#main");
+
+function pad(n) { return String(n).padStart(2, "0"); }
+function localDate(d = new Date()) {
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+}
+function monthKey(d) {
+  const dt = typeof d === "string" ? parseDate(d) : d;
+  return dt.getFullYear() + "-" + pad(dt.getMonth() + 1);
+}
+function parseDate(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function addMonths(key, delta) {
+  const [y, m] = key.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1);
+}
+function daysInMonth(key) {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m, 0).getDate();
+}
+function daysLeftInMonth(key) {
+  const today = localDate();
+  if (monthKey(today) !== key) {
+    return monthKey(today) < key ? daysInMonth(key) : 0;
+  }
+  return daysInMonth(key) - parseDate(today).getDate();
+}
+function uid() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+function nowIso() { return new Date().toISOString(); }
+const idr = new Intl.NumberFormat("id-ID");
+function rp(n) {
+  const v = Math.round(Number(n) || 0);
+  const sign = v < 0 ? "-" : "";
+  return sign + "Rp " + idr.format(Math.abs(v));
+}
+function compact(n) {
+  const v = Math.abs(Math.round(Number(n) || 0));
+  const sign = n < 0 ? "-" : "";
+  if (v >= 1_000_000) {
+    const jt = v / 1_000_000;
+    const s = (Math.round(jt * 10) / 10).toString().replace(".", ",");
+    return sign + s.replace(/,0$/, "") + "jt";
+  }
+  if (v >= 1000) return sign + Math.round(v / 1000) + "rb";
+  return sign + String(v);
+}
+function monthLabel(key) {
+  const [y, m] = key.split("-").map(Number);
+  const names = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  return names[m - 1] + " " + y;
+}
+function el(tag, attrs = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") node.className = v;
+    else if (k === "text") node.textContent = v;
+    else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
+    else if (k === "style") node.setAttribute("style", v);
+    else node.setAttribute(k, v === true ? "" : String(v));
+  }
+  for (const c of [].concat(children)) {
+    if (c == null || c === false) continue;
+    node.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  return node;
+}
+function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+function toast(msg, action) {
+  const wrap = $("#toasts");
+  const t = el("div", { class: "toast", role: "status" }, [
+    el("span", { text: msg }),
+    action ? el("button", { type: "button", class: "btn", text: action.label, onclick: () => { action.fn(); t.remove(); } }) : null,
+  ]);
+  wrap.append(t);
+  setTimeout(() => t.remove(), action ? 6000 : 3200);
+}
+
+function setSync(label) {
+  state.sync = label;
+  const n = $("#syncStatus");
+  if (n) n.textContent = label;
+}
+
+/* ---------- persistence ---------- */
+const LS_KEY = "duitku.v1";
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return { categories: [], transactions: [], budgets: [], pending: [] };
+    const data = JSON.parse(raw);
+    return {
+      categories: data.categories || [],
+      transactions: data.transactions || [],
+      budgets: data.budgets || [],
+      pending: data.pending || [],
+    };
+  } catch {
+    return { categories: [], transactions: [], budgets: [], pending: [] };
+  }
+}
+let memOnly = false;
+function saveLocal() {
+  if (state.mode !== "local" && state.pending.length === 0) {
+    /* cloud is source of truth; still keep a cache */
+  }
+  const payload = {
+    categories: state.categories,
+    transactions: state.transactions,
+    budgets: state.budgets,
+    pending: state.pending,
+  };
+  if (memOnly) return;
+  try { localStorage.setItem(LS_KEY, JSON.stringify(payload)); }
+  catch { memOnly = true; }
+}
+
+function catById(id) { return state.categories.find(c => c.id === id); }
+function activeCats(type) {
+  return state.categories.filter(c => !c.archived && (!type || c.type === type))
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "id"));
+}
+
+function seedIfEmpty() {
+  if (state.categories.length) return false;
+  let i = 0;
+  for (const name of DEFAULT_EXPENSE) {
+    state.categories.push({ id: uid(), user_id: state.user?.id || "local", name, type: "expense", archived: false, sort_order: i++, created_at: nowIso() });
+  }
+  i = 0;
+  for (const name of DEFAULT_INCOME) {
+    state.categories.push({ id: uid(), user_id: state.user?.id || "local", name, type: "income", archived: false, sort_order: i++, created_at: nowIso() });
+  }
+  return true;
+}
+
+/* ---------- supabase ---------- */
+function cfg() {
+  const c = window.APP_CONFIG || {};
+  return { url: (c.SUPABASE_URL || "").trim(), key: (c.SUPABASE_ANON_KEY || "").trim() };
+}
+async function initBackend() {
+  const { url, key } = cfg();
+  if (!url || !key || typeof supabase === "undefined" || !supabase.createClient) {
+    enterLocal();
+    return;
+  }
+  try {
+    state.sb = supabase.createClient(url, key, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    });
+    const { data, error } = await state.sb.auth.getSession();
+    if (error) throw error;
+    state.mode = "cloud";
+    if (data.session) {
+      state.user = data.session.user;
+      await bootCloud();
+    } else {
+      renderAuth();
+    }
+    state.sb.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_OUT") {
+        state.user = null;
+        teardownRealtime();
+        renderAuth();
+      }
+    });
+  } catch (err) {
+    console.warn(err);
+    enterLocal("Tidak bisa terhubung ke Supabase. " );
+  }
+}
+function enterLocal(extra) {
+  state.mode = "local";
+  state.sb = null;
+  const data = loadLocal();
+  state.categories = data.categories;
+  state.transactions = data.transactions;
+  state.budgets = data.budgets;
+  state.pending = data.pending || [];
+  const seeded = seedIfEmpty();
+  if (seeded) saveLocal();
+  setSync("Mode lokal");
+  showBanner((extra || "") + "Mode lokal: data hanya tersimpan di perangkat ini");
+  render();
+}
+function showBanner(text) {
+  const b = $("#banner");
+  clear(b);
+  if (!text) return;
+  b.append(el("div", { class: "banner", text }));
+}
+
+const AUTH_ID = {
+  "Invalid login credentials": "Email atau kata sandi salah.",
+  "Email not confirmed": "Email belum dikonfirmasi. Cek kotak masuk.",
+  "User already registered": "Email ini sudah terdaftar. Coba masuk.",
+  "Password should be at least 6 characters": "Kata sandi minimal 6 karakter.",
+};
+function authMsg(err) {
+  const m = err?.message || String(err);
+  return AUTH_ID[m] || "Gagal: " + m;
+}
+
+async function bootCloud() {
+  showBanner("");
+  setSync("Memuat...");
+  try {
+    await loadAllCloud();
+    if (!state.categories.length) {
+      const local = loadLocal();
+      if (local.transactions.length || local.categories.length) {
+        offerUpload(local);
+        return;
+      }
+      seedIfEmpty();
+      await pushSeedCategories();
+    }
+    subscribeRealtime();
+    setSync(state.online ? "Tersinkron" : "Offline");
+    render();
+    flushQueue();
+  } catch (err) {
+    toast("Gagal memuat data: " + (err.message || err));
+    enterLocal();
+  }
+}
+
+async function pageAll(table, orderCol) {
+  const out = [];
+  const size = 1000;
+  let from = 0;
+  for (;;) {
+    let q = state.sb.from(table).select("*").range(from, from + size - 1);
+    if (orderCol) q = q.order(orderCol, { ascending: true });
+    const { data, error } = await q;
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < size) break;
+    from += size;
+  }
+  return out;
+}
+async function loadAllCloud() {
+  const [categories, transactions, budgets] = await Promise.all([
+    pageAll("categories", "sort_order"),
+    pageAll("transactions", "date"),
+    pageAll("budgets", "month"),
+  ]);
+  state.categories = categories;
+  state.transactions = transactions;
+  state.budgets = budgets;
+  saveLocal();
+}
+
+async function pushSeedCategories() {
+  const rows = state.categories.map(({ id, name, type, archived, sort_order }) => ({ id, name, type, archived, sort_order }));
+  const { error } = await state.sb.from("categories").insert(rows);
+  if (error) throw error;
+}
+
+function offerUpload(local) {
+  openModal("Data lokal ditemukan", (body, close) => {
+    body.append(
+      el("p", { text: "Ada data di perangkat ini dan cloud masih kosong. Upload ke cloud?" }),
+      el("div", { class: "seg" }, [
+        el("button", { type: "button", class: "btn btn-primary", text: "Upload data lokal ke cloud", onclick: async () => {
+          close();
+          try {
+            setSync("Menyimpan...");
+            state.categories = local.categories;
+            state.transactions = local.transactions;
+            state.budgets = local.budgets;
+            await uploadAllLocal();
+            subscribeRealtime();
+            setSync("Tersinkron");
+            render();
+            toast("Data lokal sudah di cloud.");
+          } catch (err) {
+            toast("Upload gagal: " + (err.message || err));
+          }
+        }}),
+        el("button", { type: "button", class: "btn", text: "Lewati, pakai cloud kosong", onclick: async () => {
+          close();
+          seedIfEmpty();
+          try { await pushSeedCategories(); } catch (e) { toast(authMsg(e)); }
+          subscribeRealtime();
+          setSync("Tersinkron");
+          render();
+        }}),
+      ])
+    );
+  });
+}
+async function uploadAllLocal() {
+  if (state.categories.length) {
+    const { error } = await state.sb.from("categories").upsert(state.categories.map(c => ({
+      id: c.id, name: c.name, type: c.type, archived: !!c.archived, sort_order: c.sort_order || 0,
+    })));
+    if (error) throw error;
+  }
+  await insertChunked("transactions", state.transactions.map(t => ({
+    id: t.id, date: t.date, type: t.type, amount: t.amount, category_id: t.category_id, note: t.note || "",
+  })));
+  if (state.budgets.length) {
+    const { error } = await state.sb.from("budgets").upsert(state.budgets.map(b => ({
+      month: b.month, category_id: b.category_id, amount: b.amount,
+    })));
+    if (error) throw error;
+  }
+}
+async function insertChunked(table, rows) {
+  for (let i = 0; i < rows.length; i += 500) {
+    const chunk = rows.slice(i, i + 500);
+    if (!chunk.length) continue;
+    const { error } = await state.sb.from(table).upsert(chunk);
+    if (error) throw error;
+  }
+}
+
+function subscribeRealtime() {
+  if (!state.sb || state.channel) return;
+  state.channel = state.sb.channel("duitku-changes")
+    .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, p => applyChange("transactions", p))
+    .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, p => applyChange("categories", p))
+    .on("postgres_changes", { event: "*", schema: "public", table: "budgets" }, p => applyChange("budgets", p))
+    .subscribe();
+}
+function teardownRealtime() {
+  if (state.channel && state.sb) state.sb.removeChannel(state.channel);
+  state.channel = null;
+}
+function applyChange(table, payload) {
+  const event = payload.eventType;
+  const row = event === "DELETE" ? payload.old : payload.new;
+  if (!row) return;
+  const key = rowKey(table, row);
+  if (state.writing.has(key)) return;
+  const list = state[table];
+  const idx = list.findIndex(r => sameRow(table, r, row));
+  if (event === "DELETE") {
+    if (idx >= 0) list.splice(idx, 1);
+  } else if (idx >= 0) {
+    if (row.updated_at && list[idx].updated_at === row.updated_at && row.id === list[idx].id) return;
+    list[idx] = row;
+  } else {
+    list.push(row);
+  }
+  saveLocal();
+  render();
+}
+function rowKey(table, row) {
+  if (table === "budgets") return "budgets:" + row.month + ":" + row.category_id;
+  return table + ":" + row.id;
+}
+function sameRow(table, a, b) {
+  if (table === "budgets") return a.month === b.month && a.category_id === b.category_id;
+  return a.id === b.id;
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && state.mode === "cloud" && state.user) {
+    loadAllCloud().then(() => render()).catch(() => {});
+  }
+});
+window.addEventListener("online", () => { state.online = true; setSync("Tersinkron"); flushQueue(); });
+window.addEventListener("offline", () => { state.online = false; setSync("Offline"); });
+
+async function cloudWrite(table, op, row, match) {
+  if (state.mode !== "cloud") { saveLocal(); return; }
+  const key = rowKey(table, row);
+  state.writing.add(key);
+  setSync("Menyimpan...");
+  try {
+    if (!state.online) throw new Error("offline");
+    let q;
+    if (op === "insert") q = state.sb.from(table).insert(strip(table, row));
+    else if (op === "update") q = state.sb.from(table).update(strip(table, row)).match(match);
+    else if (op === "upsert") q = state.sb.from(table).upsert(strip(table, row));
+    else if (op === "delete") q = state.sb.from(table).delete().match(match);
+    const { error } = await q;
+    if (error) throw error;
+    setSync("Tersinkron");
+  } catch (err) {
+    if (!state.online || err.message === "offline") {
+      state.pending.push({ table, op, row, match });
+      saveLocal();
+      setSync("Offline");
+      toast("Offline. Perubahan akan dikirim saat tersambung.");
+    } else {
+      throw err;
+    }
+  } finally {
+    setTimeout(() => state.writing.delete(key), 1500);
+  }
+}
+function strip(table, row) {
+  if (table === "categories") return { id: row.id, name: row.name, type: row.type, archived: !!row.archived, sort_order: row.sort_order || 0 };
+  if (table === "transactions") return { id: row.id, date: row.date, type: row.type, amount: row.amount, category_id: row.category_id, note: row.note || "" };
+  return { month: row.month, category_id: row.category_id, amount: row.amount };
+}
+async function flushQueue() {
+  if (state.mode !== "cloud" || !state.online || !state.pending.length) return;
+  const queue = state.pending.splice(0);
+  for (const job of queue) {
+    try { await cloudWrite(job.table, job.op, job.row, job.match); }
+    catch { state.pending.push(job); break; }
+  }
+  saveLocal();
+}
+
+/* ---------- aggregates ---------- */
+function txInMonth(key) {
+  return state.transactions.filter(t => t.date && t.date.slice(0, 7) === key);
+}
+function sumType(list, type) {
+  let s = 0;
+  for (const t of list) if (t.type === type) s += Number(t.amount) || 0;
+  return s;
+}
+function spentByCat(key) {
+  const map = new Map();
+  for (const t of txInMonth(key)) {
+    if (t.type !== "expense") continue;
+    map.set(t.category_id, (map.get(t.category_id) || 0) + Number(t.amount));
+  }
+  return map;
+}
+function budgetsFor(key) {
+  return state.budgets.filter(b => b.month === key);
+}
+
+/* ---------- nav ---------- */
+function render() {
+  document.querySelectorAll(".nav button").forEach(b => {
+    b.setAttribute("aria-current", b.dataset.screen === state.screen ? "page" : "false");
+  });
+  $("#fabCatat").hidden = state.screen === "lainnya" || (state.mode === "cloud" && !state.user);
+  clear(main);
+  if (state.mode === "cloud" && !state.user) return;
+  if (state.screen === "dashboard") renderDashboard();
+  else if (state.screen === "transaksi") renderTransaksi();
+  else if (state.screen === "budget") renderBudget();
+  else renderSettings();
+  const syncEl = $("#syncStatus");
+  if (syncEl && !syncEl.textContent) syncEl.textContent = state.mode === "local" ? "Mode lokal" : state.sync;
+}
+
+document.querySelector(".nav").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  state.screen = b.dataset.screen;
+  render();
+});
+$("#fabCatat").addEventListener("click", () => openTxForm());
+
+/* ---------- dashboard ---------- */
+function renderDashboard() {
+  const key = state.month;
+  const list = txInMonth(key);
+  const income = sumType(list, "income");
+  const expense = sumType(list, "expense");
+  const budgets = budgetsFor(key);
+  const budgetTotal = budgets.reduce((s, b) => s + Number(b.amount), 0);
+  const spentMap = spentByCat(key);
+  let spentBudgeted = 0;
+  for (const b of budgets) spentBudgeted += spentMap.get(b.category_id) || 0;
+  const remain = budgets.length ? budgetTotal - expense : null;
+
+  const head = el("div", { class: "card month-nav" }, [
+    el("button", { type: "button", class: "icon-btn", "aria-label": "Bulan sebelumnya", text: "‹", onclick: () => { state.month = addMonths(key, -1); render(); } }),
+    el("strong", { text: monthLabel(key) }),
+    el("button", { type: "button", class: "icon-btn", "aria-label": "Bulan berikutnya", text: "›", onclick: () => { state.month = addMonths(key, 1); render(); } }),
+  ]);
+  main.append(head);
+
+  if (budgets.length) {
+    const left = daysLeftInMonth(key);
+    const over = remain < 0;
+    let msg;
+    if (over) msg = "Bulan ini sudah melebihi budget sebesar " + rp(Math.abs(remain)) + ".";
+    else if (left > 0) msg = "Sisa budget bulan ini " + rp(remain) + " untuk " + left + " hari lagi, jadi boleh jajan sekitar " + rp(Math.floor(remain / left)) + " per hari.";
+    else msg = "Sisa budget bulan ini " + rp(remain) + ".";
+    main.append(el("div", { class: "card" }, [el("p", { text: msg, style: "margin:0" })]));
+  }
+
+  const stats = el("div", { class: "grid grid-2 grid-4" });
+  const cards = [
+    ["Pemasukan", rp(income), "pos"],
+    ["Pengeluaran", rp(expense), "neg"],
+    ["Selisih", rp(income - expense), income - expense >= 0 ? "pos" : "neg"],
+    ["Sisa budget total", budgets.length ? rp(budgetTotal - expense) : "Belum diatur", ""],
+  ];
+  for (const [label, value, cls] of cards) {
+    stats.append(el("div", { class: "card stat" }, [
+      el("div", { class: "label", text: label }),
+      el("div", { class: "value " + cls, text: value }),
+    ]));
+  }
+  main.append(stats);
+
+  const byCat = [...spentMap.entries()].map(([id, amount]) => ({ id, amount, name: catById(id)?.name || "Tanpa kategori" }))
+    .sort((a, b) => b.amount - a.amount);
+  const catCard = el("div", { class: "card" }, [el("h2", { text: "Pengeluaran per kategori", style: "margin:0 0 10px;font-size:1rem" })]);
+  if (!byCat.length) {
+    catCard.append(el("div", { class: "empty" }, [
+      el("p", { text: "Belum ada pengeluaran bulan ini." }),
+      el("button", { type: "button", class: "btn btn-primary", text: "+ Catat", onclick: () => openTxForm({ type: "expense" }) }),
+    ]));
+  } else {
+    const max = byCat[0].amount || 1;
+    for (const c of byCat) {
+      const pct = expense ? Math.round(c.amount / expense * 100) : 0;
+      const row = el("div", { style: "margin-bottom:10px" });
+      const top = el("div", { class: "row-item", style: "border:0;padding:0 0 4px" });
+      top.append(el("span", { text: c.name }), el("span", { class: "small", text: rp(c.amount) + " · " + pct + "%" }));
+      row.append(top);
+      const track = el("div", { class: "bar-track" });
+      track.append(el("div", { class: "bar-fill", style: "width:" + Math.max(2, c.amount / max * 100) + "%;background:var(--accent)" }));
+      row.append(track);
+      catCard.append(row);
+    }
+  }
+  main.append(catCard);
+  main.append(trendCard(key));
+  main.append(insightsCard(key, income, expense, budgets, spentMap, remain));
+}
+
+function trendCard(key) {
+  const months = [];
+  for (let i = 5; i >= 0; i--) months.push(addMonths(key, -i));
+  const series = months.map(m => {
+    const list = txInMonth(m);
+    return { m, income: sumType(list, "income"), expense: sumType(list, "expense") };
+  });
+  const max = Math.max(1, ...series.flatMap(s => [s.income, s.expense]));
+  const card = el("div", { class: "card" });
+  card.append(el("h2", { text: "6 bulan terakhir", style: "margin:0 0 8px;font-size:1rem" }));
+  const legend = el("div", { class: "small muted", style: "display:flex;gap:12px;margin-bottom:8px" });
+  legend.append(el("span", { text: "■ Pemasukan" }), el("span", { text: "■ Pengeluaran" }));
+  legend.firstChild.style.color = "var(--income)";
+  legend.lastChild.style.color = "var(--expense)";
+  card.append(legend);
+  const W = 360, H = 160, pad = 28;
+  const gw = (W - pad) / series.length;
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", "0 0 " + W + " " + (H + 28));
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Grafik pemasukan dan pengeluaran 6 bulan");
+  function bar(x, amount, color, label) {
+    const h = Math.max(amount ? 2 : 0, (amount / max) * (H - 16));
+    const r = document.createElementNS(svgNS, "rect");
+    r.setAttribute("x", x); r.setAttribute("y", H - h); r.setAttribute("width", 12); r.setAttribute("height", h);
+    r.setAttribute("rx", 3); r.setAttribute("fill", color);
+    r.setAttribute("tabindex", "0");
+    r.setAttribute("role", "button");
+    const tip = label + " " + rp(amount);
+    r.setAttribute("aria-label", tip);
+    const title = document.createElementNS(svgNS, "title");
+    title.textContent = tip;
+    r.append(title);
+    r.addEventListener("click", () => toast(tip));
+    r.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toast(tip); } });
+    return r;
+  }
+  series.forEach((s, i) => {
+    const x = pad / 2 + i * gw;
+    svg.append(bar(x, s.income, "var(--income)", monthLabel(s.m) + " pemasukan"));
+    svg.append(bar(x + 16, s.expense, "var(--expense)", monthLabel(s.m) + " pengeluaran"));
+    const t = document.createElementNS(svgNS, "text");
+    t.setAttribute("x", x + 12); t.setAttribute("y", H + 16); t.setAttribute("text-anchor", "middle");
+    t.setAttribute("font-size", "10"); t.setAttribute("fill", "currentColor");
+    t.textContent = monthLabel(s.m).split(" ")[0];
+    svg.append(t);
+  });
+  const axis = document.createElementNS(svgNS, "text");
+  axis.setAttribute("x", 2); axis.setAttribute("y", 12); axis.setAttribute("font-size", "10"); axis.setAttribute("fill", "currentColor");
+  axis.textContent = compact(max);
+  svg.append(axis);
+  card.append(svg);
+  return card;
+}
+
+function insightsCard(key, income, expense, budgets, spentMap, remain) {
+  const insights = [];
+  const prevKey = addMonths(key, -1);
+  const prev = txInMonth(prevKey);
+  const prevExp = sumType(prev, "expense");
+  for (const b of budgets) {
+    const spent = spentMap.get(b.category_id) || 0;
+    if (b.amount > 0 && spent > b.amount) {
+      const pct = Math.round((spent - b.amount) / b.amount * 100);
+      const name = catById(b.category_id)?.name || "Kategori";
+      insights.push({ score: pct, text: name + " " + pct + "% di atas budget" });
+    }
+  }
+  if (prevExp > 0 && expense > 0) {
+    const delta = Math.round((expense - prevExp) / prevExp * 100);
+    if (delta <= -5) insights.push({ score: Math.abs(delta), text: "Pengeluaran bulan ini " + Math.abs(delta) + "% lebih rendah dari bulan lalu" });
+    else if (delta >= 5) insights.push({ score: delta, text: "Pengeluaran bulan ini " + delta + "% lebih tinggi dari bulan lalu" });
+  }
+  const today = localDate();
+  if (monthKey(today) === key && budgets.length && remain != null) {
+    const day = parseDate(today).getDate();
+    if (day >= 5) {
+      const dim = daysInMonth(key);
+      const projected = Math.round(expense / day * dim);
+      const budgetTotal = budgets.reduce((s, b) => s + Number(b.amount), 0);
+      const gap = budgetTotal - projected;
+      if (gap > 0) insights.push({ score: 40, text: "Dengan kecepatan sekarang, bulan ini kamu akan lebih hemat sekitar " + rp(gap) + " dari budget" });
+      else if (gap < 0) insights.push({ score: 50, text: "Dengan kecepatan sekarang, bulan ini kamu akan melebihi budget sekitar " + rp(Math.abs(gap)) });
+    }
+  }
+  if (expense > 0) {
+    let top = null;
+    for (const [id, amount] of spentMap) if (!top || amount > top.amount) top = { id, amount };
+    if (top) {
+      const pct = Math.round(top.amount / expense * 100);
+      insights.push({ score: pct > 30 ? pct : 10, text: "Kategori terbesar bulan ini: " + (catById(top.id)?.name || "?") + " (" + pct + "%)" });
+    }
+  }
+  insights.sort((a, b) => b.score - a.score);
+  const top5 = insights.slice(0, 5);
+  const card = el("div", { class: "card" }, [el("h2", { text: "Insight", style: "margin:0 0 8px;font-size:1rem" })]);
+  if (!top5.length) card.append(el("p", { class: "muted", text: "Catat beberapa transaksi dulu biar ada insight." }));
+  else {
+    const ul = el("ul", { style: "margin:0;padding-left:18px" });
+    for (const i of top5) ul.append(el("li", { text: i.text }));
+    card.append(ul);
+  }
+  return card;
+}
+
+/* ---------- transactions ---------- */
+function filteredTx() {
+  const f = state.txFilter;
+  return state.transactions.filter(t => {
+    if (f.month && t.date.slice(0, 7) !== f.month) return false;
+    if (f.category && t.category_id !== f.category) return false;
+    if (f.type && t.type !== f.type) return false;
+    if (f.q && !(t.note || "").toLowerCase().includes(f.q.toLowerCase())) return false;
+    return true;
+  }).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (a.created_at < b.created_at ? 1 : -1)));
+}
+function recentCombos() {
+  const seen = new Set();
+  const out = [];
+  const sorted = [...state.transactions].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  for (const t of sorted) {
+    const k = t.category_id + ":" + t.amount;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+    if (out.length === 5) break;
+  }
+  return out;
+}
+function renderTransaksi() {
+  const f = state.txFilter;
+  const filters = el("div", { class: "card grid" });
+  const monthSel = el("select", { "aria-label": "Filter bulan", onchange: e => { f.month = e.target.value; state.txShown = PAGE; render(); } }, [
+    el("option", { value: "", text: "Semua bulan" }),
+  ]);
+  const months = [...new Set(state.transactions.map(t => t.date.slice(0, 7)))].sort().reverse();
+  if (!months.includes(state.month)) months.unshift(state.month);
+  for (const m of months) {
+    const o = el("option", { value: m, text: monthLabel(m) });
+    if (m === f.month) o.selected = true;
+    monthSel.append(o);
+  }
+  const catSel = el("select", { "aria-label": "Filter kategori", onchange: e => { f.category = e.target.value; state.txShown = PAGE; render(); } }, [
+    el("option", { value: "", text: "Semua kategori" }),
+  ]);
+  for (const c of state.categories) {
+    const o = el("option", { value: c.id, text: c.name + (c.archived ? " (arsip)" : "") });
+    if (c.id === f.category) o.selected = true;
+    catSel.append(o);
+  }
+  const typeSel = el("select", { "aria-label": "Filter jenis", onchange: e => { f.type = e.target.value; state.txShown = PAGE; render(); } });
+  for (const [v, label] of [["", "Semua jenis"], ["expense", "Pengeluaran"], ["income", "Pemasukan"]]) {
+    const o = el("option", { value: v, text: label });
+    if (v === f.type) o.selected = true;
+    typeSel.append(o);
+  }
+  const search = el("input", { type: "search", placeholder: "Cari catatan", "aria-label": "Cari catatan", value: f.q });
+  let timer;
+  search.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { f.q = search.value.trim(); state.txShown = PAGE; renderList(); }, 180);
+  });
+  filters.append(monthSel, catSel, typeSel, search);
+  main.append(filters);
+
+  const combos = recentCombos();
+  if (combos.length) {
+    const box = el("div", { class: "chips", style: "margin-bottom:12px" });
+    for (const t of combos) {
+      const name = catById(t.category_id)?.name || "?";
+      box.append(el("button", {
+        type: "button", class: "chip",
+        text: name + " " + rp(t.amount),
+        onclick: () => quickAdd(t),
+      }));
+    }
+    main.append(box);
+  }
+  const listHost = el("div", { id: "txList" });
+  main.append(listHost);
+  renderList();
+}
+function renderList() {
+  const host = $("#txList");
+  if (!host) return;
+  clear(host);
+  const all = filteredTx();
+  const slice = all.slice(0, state.txShown);
+  if (!slice.length) {
+    host.append(el("div", { class: "card empty" }, [
+      el("p", { text: state.transactions.length ? "Tidak ada yang cocok dengan filter." : "Belum ada transaksi." }),
+      el("button", { type: "button", class: "btn btn-primary", text: "+ Catat transaksi", onclick: () => openTxForm() }),
+    ]));
+    return;
+  }
+  let current = "";
+  let group;
+  for (const t of slice) {
+    if (t.date !== current) {
+      current = t.date;
+      const dayTotal = all.filter(x => x.date === t.date).reduce((s, x) => s + (x.type === "expense" ? -Number(x.amount) : Number(x.amount)), 0);
+      group = el("div", { class: "card" });
+      group.append(el("div", { class: "row-item" }, [
+        el("strong", { text: t.date }),
+        el("span", { class: "small " + (dayTotal >= 0 ? "pos" : "neg"), text: (dayTotal >= 0 ? "+" : "") + rp(dayTotal) }),
+      ]));
+      host.append(group);
+    }
+    const name = catById(t.category_id)?.name || "?";
+    const row = el("div", { class: "row-item" });
+    const left = el("div");
+    left.append(el("div", { text: name }));
+    if (t.note) left.append(el("div", { class: "small muted", text: t.note }));
+    row.append(left);
+    const right = el("div", { style: "text-align:right" });
+    right.append(el("div", { class: t.type === "income" ? "pos" : "neg", text: (t.type === "income" ? "+" : "-") + rp(t.amount) }));
+    const actions = el("div", { class: "seg", style: "justify-content:flex-end" });
+    actions.append(
+      el("button", { type: "button", class: "btn btn-ghost", text: "Ubah", onclick: () => openTxForm(t) }),
+      el("button", { type: "button", class: "btn btn-ghost", text: "Hapus", onclick: () => deleteTx(t) }),
+    );
+    right.append(actions);
+    row.append(right);
+    group.append(row);
+  }
+  if (all.length > slice.length) {
+    host.append(el("button", { type: "button", class: "btn", text: "Muat lebih banyak", onclick: () => { state.txShown += PAGE; renderList(); } }));
+  }
+}
+async function quickAdd(src) {
+  const row = {
+    id: uid(), date: localDate(), type: src.type, amount: src.amount,
+    category_id: src.category_id, note: src.note || "", created_at: nowIso(), updated_at: nowIso(),
+  };
+  state.transactions.push(row);
+  saveLocal();
+  render();
+  try { await cloudWrite("transactions", "insert", row); toast("Tercatat: " + (catById(src.category_id)?.name || "") + " " + rp(src.amount)); }
+  catch (err) { rollbackTx(row.id); toast("Gagal mencatat: " + (err.message || err)); }
+}
+function deleteTx(t) {
+  const idx = state.transactions.findIndex(x => x.id === t.id);
+  if (idx < 0) return;
+  const copy = state.transactions[idx];
+  state.transactions.splice(idx, 1);
+  saveLocal();
+  render();
+  let undone = false;
+  toast("Transaksi dihapus", { label: "Urungkan", fn: () => { undone = true; state.transactions.push(copy); saveLocal(); render(); } });
+  setTimeout(async () => {
+    if (undone) return;
+    try { await cloudWrite("transactions", "delete", copy, { id: copy.id }); }
+    catch (err) { state.transactions.push(copy); saveLocal(); render(); toast("Gagal menghapus: " + (err.message || err)); }
+  }, 6000);
+}
+function rollbackTx(id) {
+  const i = state.transactions.findIndex(t => t.id === id);
+  if (i >= 0) state.transactions.splice(i, 1);
+  saveLocal();
+  render();
+}
+
+function openTxForm(existing) {
+  const isEdit = !!(existing && existing.id);
+  const draft = {
+    date: existing?.date || localDate(),
+    type: existing?.type || "expense",
+    amount: existing?.amount ? String(existing.amount) : "",
+    category_id: existing?.category_id || "",
+    note: existing?.note || "",
+  };
+  openModal(isEdit ? "Ubah transaksi" : "Catat transaksi", (body, close) => {
+    const date = el("input", { type: "date", value: draft.date, required: "true" });
+    const type = el("select");
+    for (const [v, label] of [["expense", "Pengeluaran"], ["income", "Pemasukan"]]) {
+      const o = el("option", { value: v, text: label });
+      if (v === draft.type) o.selected = true;
+      type.append(o);
+    }
+    const amount = el("input", { type: "text", inputmode: "numeric", autocomplete: "off", value: draft.amount ? formatThousands(draft.amount) : "" });
+    const cat = el("select");
+    const note = el("input", { type: "text", value: draft.note, maxlength: "200" });
+    function refillCats() {
+      clear(cat);
+      cat.append(el("option", { value: "", text: "Pilih kategori" }));
+      for (const c of activeCats(type.value)) {
+        const o = el("option", { value: c.id, text: c.name });
+        if (c.id === draft.category_id) o.selected = true;
+        cat.append(o);
+      }
+    }
+    type.addEventListener("change", () => { draft.category_id = ""; refillCats(); });
+    refillCats();
+    amount.addEventListener("input", () => {
+      const digits = amount.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+      amount.value = formatThousands(digits);
+    });
+    body.append(
+      field("Tanggal", date),
+      field("Jenis", type),
+      field("Jumlah (Rp)", amount),
+      field("Kategori", cat),
+      field("Catatan (opsional)", note),
+      el("button", { type: "button", class: "btn btn-primary", text: "Simpan", onclick: async () => {
+        const digits = amount.value.replace(/\D/g, "");
+        const value = Number(digits);
+        if (!date.value) return toast("Tanggal wajib diisi.");
+        if (!value || value <= 0) return toast("Jumlah harus lebih dari 0.");
+        if (!cat.value) return toast("Kategori wajib dipilih.");
+        const row = {
+          id: existing?.id || uid(),
+          date: date.value,
+          type: type.value,
+          amount: value,
+          category_id: cat.value,
+          note: note.value.trim(),
+          created_at: existing?.created_at || nowIso(),
+          updated_at: nowIso(),
+        };
+        const prev = existing ? { ...existing } : null;
+        if (isEdit) {
+          const i = state.transactions.findIndex(t => t.id === row.id);
+          if (i >= 0) state.transactions[i] = row;
+        } else state.transactions.push(row);
+        saveLocal();
+        close();
+        render();
+        try {
+          if (isEdit) await cloudWrite("transactions", "update", row, { id: row.id });
+          else await cloudWrite("transactions", "insert", row);
+        } catch (err) {
+          if (isEdit && prev) {
+            const i = state.transactions.findIndex(t => t.id === row.id);
+            if (i >= 0) state.transactions[i] = prev;
+          } else rollbackTx(row.id);
+          toast("Gagal menyimpan: " + (err.message || err));
+        }
+      }}),
+    );
+    setTimeout(() => amount.focus(), 50);
+  });
+}
+function formatThousands(digits) {
+  const s = String(digits || "").replace(/\D/g, "");
+  if (!s) return "";
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+function field(label, control) {
+  const id = "f-" + uid();
+  control.id = id;
+  return el("label", { class: "field" }, [el("span", { text: label }), control]);
+}
+
+/* ---------- budget ---------- */
+function renderBudget() {
+  const key = state.month;
+  ensureBudgetCopyHint(key);
+  const head = el("div", { class: "card month-nav" }, [
+    el("button", { type: "button", class: "icon-btn", "aria-label": "Bulan sebelumnya", text: "‹", onclick: () => { state.month = addMonths(key, -1); render(); } }),
+    el("strong", { text: monthLabel(key) }),
+    el("button", { type: "button", class: "icon-btn", "aria-label": "Bulan berikutnya", text: "›", onclick: () => { state.month = addMonths(key, 1); render(); } }),
+  ]);
+  main.append(head);
+  const prev = budgetsFor(addMonths(key, -1));
+  if (!budgetsFor(key).length && prev.length) {
+    main.append(el("div", { class: "card" }, [
+      el("p", { text: "Belum ada budget bulan ini.", style: "margin-top:0" }),
+      el("button", { type: "button", class: "btn btn-primary", text: "Salin dari bulan lalu", onclick: () => copyBudgets(key) }),
+    ]));
+  }
+  const spent = spentByCat(key);
+  const cats = activeCats("expense");
+  if (!cats.length) {
+    main.append(el("div", { class: "card empty", text: "Belum ada kategori pengeluaran." }));
+    return;
+  }
+  for (const c of cats) {
+    const b = state.budgets.find(x => x.month === key && x.category_id === c.id);
+    const used = spent.get(c.id) || 0;
+    const card = el("div", { class: "card" });
+    card.append(el("strong", { text: c.name }));
+    if (!b) {
+      card.append(el("p", { class: "muted", text: "Belum diatur", style: "margin:6px 0" }));
+      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Budget " + c.name, placeholder: "Atur budget" });
+      input.addEventListener("input", () => { input.value = formatThousands(input.value.replace(/\D/g, "")); });
+      card.append(input, el("button", { type: "button", class: "btn", text: "Simpan", style: "margin-top:8px", onclick: () => saveBudget(key, c.id, input.value) }));
+    } else {
+      const remain = Number(b.amount) - used;
+      const ratio = b.amount > 0 ? used / b.amount : (used > 0 ? 2 : 0);
+      const cls = ratio > 1 ? "over" : ratio >= 0.8 ? "warn" : "ok";
+      const label = ratio > 1 ? "Melebihi budget" : ratio >= 0.8 ? "Hampir habis" : "Aman";
+      card.append(el("div", { class: "small", text: "Budget " + rp(b.amount) + " · Terpakai " + rp(used) + " · Sisa " + rp(remain) }));
+      const track = el("div", { class: "bar-track", style: "margin:8px 0" });
+      track.append(el("div", { class: "bar-fill " + cls, style: "width:" + Math.min(100, ratio * 100) + "%" }));
+      card.append(track, el("span", { class: "tag " + cls, text: label }));
+      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Ubah budget " + c.name, value: formatThousands(String(b.amount)), style: "margin-top:8px" });
+      input.addEventListener("input", () => { input.value = formatThousands(input.value.replace(/\D/g, "")); });
+      input.addEventListener("change", () => saveBudget(key, c.id, input.value));
+      card.append(input);
+    }
+    main.append(card);
+  }
+}
+async function saveBudget(month, category_id, raw) {
+  const amount = Number(String(raw).replace(/\D/g, ""));
+  if (!Number.isFinite(amount) || amount < 0) return toast("Jumlah budget tidak valid.");
+  const prev = state.budgets.find(b => b.month === month && b.category_id === category_id);
+  const row = { user_id: state.user?.id, month, category_id, amount };
+  if (prev) Object.assign(prev, row);
+  else state.budgets.push(row);
+  saveLocal();
+  render();
+  try { await cloudWrite("budgets", "upsert", row); }
+  catch (err) {
+    if (prev) Object.assign(state.budgets.find(b => b.month === month && b.category_id === category_id) || {}, prev);
+    toast("Gagal menyimpan budget: " + (err.message || err));
+    render();
+  }
+}
+async function copyBudgets(key) {
+  const prevKey = addMonths(key, -1);
+  const prev = budgetsFor(prevKey);
+  for (const b of prev) {
+    if (!state.budgets.some(x => x.month === key && x.category_id === b.category_id)) {
+      state.budgets.push({ month: key, category_id: b.category_id, amount: b.amount });
+    }
+  }
+  saveLocal();
+  render();
+  try {
+    if (state.mode === "cloud") {
+      const { error } = await state.sb.from("budgets").upsert(budgetsFor(key).map(b => ({ month: b.month, category_id: b.category_id, amount: b.amount })));
+      if (error) throw error;
+    }
+    toast("Budget disalin dari bulan lalu.");
+  } catch (err) { toast("Gagal menyalin: " + (err.message || err)); }
+}
+function ensureBudgetCopyHint() { /* button shown in renderBudget */ }
+
+/* ---------- settings ---------- */
+function renderSettings() {
+  let theme = "auto";
+  try { theme = localStorage.getItem("duitku.theme") || "auto"; } catch {}
+  const card = el("div", { class: "card" }, [el("h2", { text: "Tampilan", style: "margin:0 0 8px;font-size:1rem" })]);
+  const seg = el("div", { class: "seg" });
+  for (const [v, label] of [["auto", "Otomatis"], ["light", "Terang"], ["dark", "Gelap"]]) {
+    seg.append(el("button", { type: "button", class: "btn", text: label, "aria-pressed": theme === v ? "true" : "false", onclick: () => applyTheme(v) }));
+  }
+  card.append(seg);
+  main.append(card);
+
+  const data = el("div", { class: "card" }, [el("h2", { text: "Data", style: "margin:0 0 8px;font-size:1rem" })]);
+  data.append(
+    el("div", { class: "grid" }, [
+      el("button", { type: "button", class: "btn", text: "Ekspor CSV", onclick: exportCsv }),
+      el("button", { type: "button", class: "btn", text: "Impor CSV", onclick: () => pickFile(".csv,text/csv", startCsvImport) }),
+      el("button", { type: "button", class: "btn", text: "Cadangkan JSON", onclick: exportJson }),
+      el("button", { type: "button", class: "btn", text: "Pulihkan JSON", onclick: () => pickFile(".json,application/json", startJsonRestore) }),
+      el("button", { type: "button", class: "btn", text: "Muat data contoh", onclick: loadSample }),
+      el("button", { type: "button", class: "btn btn-danger", text: "Hapus semua data", onclick: wipeAll }),
+    ])
+  );
+  main.append(data);
+
+  const cats = el("div", { class: "card" }, [el("h2", { text: "Kategori", style: "margin:0 0 8px;font-size:1rem" })]);
+  cats.append(el("button", { type: "button", class: "btn btn-primary", text: "Tambah kategori", onclick: () => editCategory(null) }));
+  for (const c of [...state.categories].sort((a, b) => a.type.localeCompare(b.type) || a.sort_order - b.sort_order)) {
+    const row = el("div", { class: "row-item" });
+    const left = el("div");
+    left.append(el("div", { text: c.name }), el("div", { class: "small muted", text: (c.type === "income" ? "Pemasukan" : "Pengeluaran") + (c.archived ? " · arsip" : "") }));
+    row.append(left);
+    row.append(el("div", { class: "seg" }, [
+      el("button", { type: "button", class: "btn btn-ghost", text: "Ubah", onclick: () => editCategory(c) }),
+      el("button", { type: "button", class: "btn btn-ghost", text: c.archived ? "Aktifkan" : "Arsip", onclick: () => archiveCategory(c) }),
+    ]));
+    cats.append(row);
+  }
+  main.append(cats);
+
+  const acc = el("div", { class: "card" }, [el("h2", { text: "Akun", style: "margin:0 0 8px;font-size:1rem" })]);
+  if (state.mode === "cloud" && state.user) {
+    acc.append(el("p", { text: state.user.email || "" }), el("button", { type: "button", class: "btn", text: "Keluar", onclick: async () => {
+      try { await state.sb.auth.signOut(); } catch (e) { toast(authMsg(e)); }
+    }}));
+  } else {
+    acc.append(el("p", { class: "muted", text: "Mode lokal. Isi config.js untuk sinkron cloud." }));
+  }
+  main.append(acc);
+}
+function applyTheme(v) {
+  try { localStorage.setItem("duitku.theme", v); } catch {}
+  if (v === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", v);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#0f766e");
+  render();
+}
+function editCategory(existing) {
+  openModal(existing ? "Ubah kategori" : "Kategori baru", (body, close) => {
+    const name = el("input", { type: "text", value: existing?.name || "", maxlength: "40" });
+    const type = el("select");
+    for (const [v, label] of [["expense", "Pengeluaran"], ["income", "Pemasukan"]]) {
+      const o = el("option", { value: v, text: label });
+      if ((existing?.type || "expense") === v) o.selected = true;
+      type.append(o);
+    }
+    if (existing) type.disabled = true;
+    body.append(field("Nama", name), field("Jenis", type), el("button", {
+      type: "button", class: "btn btn-primary", text: "Simpan", onclick: async () => {
+        const n = name.value.trim();
+        if (!n) return toast("Nama wajib diisi.");
+        const dup = state.categories.some(c => c.type === (existing?.type || type.value) && c.name.toLowerCase() === n.toLowerCase() && c.id !== existing?.id);
+        if (dup) return toast("Nama kategori sudah ada.");
+        if (existing) {
+          const prev = existing.name;
+          existing.name = n;
+          saveLocal(); close(); render();
+          try { await cloudWrite("categories", "update", existing, { id: existing.id }); }
+          catch (err) { existing.name = prev; render(); toast("Gagal mengubah: " + (err.message || err)); }
+        } else {
+          const row = { id: uid(), name: n, type: type.value, archived: false, sort_order: activeCats(type.value).length, created_at: nowIso() };
+          state.categories.push(row);
+          saveLocal(); close(); render();
+          try { await cloudWrite("categories", "insert", row); }
+          catch (err) {
+            state.categories = state.categories.filter(c => c.id !== row.id);
+            render(); toast("Gagal menambah: " + (err.message || err));
+          }
+        }
+      },
+    }));
+    setTimeout(() => name.focus(), 40);
+  });
+}
+async function archiveCategory(c) {
+  const used = state.transactions.some(t => t.category_id === c.id);
+  if (!c.archived && used) {
+    /* archive, never hard-delete */
+  }
+  if (!c.archived && !used) {
+    /* still archive to honor "never hard-delete if has transactions"; unused can be archived too */
+  }
+  const prev = c.archived;
+  c.archived = !c.archived;
+  saveLocal(); render();
+  try { await cloudWrite("categories", "update", c, { id: c.id }); }
+  catch (err) { c.archived = prev; render(); toast("Gagal: " + (err.message || err)); }
+}
+
+/* ---------- CSV ---------- */
+function csvEscape(v) {
+  const s = String(v ?? "");
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+function exportCsv() {
+  const lines = ["date,type,category,amount,note"];
+  const rows = [...state.transactions].sort((a, b) => a.date < b.date ? -1 : 1);
+  for (const t of rows) {
+    lines.push([t.date, t.type, catById(t.category_id)?.name || "", t.amount, t.note || ""].map(csvEscape).join(","));
+  }
+  const bom = "\uFEFF";
+  download(bom + lines.join("\r\n"), "duitku-" + localDate() + ".csv", "text/csv;charset=utf-8");
+}
+function download(text, name, mime) {
+  const blob = new Blob([text], { type: mime });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+function pickFile(accept, cb) {
+  const input = el("input", { type: "file", accept });
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => cb(String(reader.result || ""), file.name);
+    reader.onerror = () => toast("Gagal membaca file.");
+    reader.readAsText(file);
+  });
+  input.click();
+}
+function parseCsv(text) {
+  let s = text;
+  if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
+  const sample = s.slice(0, 2000);
+  const commas = (sample.match(/,/g) || []).length;
+  const semis = (sample.match(/;/g) || []).length;
+  const delim = semis > commas ? ";" : ",";
+  const rows = [];
+  let row = [], cur = "", q = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (q) {
+      if (ch === '"') {
+        if (s[i + 1] === '"') { cur += '"'; i++; }
+        else q = false;
+      } else cur += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === delim) { row.push(cur); cur = ""; }
+    else if (ch === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; }
+    else if (ch === "\r") { /* skip */ }
+    else cur += ch;
+  }
+  if (cur.length || row.length) { row.push(cur); rows.push(row); }
+  return { delim, rows: rows.filter(r => r.some(c => String(c).trim() !== "")) };
+}
+function guessMap(header) {
+  const alias = {
+    date: ["date", "tanggal", "tgl"],
+    type: ["type", "jenis", "tipe"],
+    category: ["category", "kategori", "kat"],
+    amount: ["amount", "jumlah", "nominal", "nilai"],
+    note: ["note", "catatan", "ket", "keterangan", "deskripsi"],
+  };
+  const map = {};
+  header.forEach((h, i) => {
+    const key = String(h || "").trim().toLowerCase();
+    for (const [field, names] of Object.entries(alias)) {
+      if (names.includes(key) && map[field] == null) map[field] = i;
+    }
+  });
+  return map;
+}
+function parseAmount(raw) {
+  let s = String(raw || "").trim().replace(/rp/ig, "").replace(/\s/g, "");
+  if (!s) return { ok: false, reason: "Jumlah kosong" };
+  const lastDot = s.lastIndexOf(".");
+  const lastComma = s.lastIndexOf(",");
+  const sep = Math.max(lastDot, lastComma);
+  if (sep >= 0) {
+    const tail = s.slice(sep + 1);
+    if (/^\d{3}$/.test(tail) || (s.match(/[.,]/g) || []).length > 1) {
+      s = s.replace(/[.,]/g, "");
+    } else return { ok: false, reason: "Jumlah tidak dikenali: " + raw };
+  }
+  if (!/^\d+$/.test(s)) return { ok: false, reason: "Jumlah tidak dikenali: " + raw };
+  const n = Number(s);
+  if (!n || n <= 0) return { ok: false, reason: "Jumlah harus lebih dari 0" };
+  return { ok: true, value: n };
+}
+function parseDateLoose(raw) {
+  const s = String(raw || "").trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return m[1] + "-" + m[2] + "-" + m[3];
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return m[3] + "-" + pad(Number(m[2])) + "-" + pad(Number(m[1]));
+  return null;
+}
+function parseTypeLoose(raw) {
+  const s = String(raw || "").trim().toLowerCase();
+  if (["expense", "pengeluaran", "keluar"].includes(s)) return "expense";
+  if (["income", "pemasukan", "masuk"].includes(s)) return "income";
+  return null;
+}
+function txSig(t) { return [t.date, t.type, (t.category || "").toLowerCase(), t.amount, t.note || ""].join("|"); }
+
+function startCsvImport(text) {
+  const { rows } = parseCsv(text);
+  if (rows.length < 2) return toast("File CSV kosong atau tidak ada data.");
+  const header = rows[0];
+  const map = guessMap(header);
+  openModal("Impor CSV", (body, close) => {
+    body.append(el("p", { class: "small muted", text: "Pratinjau 10 baris pertama. Sesuaikan kolom bila perlu." }));
+    const fields = ["date", "type", "category", "amount", "note"];
+    const labels = { date: "Tanggal", type: "Jenis", category: "Kategori", amount: "Jumlah", note: "Catatan" };
+    const selects = {};
+    for (const f of fields) {
+      const sel = el("select", { "aria-label": labels[f] });
+      sel.append(el("option", { value: "", text: "(lewati)" }));
+      header.forEach((h, i) => {
+        const o = el("option", { value: String(i), text: h || ("Kolom " + (i + 1)) });
+        if (map[f] === i) o.selected = true;
+        sel.append(o);
+      });
+      selects[f] = sel;
+      body.append(field(labels[f], sel));
+    }
+    const preview = el("table", { class: "map" });
+    const hr = el("tr");
+    header.forEach(h => hr.append(el("th", { text: h })));
+    preview.append(hr);
+    rows.slice(1, 11).forEach(r => {
+      const tr = el("tr");
+      header.forEach((_, i) => tr.append(el("td", { text: r[i] || "" })));
+      preview.append(tr);
+    });
+    body.append(preview);
+    body.append(el("button", { type: "button", class: "btn btn-primary", text: "Lanjut", style: "margin-top:10px", onclick: () => {
+      const col = {};
+      for (const f of fields) col[f] = selects[f].value === "" ? -1 : Number(selects[f].value);
+      if (col.date < 0 || col.amount < 0 || col.category < 0 || col.type < 0) return toast("Tanggal, jenis, kategori, dan jumlah wajib dipetakan.");
+      close();
+      reviewImport(rows.slice(1), col);
+    }}));
+  });
+}
+function reviewImport(dataRows, col) {
+  const parsed = [];
+  const invalid = [];
+  dataRows.forEach((r, i) => {
+    const date = parseDateLoose(r[col.date]);
+    const type = parseTypeLoose(r[col.type]);
+    const category = String(r[col.category] || "").trim();
+    const amount = parseAmount(r[col.amount]);
+    const note = col.note >= 0 ? String(r[col.note] || "").trim() : "";
+    const reasons = [];
+    if (!date) reasons.push("Tanggal tidak valid");
+    if (!type) reasons.push("Jenis tidak dikenali");
+    if (!category) reasons.push("Kategori kosong");
+    if (!amount.ok) reasons.push(amount.reason);
+    if (reasons.length) invalid.push({ line: i + 2, reason: reasons.join(", ") });
+    else parsed.push({ date, type, category, amount: amount.value, note });
+  });
+  const existing = new Set(state.transactions.map(t => txSig({
+    date: t.date, type: t.type, category: catById(t.category_id)?.name || "", amount: t.amount, note: t.note || "",
+  })));
+  const seen = new Set();
+  const dupes = [];
+  const fresh = [];
+  for (const row of parsed) {
+    const sig = txSig(row);
+    if (existing.has(sig) || seen.has(sig)) dupes.push(row);
+    else fresh.push(row);
+    seen.add(sig);
+  }
+  const unknown = [...new Set(parsed.map(p => p.type + "|" + p.category).filter(k => {
+    const [type, name] = k.split("|");
+    return !state.categories.some(c => c.type === type && c.name.toLowerCase() === name.toLowerCase());
+  }))];
+  openModal("Tinjau impor", (body, close) => {
+    body.append(el("p", { text: fresh.length + " baru, " + dupes.length + " duplikat, " + invalid.length + " tidak valid." }));
+    if (invalid.length) {
+      const ul = el("ul");
+      invalid.slice(0, 20).forEach(x => ul.append(el("li", { text: "Baris " + x.line + ": " + x.reason })));
+      body.append(el("p", { class: "small", text: "Baris tidak valid dilewati:" }), ul);
+    }
+    const choices = {};
+    if (unknown.length) {
+      body.append(el("p", { text: "Kategori yang belum ada:" }));
+      for (const key of unknown) {
+        const [type, name] = [key.slice(0, key.indexOf("|")), key.slice(key.indexOf("|") + 1)];
+        const sel = el("select", { "aria-label": "Kategori " + name });
+        sel.append(el("option", { value: "create", text: "Buat kategori baru" }), el("option", { value: "other", text: "Masukkan ke Lainnya" }));
+        choices[key] = sel;
+        body.append(field(name + " (" + (type === "income" ? "pemasukan" : "pengeluaran") + ")", sel));
+      }
+    }
+    let importDupes = false;
+    if (dupes.length) {
+      const box = el("label", { class: "field" }, [
+        el("input", { type: "checkbox", onchange: e => { importDupes = e.target.checked; } }),
+        document.createTextNode(" Impor juga duplikat"),
+      ]);
+      body.append(box);
+    }
+    body.append(el("button", { type: "button", class: "btn btn-primary", text: "Impor", onclick: async () => {
+      close();
+      await commitImport(importDupes ? parsed : fresh, choices, dupes.length, invalid.length, importDupes);
+    }}));
+  });
+}
+async function commitImport(rows, choices, dupeCount, invalidCount, importedDupes) {
+  const created = new Map();
+  function resolveCat(type, name) {
+    const found = state.categories.find(c => c.type === type && c.name.toLowerCase() === name.toLowerCase());
+    if (found) return found;
+    const key = type + "|" + name;
+    const choice = choices[key];
+    const mode = choice ? choice.value : "create";
+    if (mode === "other") {
+      let other = state.categories.find(c => c.type === type && c.name.toLowerCase() === "lainnya");
+      if (!other) {
+        other = { id: uid(), name: "Lainnya", type, archived: false, sort_order: 99, created_at: nowIso() };
+        state.categories.push(other);
+        created.set(type + "|lainnya", other);
+      }
+      return other;
+    }
+    const cache = type + "|" + name.toLowerCase();
+    if (created.has(cache)) return created.get(cache);
+    const row = { id: uid(), name, type, archived: false, sort_order: activeCats(type).length, created_at: nowIso() };
+    state.categories.push(row);
+    created.set(cache, row);
+    return row;
+  }
+  const newTx = [];
+  for (const r of rows) {
+    const cat = resolveCat(r.type, r.category);
+    newTx.push({
+      id: uid(), date: r.date, type: r.type, amount: r.amount, category_id: cat.id,
+      note: r.note || "", created_at: nowIso(), updated_at: nowIso(),
+    });
+  }
+  state.transactions.push(...newTx);
+  saveLocal();
+  render();
+  let failed = 0;
+  try {
+    if (state.mode === "cloud") {
+      const cats = [...created.values()];
+      if (cats.length) {
+        const { error } = await state.sb.from("categories").insert(cats.map(c => ({ id: c.id, name: c.name, type: c.type, archived: false, sort_order: c.sort_order })));
+        if (error) throw error;
+      }
+      await insertChunked("transactions", newTx.map(t => ({ id: t.id, date: t.date, type: t.type, amount: t.amount, category_id: t.category_id, note: t.note })));
+    }
+  } catch (err) {
+    failed = 1;
+    toast("Sebagian gagal tersimpan ke cloud: " + (err.message || err));
+  }
+  const skipped = invalidCount;
+  const dupShown = importedDupes ? 0 : dupeCount;
+  toast(newTx.length + " diimpor, " + skipped + " dilewati, " + dupShown + " duplikat" + (failed ? " (cek cloud)" : ""));
+}
+
+function exportJson() {
+  const payload = { categories: state.categories, transactions: state.transactions, budgets: state.budgets, exported_at: nowIso() };
+  download(JSON.stringify(payload, null, 2), "duitku-backup-" + localDate() + ".json", "application/json");
+}
+function startJsonRestore(text) {
+  let data;
+  try { data = JSON.parse(text.replace(/^\uFEFF/, "")); }
+  catch { return toast("File JSON tidak valid."); }
+  if (!data || !Array.isArray(data.transactions) || !Array.isArray(data.categories)) return toast("Format cadangan tidak dikenali.");
+  openModal("Pulihkan cadangan", (body, close) => {
+    body.append(el("p", { text: "Ini mengganti data di perangkat ini" + (state.mode === "cloud" ? " dan mengunggah ke cloud" : "") + ". Lanjut?" }));
+    body.append(el("button", { type: "button", class: "btn btn-danger", text: "Pulihkan", onclick: async () => {
+      close();
+      state.categories = data.categories;
+      state.transactions = data.transactions;
+      state.budgets = Array.isArray(data.budgets) ? data.budgets : [];
+      saveLocal();
+      try {
+        if (state.mode === "cloud") await uploadAllLocal();
+        toast("Cadangan dipulihkan.");
+      } catch (err) { toast("Data lokal pulih, cloud gagal: " + (err.message || err)); }
+      render();
+    }}));
+  });
+}
+
+function loadSample() {
+  openModal("Data contoh", (body, close) => {
+    body.append(el("p", { text: "Menambah sekitar 3 bulan transaksi mahasiswa. Data yang sudah ada tidak dihapus." }));
+    body.append(el("button", { type: "button", class: "btn btn-primary", text: "Muat", onclick: async () => {
+      close();
+      seedIfEmpty();
+      const rows = buildSample();
+      state.transactions.push(...rows.transactions);
+      for (const b of rows.budgets) {
+        if (!state.budgets.some(x => x.month === b.month && x.category_id === b.category_id)) state.budgets.push(b);
+      }
+      saveLocal();
+      render();
+      try {
+        if (state.mode === "cloud") {
+          await insertChunked("transactions", rows.transactions.map(t => ({ id: t.id, date: t.date, type: t.type, amount: t.amount, category_id: t.category_id, note: t.note })));
+          if (rows.budgets.length) {
+            const { error } = await state.sb.from("budgets").upsert(rows.budgets.map(b => ({ month: b.month, category_id: b.category_id, amount: b.amount })));
+            if (error) throw error;
+          }
+        }
+        toast("Data contoh dimuat.");
+      } catch (err) { toast("Tersimpan lokal, cloud gagal: " + (err.message || err)); }
+    }}));
+  });
+}
+function buildSample() {
+  const find = (type, name) => state.categories.find(c => c.type === type && c.name === name);
+  const exp = name => find("expense", name)?.id;
+  const inc = name => find("income", name)?.id;
+  const meals = ["Nasi goreng","Mie ayam","Soto","Gado-gado","Bakso","Nasi padang","Ayam geprek","Pecel lele","Indomie","Warteg"];
+  const snacks = ["Es teh","Boba","Kopi","Roti","Gorengan","Martabak","Pisang goreng"];
+  const plan = [
+    ["expense", "Makan", [12000, 15000, 18000, 20000, 22000, 25000, 28000, 30000]],
+    ["expense", "Jajan", [5000, 8000, 10000, 12000, 15000, 18000]],
+    ["expense", "Transport", [4000, 5000, 7000, 8000, 10000, 15000]],
+    ["expense", "Pulsa/Internet", [50000, 65000, 75000]],
+    ["expense", "Tugas/Print", [2000, 3000, 5000, 8000, 10000, 15000]],
+    ["expense", "Hiburan", [15000, 25000, 35000, 45000, 50000]],
+  ];
+  const transactions = [];
+  const budgets = [];
+  const base = new Date();
+  for (let m = 2; m >= 0; m--) {
+    const d0 = new Date(base.getFullYear(), base.getMonth() - m, 1);
+    const key = d0.getFullYear() + "-" + pad(d0.getMonth() + 1);
+    const dim = daysInMonth(key);
+    const limit = m === 0 ? Math.min(dim, new Date().getDate()) : dim;
+    const kos = exp("Kos");
+    if (kos) transactions.push(tx(key + "-01", "expense", 750000, kos, "Bayar kos bulan ini"));
+    const uang = inc("Uang Saku");
+    if (uang) transactions.push(tx(key + "-01", "income", 1500000, uang, "Transfer dari ortu"));
+    if (m === 1) {
+      const bea = inc("Beasiswa");
+      if (bea) transactions.push(tx(key + "-10", "income", 500000, bea, "Beasiswa semester ini"));
+    }
+    if (m === 0) {
+      const gaji = inc("Gaji/Freelance");
+      if (gaji) transactions.push(tx(key + "-15", "income", 350000, gaji, "Freelance desain logo"));
+    }
+    const pulsa = exp("Pulsa/Internet");
+    if (pulsa) {
+      const amt = plan[3][2][m % plan[3][2].length];
+      transactions.push(tx(key + "-05", "expense", amt, pulsa, "Paket internet bulanan"));
+    }
+    for (let day = 1; day <= limit; day++) {
+      const seed = (day * 7 + m * 31) % 100;
+      if (seed < 15) continue;
+      const makan = exp("Makan");
+      if (makan && seed > 20) {
+        const amt = plan[0][2][(day + m) % plan[0][2].length];
+        const note = meals[(day + m * 3) % meals.length];
+        transactions.push(tx(key + "-" + pad(day), "expense", amt, makan, note));
+        if (seed > 60) {
+          const amt2 = plan[0][2][(day + m + 3) % plan[0][2].length];
+          transactions.push(tx(key + "-" + pad(day), "expense", amt2, makan, meals[(day + m * 5 + 2) % meals.length]));
+        }
+      }
+      const jajan = exp("Jajan");
+      if (jajan && seed > 40 && day % 2 === 0) {
+        const amt = plan[1][2][(day + m) % plan[1][2].length];
+        transactions.push(tx(key + "-" + pad(day), "expense", amt, jajan, snacks[(day + m) % snacks.length]));
+      }
+      const transport = exp("Transport");
+      if (transport && seed > 50 && (day % 7 !== 0 && day % 7 !== 6)) {
+        transactions.push(tx(key + "-" + pad(day), "expense", plan[2][2][(day + m) % plan[2][2].length], transport, ""));
+      }
+      const tugas = exp("Tugas/Print");
+      if (tugas && day % 7 === 2) {
+        transactions.push(tx(key + "-" + pad(day), "expense", plan[4][2][(day + m) % plan[4][2].length], tugas, "Print tugas kuliah"));
+      }
+      const hiburan = exp("Hiburan");
+      if (hiburan && (day % 7 === 0 || day % 7 === 6) && seed > 30) {
+        transactions.push(tx(key + "-" + pad(day), "expense", plan[5][2][(day + m) % plan[5][2].length], hiburan, ""));
+      }
+    }
+    for (const [name, amount] of [["Makan", 900000], ["Jajan", 300000], ["Transport", 250000], ["Kos", 750000], ["Pulsa/Internet", 100000], ["Tugas/Print", 50000], ["Hiburan", 200000], ["Lainnya", 100000]]) {
+      const id = exp(name);
+      if (id) budgets.push({ month: key, category_id: id, amount });
+    }
+  }
+  return { transactions, budgets };
+  function tx(date, type, amount, category_id, note) {
+    return { id: uid(), date, type, amount, category_id, note, created_at: nowIso(), updated_at: nowIso() };
+  }
+}
+
+function wipeAll() {
+  openModal("Hapus semua data?", (body, close) => {
+    body.append(el("p", { text: "Semua transaksi, kategori, dan budget di perangkat ini akan hilang." }));
+    body.append(el("button", { type: "button", class: "btn btn-danger", text: "Lanjut", onclick: () => {
+      close();
+      openModal("Yakin sekali lagi?", (body2, close2) => {
+        body2.append(el("p", { text: "Tidak bisa dikembalikan kecuali kamu punya cadangan." }));
+        body2.append(el("button", { type: "button", class: "btn btn-danger", text: "Hapus sekarang", onclick: async () => {
+          close2();
+          try {
+            if (state.mode === "cloud" && state.sb) {
+              const { error: e1 } = await state.sb.from("transactions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+              if (e1) throw e1;
+              const { error: e2 } = await state.sb.from("budgets").delete().neq("category_id", "00000000-0000-0000-0000-000000000000");
+              if (e2) throw e2;
+              const { error: e3 } = await state.sb.from("categories").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+              if (e3) throw e3;
+            }
+          } catch (err) { toast("Gagal menghapus di cloud: " + (err.message || err)); return; }
+          state.transactions = [];
+          state.budgets = [];
+          state.categories = [];
+          state.pending = [];
+          seedIfEmpty();
+          saveLocal();
+          if (state.mode === "cloud") {
+            try { await pushSeedCategories(); } catch (e) { toast(authMsg(e)); }
+          }
+          render();
+          toast("Semua data dihapus.");
+        }}));
+      });
+    }}));
+  });
+}
+
+/* ---------- auth ---------- */
+function renderAuth() {
+  clear(main);
+  $("#fabCatat").hidden = true;
+  showBanner("");
+  setSync("");
+  let tab = "masuk";
+  const card = el("div", { class: "card" });
+  main.append(card);
+  function paint() {
+    clear(card);
+    card.append(el("h2", { text: "Masuk ke Duitku", style: "margin-top:0" }));
+    const tabs = el("div", { class: "seg", style: "margin-bottom:12px" });
+    tabs.append(
+      el("button", { type: "button", class: "btn", text: "Masuk", "aria-pressed": tab === "masuk" ? "true" : "false", onclick: () => { tab = "masuk"; paint(); } }),
+      el("button", { type: "button", class: "btn", text: "Daftar", "aria-pressed": tab === "daftar" ? "true" : "false", onclick: () => { tab = "daftar"; paint(); } }),
+    );
+    const email = el("input", { type: "email", autocomplete: "username", required: "true" });
+    const pass = el("input", { type: "password", autocomplete: tab === "masuk" ? "current-password" : "new-password", required: "true", minlength: "6" });
+    card.append(tabs, field("Email", email), field("Kata sandi", pass), el("button", {
+      type: "button", class: "btn btn-primary", text: tab === "masuk" ? "Masuk" : "Daftar",
+      onclick: async () => {
+        if (!email.value.includes("@")) return toast("Isi email yang valid.");
+        if (pass.value.length < 6) return toast("Kata sandi minimal 6 karakter.");
+        try {
+          if (tab === "masuk") {
+            const { data, error } = await state.sb.auth.signInWithPassword({ email: email.value.trim(), password: pass.value });
+            if (error) throw error;
+            state.user = data.user;
+            await bootCloud();
+          } else {
+            const { data, error } = await state.sb.auth.signUp({ email: email.value.trim(), password: pass.value });
+            if (error) throw error;
+            if (data.session) {
+              state.user = data.user;
+              await bootCloud();
+            } else toast("Cek email untuk konfirmasi, lalu masuk.");
+          }
+        } catch (err) { toast(authMsg(err)); }
+      },
+    }));
+    setTimeout(() => email.focus(), 30);
+  }
+  paint();
+}
+
+/* ---------- modal ---------- */
+function openModal(title, build) {
+  const root = $("#modalRoot");
+  clear(root);
+  const back = el("div", { class: "modal-back" });
+  const sheet = el("div", { class: "sheet", role: "dialog", "aria-modal": "true" });
+  const h = el("h2", { text: title, style: "margin:0 0 12px;font-size:1.1rem" });
+  const body = el("div");
+  const closeBtn = el("button", { type: "button", class: "btn btn-ghost", text: "Tutup", onclick: close });
+  sheet.append(h, body, closeBtn);
+  back.append(sheet);
+  back.addEventListener("click", e => { if (e.target === back) close(); });
+  function onKey(e) { if (e.key === "Escape") close(); }
+  function close() {
+    document.removeEventListener("keydown", onKey);
+    clear(root);
+  }
+  document.addEventListener("keydown", onKey);
+  root.append(back);
+  build(body, close);
+  const focusable = sheet.querySelector("input, select, button");
+  if (focusable) focusable.focus();
+}
+
+/* ---------- boot ---------- */
+(function initTheme() {
+  let t = "auto";
+  try { t = localStorage.getItem("duitku.theme") || "auto"; } catch {}
+  if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+})();
+initBackend();
+})();
+</script>
+</body>
+</html>
