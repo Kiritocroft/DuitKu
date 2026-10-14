@@ -2,195 +2,1178 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
-<meta name="color-scheme" content="light dark">
-<title>Duitku</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Duitku — Budget Tracker Mahasiswa</title>
+<meta name="theme-color" content="#10b981">
+<meta name="description" content="Aplikasi pencatat keuangan dan budget bulanan simpel untuk mahasiswa.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="color-scheme" content="light dark">
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" integrity="sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug" crossorigin="anonymous"></script>
 <style>
 :root {
-  --bg: #f4f6f5;
+  --bg: #f8fafc;
   --card: #ffffff;
-  --text: #12201c;
-  --muted: #5c6b66;
-  --border: #e2e8e5;
-  --accent: #0f766e;
-  --accent-soft: #ccfbf1;
-  --income: #047857;
-  --expense: #b45309;
-  --danger: #b91c1c;
-  --ok: #047857;
-  --warn: #b45309;
-  --over: #b91c1c;
-  --shadow: 0 1px 2px rgba(18,32,28,.06), 0 8px 24px rgba(18,32,28,.04);
-  --radius: 16px;
-  --nav-h: 68px;
+  --card-hover: #f1f5f9;
+  --card-elevated: #ffffff;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --border-focus: #10b981;
+  --accent: #059669;
+  --accent-hover: #047857;
+  --accent-soft: rgba(5, 150, 105, 0.1);
+  --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --income: #10b981;
+  --income-soft: rgba(16, 185, 129, 0.12);
+  --expense: #f43f5e;
+  --expense-soft: rgba(244, 63, 94, 0.12);
+  --balance: #6366f1;
+  --balance-soft: rgba(99, 102, 241, 0.12);
+  --budget: #0284c7;
+  --budget-soft: rgba(2, 132, 199, 0.12);
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --over: #ef4444;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 16px 36px -4px rgba(15, 23, 42, 0.12);
+  --shadow-glow: 0 8px 24px -4px rgba(16, 185, 129, 0.35);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --radius-pill: 9999px;
+  --nav-h: 70px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1513;
-    --card: #17211e;
-    --text: #e7f0ec;
-    --muted: #9aada6;
-    --border: #2a3a35;
-    --accent: #2dd4bf;
-    --accent-soft: #134e4a;
+    --bg: #090d16;
+    --card: #111827;
+    --card-hover: #172236;
+    --card-elevated: #1e293b;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-focus: #10b981;
+    --accent: #10b981;
+    --accent-hover: #34d399;
+    --accent-soft: rgba(16, 185, 129, 0.15);
+    --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
     --income: #34d399;
-    --expense: #fbbf24;
-    --danger: #f87171;
+    --income-soft: rgba(52, 211, 153, 0.15);
+    --expense: #fb7185;
+    --expense-soft: rgba(251, 113, 133, 0.15);
+    --balance: #818cf8;
+    --balance-soft: rgba(129, 140, 248, 0.15);
+    --budget: #38bdf8;
+    --budget-soft: rgba(56, 189, 248, 0.15);
     --ok: #34d399;
     --warn: #fbbf24;
     --over: #f87171;
-    --shadow: none;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 16px 40px -4px rgba(0, 0, 0, 0.7);
+    --shadow-glow: 0 8px 24px -4px rgba(16, 185, 129, 0.25);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e1513; --card: #17211e; --text: #e7f0ec; --muted: #9aada6; --border: #2a3a35;
-  --accent: #2dd4bf; --accent-soft: #134e4a; --income: #34d399; --expense: #fbbf24;
-  --danger: #f87171; --ok: #34d399; --warn: #fbbf24; --over: #f87171; --shadow: none;
+  --bg: #090d16;
+  --card: #111827;
+  --card-hover: #172236;
+  --card-elevated: #1e293b;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #10b981;
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-soft: rgba(16, 185, 129, 0.15);
+  --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --income: #34d399;
+  --income-soft: rgba(52, 211, 153, 0.15);
+  --expense: #fb7185;
+  --expense-soft: rgba(251, 113, 133, 0.15);
+  --balance: #818cf8;
+  --balance-soft: rgba(129, 140, 248, 0.15);
+  --budget: #38bdf8;
+  --budget-soft: rgba(56, 189, 248, 0.15);
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --over: #f87171;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px -4px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 8px 24px -4px rgba(16, 185, 129, 0.25);
   color-scheme: dark;
 }
-:root[data-theme="light"] { color-scheme: light; }
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
-  background: var(--bg); color: var(--text); line-height: 1.45;
+:root[data-theme="light"] {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --card-hover: #f1f5f9;
+  --card-elevated: #ffffff;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --border-focus: #059669;
+  --accent: #059669;
+  --accent-hover: #047857;
+  --accent-soft: rgba(5, 150, 105, 0.1);
+  --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --income: #10b981;
+  --income-soft: rgba(16, 185, 129, 0.12);
+  --expense: #f43f5e;
+  --expense-soft: rgba(244, 63, 94, 0.12);
+  --balance: #6366f1;
+  --balance-soft: rgba(99, 102, 241, 0.12);
+  --budget: #0284c7;
+  --budget-soft: rgba(2, 132, 199, 0.12);
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --over: #ef4444;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 16px 36px -4px rgba(15, 23, 42, 0.12);
+  --shadow-glow: 0 8px 24px -4px rgba(16, 185, 129, 0.35);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%;
   min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.app { max-width: 1100px; margin: 0 auto; padding: 12px 16px calc(var(--nav-h) + 24px); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 16px calc(var(--nav-h) + 32px);
+}
 header.top {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 8px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 16px;
+  width: 100%;
 }
-header.top h1 { font-size: 1.35rem; margin: 0; letter-spacing: -.02em; }
-.sync { font-size: .8rem; color: var(--muted); min-height: 1.2em; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: var(--shadow-glow);
+  flex-shrink: 0;
+}
+.brand-title {
+  font-size: 1.25rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.sync {
+  font-size: 0.75rem;
+  min-height: 1.2em;
+  margin-top: 3px;
+}
+.sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.sync-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sync-dot.online { background: var(--income); box-shadow: 0 0 6px var(--income); }
+.sync-dot.saving { background: var(--warn); }
+.sync-dot.offline { background: var(--text-muted); }
+.sync-dot.local { background: var(--budget); }
+
 .banner {
-  background: var(--accent-soft); color: var(--text); border-radius: 12px;
-  padding: 10px 12px; font-size: .9rem; margin-bottom: 12px;
+  background: var(--accent-soft);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
 }
+
 .card {
-  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-  box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
 }
-.grid { display: grid; gap: 10px; }
-.grid-2 { grid-template-columns: 1fr 1fr; }
-.stat { padding: 12px; }
-.stat .label { color: var(--muted); font-size: .8rem; }
-.stat .value { font-size: 1.15rem; font-weight: 650; margin-top: 2px; }
-.pos { color: var(--income); }
-.neg { color: var(--expense); }
-.month-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.icon-btn, .btn {
-  min-height: 44px; min-width: 44px; border-radius: 12px; border: 1px solid var(--border);
-  background: var(--card); padding: 0 14px;
+.card-title {
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.btn-primary { background: var(--accent); color: #fff; border-color: transparent; font-weight: 650; }
-.btn-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
-.btn-ghost { background: transparent; }
-.fab {
-  position: fixed; right: 16px; bottom: calc(var(--nav-h) + 12px); z-index: 20;
-  min-height: 52px; padding: 0 18px; border-radius: 999px; border: 0;
-  background: var(--accent); color: #fff; font-weight: 700; box-shadow: var(--shadow);
+.section-subtitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
 }
-label.field { display: block; margin-bottom: 10px; }
-label.field span { display: block; font-size: .82rem; color: var(--muted); margin-bottom: 4px; }
+
+/* Dashboard Two-Column Grid on Desktop */
+.dash-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  width: 100%;
+}
+@media (min-width: 900px) {
+  .dash-layout {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 20px;
+    align-items: start;
+  }
+}
+.dash-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Month Navigation */
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+.month-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 750;
+}
+.nav-arrow {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.nav-arrow:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Hero Highlight Card */
+.hero-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+.hero-card.over-budget {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.12) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border-color: rgba(244, 63, 94, 0.35);
+}
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  min-width: 0;
+}
+.hero-card.over-budget .hero-badge { color: var(--over); }
+.hero-days {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.hero-amount {
+  font-size: 1.85rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+  line-height: 1.15;
+  word-break: break-all;
+}
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  max-width: 100%;
+}
+
+/* 4-Stat Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+  width: 100%;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+.stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.stat-icon.income { background: var(--income-soft); color: var(--income); }
+.stat-icon.expense { background: var(--expense-soft); color: var(--expense); }
+.stat-icon.balance { background: var(--balance-soft); color: var(--balance); }
+.stat-icon.budget { background: var(--budget-soft); color: var(--budget); }
+.stat-val {
+  font-size: 1.15rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-val.income { color: var(--income); }
+.stat-val.expense { color: var(--expense); }
+
+/* Category Bars */
+.cat-bar-item { margin-bottom: 12px; }
+.cat-bar-item:last-child { margin-bottom: 0; }
+.cat-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+}
+.cat-bar-name {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.cat-bar-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.cat-bar-amount {
+  font-weight: 700;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+.bar-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+  width: 100%;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+/* Trend Chart */
+.legend {
+  display: flex;
+  gap: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.legend-dot.income { background: var(--income); }
+.legend-dot.expense { background: var(--expense); }
+
+/* Smart Insights */
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+.insight-item:last-child { margin-bottom: 0; }
+.insight-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+}
+.chip:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.chip svg { color: var(--accent); }
+.chip-amount {
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 1px 6px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+}
+
+/* Transaction List */
+.tx-group { padding: 0; margin-bottom: 12px; width: 100%; }
+.tx-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--card-hover);
+  border-bottom: 1px solid var(--border);
+}
+.tx-group-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.tx-group-total {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.tx-group-total.income { color: var(--income); }
+.tx-group-total.expense { color: var(--expense); }
+.tx-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.tx-row:last-child { border-bottom: 0; }
+.tx-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.tx-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tx-avatar.income { background: var(--income-soft); color: var(--income); }
+.tx-avatar.expense { background: var(--expense-soft); color: var(--expense); }
+.tx-info { min-width: 0; flex: 1; }
+.tx-name { font-weight: 650; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-note { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-right { text-align: right; flex-shrink: 0; }
+.tx-amount { font-weight: 750; font-size: 0.95rem; }
+.tx-amount.income { color: var(--income); }
+.tx-amount.expense { color: var(--expense); }
+.tx-actions { display: flex; gap: 4px; justify-content: flex-end; margin-top: 4px; }
+
+/* Budget Items */
+.budget-item-card { margin-bottom: 12px; width: 100%; }
+.budget-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.budget-cat-name { font-size: 1rem; font-weight: 700; }
+.budget-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.budget-remain { font-weight: 700; }
+.budget-remain.ok { color: var(--ok); }
+.budget-remain.warn { color: var(--warn); }
+.budget-remain.over { color: var(--over); }
+.budget-inline-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.budget-inline-edit input {
+  max-width: 160px;
+  height: 36px;
+  padding: 4px 10px;
+}
+.budget-copy-card {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.empty-title { font-size: 0.92rem; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+
+/* Buttons & Inputs */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+}
+.btn:hover { background: var(--card-hover); border-color: var(--text-muted); }
+.btn-primary {
+  background: var(--accent-gradient);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover {
+  filter: brightness(1.05);
+  background: var(--accent-gradient);
+  border-color: transparent;
+}
+.btn-danger {
+  background: transparent;
+  color: var(--over);
+  border-color: var(--over);
+}
+.btn-danger:hover {
+  background: var(--expense-soft);
+}
+.btn-ghost { background: transparent; border-color: transparent; }
+.btn-ghost:hover { background: var(--card-hover); }
+.btn-ghost.danger { color: var(--over); }
+.btn-sm { min-height: 36px; padding: 0 12px; font-size: 0.82rem; }
+.btn-xs { min-height: 24px; padding: 0 8px; font-size: 0.72rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); font-weight: 600; }
+.btn-link { background: transparent; border: 0; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; }
+.btn-icon-subtle {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.btn-icon-subtle:hover { background: var(--card-hover); color: var(--text); }
+.btn-icon-subtle.danger:hover { background: var(--expense-soft); color: var(--over); }
+
+label.field { display: block; margin-bottom: 12px; width: 100%; }
+label.field span { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
 input[type="text"], input[type="email"], input[type="password"], input[type="date"],
 input[type="search"], select, textarea {
-  width: 100%; min-height: 44px; border-radius: 12px; border: 1px solid var(--border);
-  background: var(--bg); padding: 8px 12px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip {
-  min-height: 40px; border-radius: 999px; border: 1px solid var(--border);
-  background: var(--card); padding: 6px 12px;
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
 }
-.row-item { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.row-item:last-child { border-bottom: 0; }
-.muted { color: var(--muted); }
-.small { font-size: .82rem; }
-.bar-track { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
-.bar-fill { height: 100%; border-radius: 99px; }
-.ok { background: var(--ok); }
-.warn { background: var(--warn); }
-.over { background: var(--over); }
-.tag { font-size: .75rem; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); }
-.tag.ok { background: var(--ok); color: #fff; }
-.tag.warn { background: var(--warn); color: #fff; }
-.tag.over { background: var(--over); color: #fff; }
+
+.grid { display: grid; gap: 10px; width: 100%; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.full-width { width: 100%; }
+
+/* Segmented Control */
+.seg {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  width: 100%;
+}
+.seg button {
+  flex: 1;
+  min-height: 36px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+.seg button[aria-pressed="true"] {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Tags */
+.tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tag.ok { background: var(--income-soft); color: var(--ok); }
+.tag.warn { background: var(--warn-soft); color: var(--warn); }
+.tag.over { background: var(--expense-soft); color: var(--over); }
+.tag.muted-tag { background: var(--border); color: var(--text-muted); }
+
+.nav-catat-btn {
+  display: none;
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(var(--nav-h) + 16px);
+  z-index: 25;
+  min-height: 50px;
+  padding: 0 20px;
+  border-radius: var(--radius-pill);
+  border: 0;
+  background: var(--accent-gradient);
+  color: #fff;
+  font-weight: 750;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-glow), 0 4px 16px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
+}
+.fab:hover { transform: translateY(-2px) scale(1.02); }
+.fab:active { transform: translateY(0) scale(0.98); }
+
+/* Navigation Dock (Mobile Bottom Bar) */
 .nav {
-  position: fixed; left: 0; right: 0; bottom: 0; height: var(--nav-h);
-  background: var(--card); border-top: 1px solid var(--border);
-  display: grid; grid-template-columns: repeat(4, 1fr); z-index: 30;
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: var(--nav-h);
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  z-index: 30;
   padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
 }
-.nav button { border: 0; background: transparent; min-height: 44px; }
-.nav button[aria-current="page"] { color: var(--accent); font-weight: 700; }
-.screen { display: none; }
-.screen.active { display: block; }
+.nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.nav button[aria-current="page"] {
+  color: var(--accent);
+  font-weight: 750;
+}
+.nav button[aria-current="page"] svg {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 2px 6px var(--accent-soft));
+}
+
+/* Modal & Sheet */
 .modal-back {
-  position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 40;
-  display: flex; align-items: flex-end; justify-content: center;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
 }
 .sheet {
-  background: var(--card); width: min(560px, 100%); max-height: 92dvh; overflow: auto;
-  border-radius: 20px 20px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  background: var(--card);
+  width: min(540px, 100%);
+  max-height: 90dvh;
+  overflow-y: auto;
+  border-radius: 24px 24px 0 0;
+  padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.toast-wrap { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 16px); z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-.toast { pointer-events: auto; background: var(--text); color: var(--bg); border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-.hscroll { display: flex; gap: 8px; overflow-x: auto; }
-.seg { display: flex; gap: 6px; }
-.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: transparent; }
-.empty { text-align: center; padding: 28px 8px; color: var(--muted); }
-table.map { width: 100%; border-collapse: collapse; font-size: .85rem; }
-table.map td, table.map th { border-bottom: 1px solid var(--border); padding: 6px; text-align: left; }
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--border);
+  margin: 0 auto 12px;
+}
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.rotate-45 { transform: rotate(45deg); }
+
+/* Amount Hero Input */
+.amount-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.amount-hero .rp-prefix {
+  font-size: 1.35rem;
+  font-weight: 850;
+  color: var(--accent);
+}
+.amount-hero input {
+  font-size: 2rem;
+  font-weight: 850;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  outline: none;
+  color: var(--text);
+}
+
+/* Auth View */
+.auth-wrap {
+  min-height: calc(100dvh - 140px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 0;
+  width: 100%;
+}
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 32px 24px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 440px;
+}
+.auth-brand {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.brand-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: var(--accent-gradient);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: var(--shadow-glow);
+  margin-bottom: 12px;
+}
+.auth-title {
+  font-size: 1.45rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.auth-sub {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Toast Heads-Up */
+.toast-wrap {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 16px);
+  left: 16px;
+  right: 16px;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: var(--radius-pill);
+  padding: 10px 18px;
+  display: inline-flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  box-shadow: var(--shadow-lg);
+  font-size: 0.88rem;
+  font-weight: 600;
+  animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: min(440px, 100%);
+}
+
+/* Desktop Responsiveness */
 @media (min-width: 900px) {
-  .app { display: grid; grid-template-columns: 200px 1fr; gap: 18px; padding: 20px; }
-  header.top { grid-column: 1 / -1; }
-  .nav {
-    position: sticky; top: 12px; height: auto; display: flex; flex-direction: column;
-    border: 1px solid var(--border); border-radius: var(--radius); align-self: start;
+  .app {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    padding: 32px 40px;
   }
-  .fab { bottom: 24px; }
-  .toast-wrap { bottom: 24px; left: auto; right: 24px; width: 360px; }
+  header.top {
+    grid-column: 1 / -1;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  #banner {
+    grid-column: 1 / -1;
+  }
+  .nav {
+    position: sticky;
+    top: 32px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    box-shadow: var(--shadow-sm);
+    background: var(--card);
+  }
+  .nav button {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    gap: 12px;
+    font-size: 0.95rem;
+    width: 100%;
+  }
+  .nav button[aria-current="page"] {
+    background: var(--accent-soft);
+  }
+  .nav button[aria-current="page"] svg {
+    transform: none;
+  }
+  main#main {
+    min-width: 0;
+    width: 100%;
+  }
+  .nav-catat-btn {
+    display: inline-flex;
+    margin-top: 16px;
+    width: 100%;
+    min-height: 46px;
+    border-radius: var(--radius-sm);
+    font-weight: 750;
+    font-size: 0.95rem;
+  }
+  .fab { display: none !important; }
+  .toast-wrap { top: 24px; bottom: auto; }
   .modal-back { align-items: center; }
-  .sheet { border-radius: 20px; }
-  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .sheet { border-radius: 24px; }
 }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
-    <div>
-      <h1>Duitku</h1>
-      <div class="sync" id="syncStatus" aria-live="polite"></div>
+    <div class="brand">
+      <div class="brand-icon" id="brandLogo"></div>
+      <div>
+        <div class="brand-title">Duitku</div>
+        <div class="sync" id="syncStatus" aria-live="polite"></div>
+      </div>
     </div>
     <div id="headerExtra"></div>
   </header>
   <div id="banner"></div>
-  <nav class="nav" aria-label="Navigasi utama">
-    <button type="button" data-screen="dashboard">Dashboard</button>
-    <button type="button" data-screen="transaksi">Transaksi</button>
-    <button type="button" data-screen="budget">Budget</button>
-    <button type="button" data-screen="lainnya">Lainnya</button>
+  <nav class="nav" id="mainNav" aria-label="Navigasi utama">
+    <button type="button" data-screen="dashboard" aria-label="Dashboard">
+      <span class="nav-icon" id="navIcon-dashboard"></span>
+      <span>Dashboard</span>
+    </button>
+    <button type="button" data-screen="transaksi" aria-label="Transaksi">
+      <span class="nav-icon" id="navIcon-transaksi"></span>
+      <span>Transaksi</span>
+    </button>
+    <button type="button" data-screen="budget" aria-label="Budget">
+      <span class="nav-icon" id="navIcon-budget"></span>
+      <span>Budget</span>
+    </button>
+    <button type="button" data-screen="lainnya" aria-label="Lainnya">
+      <span class="nav-icon" id="navIcon-lainnya"></span>
+      <span>Lainnya</span>
+    </button>
+    <button type="button" class="btn btn-primary nav-catat-btn" id="desktopCatatBtn" aria-label="Catat transaksi baru">
+      <span id="desktopCatatIcon"></span>
+      <span>Catat Transaksi</span>
+    </button>
   </nav>
   <main id="main"></main>
 </div>
-<button class="fab" id="fabCatat" type="button">+ Catat</button>
+<button class="fab" id="fabCatat" type="button" aria-label="Catat transaksi baru">
+  <span id="fabIcon"></span>
+  <span>Catat</span>
+</button>
 <div class="toast-wrap" id="toasts" aria-live="polite"></div>
 <div id="modalRoot"></div>
 <script>
 (() => {
 "use strict";
+
+const ICONS = {
+  dashboard: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+  transaksi: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8H8"/><path d="M16 12H8"/><path d="M12 16H8"/>',
+  budget: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+  lainnya: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  chevronLeft: '<path d="m15 18-6-6 6-6"/>',
+  chevronRight: '<path d="m9 18 6-6-6-6"/>',
+  arrowDownLeft: '<line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/>',
+  arrowUpRight: '<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>',
+  scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  lightning: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  bulb: '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  edit: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  calendar: '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
+  walletLogo: '<rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><circle cx="16" cy="15" r="1.5"/>',
+  wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+};
+
+function icon(name, size = 18, cls = "") {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const s = document.createElementNS(svgNS, "svg");
+  s.setAttribute("viewBox", "0 0 24 24");
+  s.setAttribute("width", String(size));
+  s.setAttribute("height", String(size));
+  s.setAttribute("fill", "none");
+  s.setAttribute("stroke", "currentColor");
+  s.setAttribute("stroke-width", "2");
+  s.setAttribute("stroke-linecap", "round");
+  s.setAttribute("stroke-linejoin", "round");
+  s.setAttribute("aria-hidden", "true");
+  if (cls) s.setAttribute("class", cls);
+  const raw = ICONS[name];
+  if (raw) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + raw + '</svg>', "image/svg+xml");
+    while (doc.documentElement.firstChild) {
+      s.appendChild(doc.documentElement.firstChild);
+    }
+  }
+  return s;
+}
 
 const DEFAULT_EXPENSE = ["Makan","Jajan","Transport","Kos","Pulsa/Internet","Tugas/Print","Hiburan","Lainnya"];
 const DEFAULT_INCOME = ["Uang Saku","Gaji/Freelance","Beasiswa","Lainnya"];
@@ -219,11 +1202,12 @@ const main = $("#main");
 
 function pad(n) { return String(n).padStart(2, "0"); }
 function localDate(d = new Date()) {
-  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  const y = d.getFullYear(), m = pad(d.getMonth() + 1), day = pad(d.getDate());
+  return `${y}-${m}-${day}`;
 }
-function monthKey(d) {
-  const dt = typeof d === "string" ? parseDate(d) : d;
-  return dt.getFullYear() + "-" + pad(dt.getMonth() + 1);
+function monthKey(d = new Date()) {
+  if (typeof d === "string") return d.slice(0, 7);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 }
 function parseDate(s) {
   const [y, m, d] = s.split("-").map(Number);
@@ -232,7 +1216,7 @@ function parseDate(s) {
 function addMonths(key, delta) {
   const [y, m] = key.split("-").map(Number);
   const d = new Date(y, m - 1 + delta, 1);
-  return d.getFullYear() + "-" + pad(d.getMonth() + 1);
+  return monthKey(d);
 }
 function daysInMonth(key) {
   const [y, m] = key.split("-").map(Number);
@@ -240,41 +1224,42 @@ function daysInMonth(key) {
 }
 function daysLeftInMonth(key) {
   const today = localDate();
-  if (monthKey(today) !== key) {
-    return monthKey(today) < key ? daysInMonth(key) : 0;
-  }
-  return daysInMonth(key) - parseDate(today).getDate();
+  if (monthKey(today) !== key) return 0;
+  const now = parseDate(today);
+  const total = daysInMonth(key);
+  return Math.max(0, total - now.getDate());
 }
 function uid() {
-  if (crypto.randomUUID) return crypto.randomUUID();
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0;
     return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
   });
 }
 function nowIso() { return new Date().toISOString(); }
-const idr = new Intl.NumberFormat("id-ID");
+
+const nfId = new Intl.NumberFormat("id-ID");
 function rp(n) {
   const v = Math.round(Number(n) || 0);
-  const sign = v < 0 ? "-" : "";
-  return sign + "Rp " + idr.format(Math.abs(v));
+  return "Rp " + nfId.format(v);
 }
 function compact(n) {
-  const v = Math.abs(Math.round(Number(n) || 0));
-  const sign = n < 0 ? "-" : "";
-  if (v >= 1_000_000) {
-    const jt = v / 1_000_000;
-    const s = (Math.round(jt * 10) / 10).toString().replace(".", ",");
-    return sign + s.replace(/,0$/, "") + "jt";
+  const num = Math.abs(Number(n) || 0);
+  if (num >= 1000000) {
+    const v = (num / 1000000).toFixed(1).replace(".0", "").replace(".", ",");
+    return v + "jt";
   }
-  if (v >= 1000) return sign + Math.round(v / 1000) + "rb";
-  return sign + String(v);
+  if (num >= 1000) {
+    const v = Math.round(num / 1000);
+    return v + "rb";
+  }
+  return String(num);
 }
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"];
 function monthLabel(key) {
   const [y, m] = key.split("-").map(Number);
-  const names = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-  return names[m - 1] + " " + y;
+  return `${MONTH_NAMES[m - 1]} ${y}`;
 }
+
 function el(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -287,369 +1272,381 @@ function el(tag, attrs = {}, children = []) {
   }
   for (const c of [].concat(children)) {
     if (c == null || c === false) continue;
-    node.append(c.nodeType ? c : document.createTextNode(String(c)));
+    node.append(c.nodeType ? c : String(c));
   }
   return node;
 }
-function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+function clear(node) {
+  while (node.firstChild) node.removeChild(node.firstChild);
+}
 
 function toast(msg, action) {
   const wrap = $("#toasts");
   const t = el("div", { class: "toast", role: "status" }, [
     el("span", { text: msg }),
-    action ? el("button", { type: "button", class: "btn", text: action.label, onclick: () => { action.fn(); t.remove(); } }) : null,
+    action ? el("button", {
+      type: "button", class: "btn-link", text: action.label,
+      onclick: () => { action.fn(); t.remove(); },
+      style: "color:#10b981;font-weight:700;margin-left:8px;"
+    }) : null
   ]);
   wrap.append(t);
-  setTimeout(() => t.remove(), action ? 6000 : 3200);
+  setTimeout(() => t.remove(), 4000);
 }
 
-function setSync(label) {
-  state.sync = label;
-  const n = $("#syncStatus");
-  if (n) n.textContent = label;
+function setSync(text, dotClass = "") {
+  state.sync = text;
+  const host = $("#syncStatus");
+  if (!host) return;
+  clear(host);
+  if (!text) return;
+  const pill = el("span", { class: "sync-pill" });
+  const dot = el("span", { class: "sync-dot " + (dotClass || (text === "Tersinkron" ? "online" : text === "Menyimpan..." ? "saving" : text === "Offline" ? "offline" : "local")) });
+  pill.append(dot, text);
+  host.append(pill);
 }
 
 /* ---------- persistence ---------- */
-const LS_KEY = "duitku.v1";
+const STORAGE_PREFIX = "duitku.";
 function loadLocal() {
   try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return { categories: [], transactions: [], budgets: [], pending: [] };
-    const data = JSON.parse(raw);
-    return {
-      categories: data.categories || [],
-      transactions: data.transactions || [],
-      budgets: data.budgets || [],
-      pending: data.pending || [],
-    };
-  } catch {
-    return { categories: [], transactions: [], budgets: [], pending: [] };
+    const c = localStorage.getItem(STORAGE_PREFIX + "categories");
+    const t = localStorage.getItem(STORAGE_PREFIX + "transactions");
+    const b = localStorage.getItem(STORAGE_PREFIX + "budgets");
+    state.categories = c ? JSON.parse(c) : [];
+    state.transactions = t ? JSON.parse(t) : [];
+    state.budgets = b ? JSON.parse(b) : [];
+    seedIfEmpty();
+  } catch (err) {
+    seedIfEmpty();
   }
 }
-let memOnly = false;
 function saveLocal() {
-  if (state.mode !== "local" && state.pending.length === 0) {
-    /* cloud is source of truth; still keep a cache */
-  }
-  const payload = {
-    categories: state.categories,
-    transactions: state.transactions,
-    budgets: state.budgets,
-    pending: state.pending,
-  };
-  if (memOnly) return;
-  try { localStorage.setItem(LS_KEY, JSON.stringify(payload)); }
-  catch { memOnly = true; }
+  try {
+    localStorage.setItem(STORAGE_PREFIX + "categories", JSON.stringify(state.categories));
+    localStorage.setItem(STORAGE_PREFIX + "transactions", JSON.stringify(state.transactions));
+    localStorage.setItem(STORAGE_PREFIX + "budgets", JSON.stringify(state.budgets));
+  } catch (err) {}
 }
 
-function catById(id) { return state.categories.find(c => c.id === id); }
+function catById(id) {
+  return state.categories.find(c => c.id === id);
+}
 function activeCats(type) {
   return state.categories.filter(c => !c.archived && (!type || c.type === type))
-    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "id"));
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
 }
-
 function seedIfEmpty() {
-  if (state.categories.length) return false;
-  let i = 0;
+  if (state.categories.length) return;
+  let order = 0;
   for (const name of DEFAULT_EXPENSE) {
-    state.categories.push({ id: uid(), user_id: state.user?.id || "local", name, type: "expense", archived: false, sort_order: i++, created_at: nowIso() });
+    state.categories.push({ id: uid(), name, type: "expense", archived: false, sort_order: order++ });
   }
-  i = 0;
   for (const name of DEFAULT_INCOME) {
-    state.categories.push({ id: uid(), user_id: state.user?.id || "local", name, type: "income", archived: false, sort_order: i++, created_at: nowIso() });
+    state.categories.push({ id: uid(), name, type: "income", archived: false, sort_order: order++ });
   }
-  return true;
 }
 
 /* ---------- supabase ---------- */
 function cfg() {
-  const c = window.APP_CONFIG || {};
-  return { url: (c.SUPABASE_URL || "").trim(), key: (c.SUPABASE_ANON_KEY || "").trim() };
+  return window.APP_CONFIG || {};
 }
 async function initBackend() {
-  const { url, key } = cfg();
-  if (!url || !key || typeof supabase === "undefined" || !supabase.createClient) {
-    enterLocal();
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = cfg();
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !window.supabase) {
+    enterLocal("Mode lokal: data hanya tersimpan di perangkat ini");
     return;
   }
   try {
-    state.sb = supabase.createClient(url, key, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    state.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true },
     });
-    const { data, error } = await state.sb.auth.getSession();
-    if (error) throw error;
+    const { data: { session } } = await state.sb.auth.getSession();
     state.mode = "cloud";
-    if (data.session) {
-      state.user = data.session.user;
+    if (session?.user) {
+      state.user = session.user;
       await bootCloud();
     } else {
       renderAuth();
     }
-    state.sb.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT") {
+    state.sb.auth.onAuthStateChange(async (event, sess) => {
+      if (sess?.user) {
+        state.user = sess.user;
+        await bootCloud();
+      } else {
         state.user = null;
         teardownRealtime();
         renderAuth();
       }
     });
   } catch (err) {
-    console.warn(err);
-    enterLocal("Tidak bisa terhubung ke Supabase. " );
+    enterLocal("Mode lokal: tidak dapat terhubung ke Supabase");
   }
 }
-function enterLocal(extra) {
+
+function enterLocal(msg) {
   state.mode = "local";
-  state.sb = null;
-  const data = loadLocal();
-  state.categories = data.categories;
-  state.transactions = data.transactions;
-  state.budgets = data.budgets;
-  state.pending = data.pending || [];
-  const seeded = seedIfEmpty();
-  if (seeded) saveLocal();
-  setSync("Mode lokal");
-  showBanner((extra || "") + "Mode lokal: data hanya tersimpan di perangkat ini");
+  state.user = null;
+  loadLocal();
+  showBanner(msg || "Mode lokal: data hanya tersimpan di perangkat ini");
+  setSync("Mode lokal", "local");
+  $("#mainNav").style.display = "";
   render();
 }
-function showBanner(text) {
+
+function showBanner(text, action) {
   const b = $("#banner");
   clear(b);
   if (!text) return;
-  b.append(el("div", { class: "banner", text }));
+  const wrap = el("div", { class: "banner" });
+  wrap.append(el("span", { text }));
+  if (action) {
+    wrap.append(el("button", {
+      type: "button", class: "btn btn-sm btn-primary", text: action.label,
+      onclick: () => { action.fn(); clear(b); }
+    }));
+  }
+  b.append(wrap);
 }
 
-const AUTH_ID = {
-  "Invalid login credentials": "Email atau kata sandi salah.",
-  "Email not confirmed": "Email belum dikonfirmasi. Cek kotak masuk.",
-  "User already registered": "Email ini sudah terdaftar. Coba masuk.",
-  "Password should be at least 6 characters": "Kata sandi minimal 6 karakter.",
-};
 function authMsg(err) {
-  const m = err?.message || String(err);
-  return AUTH_ID[m] || "Gagal: " + m;
+  const m = (err?.message || String(err)).toLowerCase();
+  if (m.includes("invalid login credentials")) return "Email atau kata sandi salah.";
+  if (m.includes("user already registered")) return "Email sudah terdaftar. Silakan masuk.";
+  if (m.includes("password should be at least")) return "Kata sandi minimal 6 karakter.";
+  if (m.includes("rate limit")) return "Terlalu banyak percobaan. Coba beberapa saat lagi.";
+  return err.message || "Terjadi kesalahan. Coba lagi.";
 }
 
 async function bootCloud() {
+  setSync("Menyimpan...", "saving");
   showBanner("");
-  setSync("Memuat...");
-  try {
-    await loadAllCloud();
-    if (!state.categories.length) {
-      const local = loadLocal();
-      if (local.transactions.length || local.categories.length) {
-        offerUpload(local);
-        return;
-      }
-      seedIfEmpty();
-      await pushSeedCategories();
-    }
-    subscribeRealtime();
-    setSync(state.online ? "Tersinkron" : "Offline");
-    render();
-    flushQueue();
-  } catch (err) {
-    toast("Gagal memuat data: " + (err.message || err));
-    enterLocal();
-  }
+  await loadAllCloud();
+  subscribeRealtime();
+  await offerUpload();
+  setSync("Tersinkron", "online");
+  $("#mainNav").style.display = "";
+  render();
 }
 
-async function pageAll(table, orderCol) {
-  const out = [];
-  const size = 1000;
+async function pageAll(table, select = "*", orderCol = "created_at", ascending = true) {
+  const PAGE_SZ = 1000;
   let from = 0;
-  for (;;) {
-    let q = state.sb.from(table).select("*").range(from, from + size - 1);
-    if (orderCol) q = q.order(orderCol, { ascending: true });
-    const { data, error } = await q;
+  const all = [];
+  while (true) {
+    const { data, error } = await state.sb
+      .from(table)
+      .select(select)
+      .order(orderCol, { ascending })
+      .range(from, from + PAGE_SZ - 1);
     if (error) throw error;
-    out.push(...(data || []));
-    if (!data || data.length < size) break;
-    from += size;
+    all.push(...(data || []));
+    if (!data || data.length < PAGE_SZ) break;
+    from += PAGE_SZ;
   }
-  return out;
+  return all;
 }
+
 async function loadAllCloud() {
-  const [categories, transactions, budgets] = await Promise.all([
-    pageAll("categories", "sort_order"),
-    pageAll("transactions", "date"),
-    pageAll("budgets", "month"),
-  ]);
-  state.categories = categories;
-  state.transactions = transactions;
-  state.budgets = budgets;
-  saveLocal();
+  try {
+    const [cats, txs, buds] = await Promise.all([
+      pageAll("categories", "*", "sort_order", true),
+      pageAll("transactions", "*", "date", false),
+      pageAll("budgets", "*", "month", true),
+    ]);
+    state.categories = cats;
+    state.transactions = txs;
+    state.budgets = buds;
+    if (!cats.length) await pushSeedCategories();
+    saveLocal();
+  } catch (err) {
+    toast("Gagal memuat dari cloud: " + (err.message || err));
+  }
 }
 
 async function pushSeedCategories() {
-  const rows = state.categories.map(({ id, name, type, archived, sort_order }) => ({ id, name, type, archived, sort_order }));
+  seedIfEmpty();
+  const rows = state.categories.map(c => ({
+    id: c.id, name: c.name, type: c.type, archived: c.archived, sort_order: c.sort_order, user_id: state.user.id
+  }));
   const { error } = await state.sb.from("categories").insert(rows);
-  if (error) throw error;
+  if (error) toast("Gagal membuat kategori bawaan: " + error.message);
 }
 
-function offerUpload(local) {
-  openModal("Data lokal ditemukan", (body, close) => {
-    body.append(
-      el("p", { text: "Ada data di perangkat ini dan cloud masih kosong. Upload ke cloud?" }),
-      el("div", { class: "seg" }, [
-        el("button", { type: "button", class: "btn btn-primary", text: "Upload data lokal ke cloud", onclick: async () => {
-          close();
-          try {
-            setSync("Menyimpan...");
-            state.categories = local.categories;
-            state.transactions = local.transactions;
-            state.budgets = local.budgets;
-            await uploadAllLocal();
-            subscribeRealtime();
-            setSync("Tersinkron");
-            render();
-            toast("Data lokal sudah di cloud.");
-          } catch (err) {
-            toast("Upload gagal: " + (err.message || err));
-          }
-        }}),
-        el("button", { type: "button", class: "btn", text: "Lewati, pakai cloud kosong", onclick: async () => {
-          close();
-          seedIfEmpty();
-          try { await pushSeedCategories(); } catch (e) { toast(authMsg(e)); }
-          subscribeRealtime();
-          setSync("Tersinkron");
-          render();
-        }}),
-      ])
-    );
-  });
+async function offerUpload() {
+  let localTxs = [];
+  try {
+    const raw = localStorage.getItem(STORAGE_PREFIX + "transactions");
+    localTxs = raw ? JSON.parse(raw) : [];
+  } catch {}
+  if (localTxs.length && !state.transactions.length) {
+    showBanner("Ada data lokal di perangkat ini. Upload ke akun cloud?", {
+      label: "Upload data lokal",
+      fn: () => uploadAllLocal(),
+    });
+  }
 }
+
 async function uploadAllLocal() {
-  if (state.categories.length) {
-    const { error } = await state.sb.from("categories").upsert(state.categories.map(c => ({
-      id: c.id, name: c.name, type: c.type, archived: !!c.archived, sort_order: c.sort_order || 0,
-    })));
-    if (error) throw error;
-  }
-  await insertChunked("transactions", state.transactions.map(t => ({
-    id: t.id, date: t.date, type: t.type, amount: t.amount, category_id: t.category_id, note: t.note || "",
-  })));
-  if (state.budgets.length) {
-    const { error } = await state.sb.from("budgets").upsert(state.budgets.map(b => ({
-      month: b.month, category_id: b.category_id, amount: b.amount,
-    })));
-    if (error) throw error;
+  setSync("Menyimpan...", "saving");
+  try {
+    const c = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "categories") || "[]");
+    const t = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "transactions") || "[]");
+    const b = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "budgets") || "[]");
+    if (c.length) {
+      await state.sb.from("categories").upsert(c.map(x => ({ ...x, user_id: state.user.id })), { onConflict: "id" });
+    }
+    if (t.length) await insertChunked("transactions", t.map(x => ({ ...x, user_id: state.user.id })));
+    if (b.length) {
+      await state.sb.from("budgets").upsert(b.map(x => ({ ...x, user_id: state.user.id })), { onConflict: "user_id,month,category_id" });
+    }
+    toast("Data lokal berhasil di-upload.");
+    await loadAllCloud();
+    render();
+  } catch (err) {
+    toast("Gagal upload data: " + (err.message || err));
+  } finally {
+    setSync("Tersinkron", "online");
   }
 }
+
 async function insertChunked(table, rows) {
-  for (let i = 0; i < rows.length; i += 500) {
-    const chunk = rows.slice(i, i + 500);
-    if (!chunk.length) continue;
-    const { error } = await state.sb.from(table).upsert(chunk);
+  const CHUNK = 500;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const slice = rows.slice(i, i + CHUNK);
+    const { error } = await state.sb.from(table).insert(slice);
     if (error) throw error;
   }
 }
 
 function subscribeRealtime() {
-  if (!state.sb || state.channel) return;
-  state.channel = state.sb.channel("duitku-changes")
+  teardownRealtime();
+  if (!state.sb || !state.user) return;
+  state.channel = state.sb
+    .channel("duitku-sync")
     .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, p => applyChange("transactions", p))
     .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, p => applyChange("categories", p))
     .on("postgres_changes", { event: "*", schema: "public", table: "budgets" }, p => applyChange("budgets", p))
     .subscribe();
 }
+
 function teardownRealtime() {
-  if (state.channel && state.sb) state.sb.removeChannel(state.channel);
-  state.channel = null;
+  if (state.channel && state.sb) {
+    state.sb.removeChannel(state.channel);
+    state.channel = null;
+  }
 }
+
 function applyChange(table, payload) {
-  const event = payload.eventType;
-  const row = event === "DELETE" ? payload.old : payload.new;
-  if (!row) return;
-  const key = rowKey(table, row);
+  const { eventType, new: n, old: o } = payload;
+  const target = state[table];
+  if (!target) return;
+  const key = rowKey(table, n || o);
   if (state.writing.has(key)) return;
-  const list = state[table];
-  const idx = list.findIndex(r => sameRow(table, r, row));
-  if (event === "DELETE") {
-    if (idx >= 0) list.splice(idx, 1);
-  } else if (idx >= 0) {
-    if (row.updated_at && list[idx].updated_at === row.updated_at && row.id === list[idx].id) return;
-    list[idx] = row;
-  } else {
-    list.push(row);
+
+  if (eventType === "INSERT") {
+    if (!target.some(x => sameRow(table, x, n))) target.push(n);
+  } else if (eventType === "UPDATE") {
+    const i = target.findIndex(x => sameRow(table, x, n));
+    if (i >= 0) {
+      if ((n.updated_at || "") >= (target[i].updated_at || "")) target[i] = n;
+    } else target.push(n);
+  } else if (eventType === "DELETE") {
+    const i = target.findIndex(x => sameRow(table, x, o));
+    if (i >= 0) target.splice(i, 1);
   }
   saveLocal();
   render();
 }
-function rowKey(table, row) {
-  if (table === "budgets") return "budgets:" + row.month + ":" + row.category_id;
-  return table + ":" + row.id;
+
+function rowKey(table, r) {
+  if (!r) return "";
+  if (table === "budgets") return `budgets:${r.month}:${r.category_id}`;
+  return `${table}:${r.id}`;
 }
 function sameRow(table, a, b) {
+  if (!a || !b) return false;
   if (table === "budgets") return a.month === b.month && a.category_id === b.category_id;
   return a.id === b.id;
 }
 
+async function cloudWrite(table, op, row, match) {
+  if (state.mode !== "cloud") return;
+  const key = rowKey(table, row || match);
+  state.writing.add(key);
+  setSync("Menyimpan...", "saving");
+  try {
+    if (!state.online) {
+      state.pending.push({ table, op, row, match });
+      setSync("Offline", "offline");
+      return;
+    }
+    const t = state.sb.from(table);
+    let res;
+    if (op === "insert") res = await t.insert({ ...strip(row), user_id: state.user.id });
+    else if (op === "update") res = await t.update(strip(row)).match(match);
+    else if (op === "upsert") res = await t.upsert({ ...strip(row), user_id: state.user.id });
+    else if (op === "delete") res = await t.delete().match(match);
+    if (res?.error) throw res.error;
+    setSync("Tersinkron", "online");
+  } catch (err) {
+    setSync("Offline", "offline");
+    state.pending.push({ table, op, row, match });
+    throw err;
+  } finally {
+    setTimeout(() => state.writing.delete(key), 800);
+  }
+}
+function strip(r) {
+  const o = { ...r };
+  delete o.user_id;
+  return o;
+}
+
+window.addEventListener("online", () => {
+  state.online = true;
+  setSync("Tersinkron", "online");
+  flushQueue();
+  if (state.mode === "cloud" && state.user) loadAllCloud().then(render);
+});
+window.addEventListener("offline", () => {
+  state.online = false;
+  setSync("Offline", "offline");
+});
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && state.mode === "cloud" && state.user) {
-    loadAllCloud().then(() => render()).catch(() => {});
+  if (document.visibilityState === "visible" && state.mode === "cloud" && state.user && state.online) {
+    loadAllCloud().then(render);
   }
 });
-window.addEventListener("online", () => { state.online = true; setSync("Tersinkron"); flushQueue(); });
-window.addEventListener("offline", () => { state.online = false; setSync("Offline"); });
 
-async function cloudWrite(table, op, row, match) {
-  if (state.mode !== "cloud") { saveLocal(); return; }
-  const key = rowKey(table, row);
-  state.writing.add(key);
-  setSync("Menyimpan...");
-  try {
-    if (!state.online) throw new Error("offline");
-    let q;
-    if (op === "insert") q = state.sb.from(table).insert(strip(table, row));
-    else if (op === "update") q = state.sb.from(table).update(strip(table, row)).match(match);
-    else if (op === "upsert") q = state.sb.from(table).upsert(strip(table, row));
-    else if (op === "delete") q = state.sb.from(table).delete().match(match);
-    const { error } = await q;
-    if (error) throw error;
-    setSync("Tersinkron");
-  } catch (err) {
-    if (!state.online || err.message === "offline") {
-      state.pending.push({ table, op, row, match });
-      saveLocal();
-      setSync("Offline");
-      toast("Offline. Perubahan akan dikirim saat tersambung.");
-    } else {
-      throw err;
-    }
-  } finally {
-    setTimeout(() => state.writing.delete(key), 1500);
-  }
-}
-function strip(table, row) {
-  if (table === "categories") return { id: row.id, name: row.name, type: row.type, archived: !!row.archived, sort_order: row.sort_order || 0 };
-  if (table === "transactions") return { id: row.id, date: row.date, type: row.type, amount: row.amount, category_id: row.category_id, note: row.note || "" };
-  return { month: row.month, category_id: row.category_id, amount: row.amount };
-}
 async function flushQueue() {
-  if (state.mode !== "cloud" || !state.online || !state.pending.length) return;
-  const queue = state.pending.splice(0);
-  for (const job of queue) {
-    try { await cloudWrite(job.table, job.op, job.row, job.match); }
-    catch { state.pending.push(job); break; }
+  if (!state.pending.length || !state.sb || !state.online) return;
+  setSync("Menyimpan...", "saving");
+  const q = [...state.pending];
+  state.pending = [];
+  for (const item of q) {
+    try {
+      await cloudWrite(item.table, item.op, item.row, item.match);
+    } catch {
+      state.pending.push(item);
+      break;
+    }
   }
-  saveLocal();
+  setSync(state.pending.length ? "Offline" : "Tersinkron", state.pending.length ? "offline" : "online");
 }
 
 /* ---------- aggregates ---------- */
 function txInMonth(key) {
-  return state.transactions.filter(t => t.date && t.date.slice(0, 7) === key);
+  return state.transactions.filter(t => t.date.slice(0, 7) === key);
 }
 function sumType(list, type) {
-  let s = 0;
-  for (const t of list) if (t.type === type) s += Number(t.amount) || 0;
-  return s;
+  return list.filter(t => t.type === type).reduce((s, t) => s + Number(t.amount || 0), 0);
 }
 function spentByCat(key) {
   const map = new Map();
   for (const t of txInMonth(key)) {
     if (t.type !== "expense") continue;
-    map.set(t.category_id, (map.get(t.category_id) || 0) + Number(t.amount));
+    map.set(t.category_id, (map.get(t.category_id) || 0) + Number(t.amount || 0));
   }
   return map;
 }
@@ -657,20 +1654,29 @@ function budgetsFor(key) {
   return state.budgets.filter(b => b.month === key);
 }
 
-/* ---------- nav ---------- */
+/* ---------- navigation & rendering ---------- */
 function render() {
   document.querySelectorAll(".nav button").forEach(b => {
+    if (b.id === "desktopCatatBtn") return;
     b.setAttribute("aria-current", b.dataset.screen === state.screen ? "page" : "false");
   });
   $("#fabCatat").hidden = state.screen === "lainnya" || (state.mode === "cloud" && !state.user);
+  const deskBtn = $("#desktopCatatBtn");
+  if (deskBtn) deskBtn.hidden = state.screen === "lainnya" || (state.mode === "cloud" && !state.user);
   clear(main);
-  if (state.mode === "cloud" && !state.user) return;
+  if (state.mode === "cloud" && !state.user) {
+    renderAuth();
+    return;
+  }
   if (state.screen === "dashboard") renderDashboard();
   else if (state.screen === "transaksi") renderTransaksi();
   else if (state.screen === "budget") renderBudget();
   else renderSettings();
+
   const syncEl = $("#syncStatus");
-  if (syncEl && !syncEl.textContent) syncEl.textContent = state.mode === "local" ? "Mode lokal" : state.sync;
+  if (syncEl && !syncEl.textContent) {
+    setSync(state.mode === "local" ? "Mode lokal" : state.sync, state.mode === "local" ? "local" : "");
+  }
 }
 
 document.querySelector(".nav").addEventListener("click", e => {
@@ -681,6 +1687,21 @@ document.querySelector(".nav").addEventListener("click", e => {
 });
 $("#fabCatat").addEventListener("click", () => openTxForm());
 
+/* ---------- month navigation helper ---------- */
+function monthNavEl(key) {
+  const currentKey = monthKey(new Date());
+  const head = el("div", { class: "month-nav" }, [
+    el("button", { type: "button", class: "icon-btn nav-arrow", "aria-label": "Bulan sebelumnya", onclick: () => { state.month = addMonths(key, -1); render(); } }, [icon("chevronLeft", 18)]),
+    el("div", { class: "month-title" }, [
+      icon("calendar", 16, "muted"),
+      el("strong", { text: monthLabel(key) }),
+      key !== currentKey ? el("button", { type: "button", class: "btn-xs", text: "Bulan Ini", onclick: () => { state.month = currentKey; render(); } }) : null
+    ]),
+    el("button", { type: "button", class: "icon-btn nav-arrow", "aria-label": "Bulan berikutnya", onclick: () => { state.month = addMonths(key, 1); render(); } }, [icon("chevronRight", 18)]),
+  ]);
+  return head;
+}
+
 /* ---------- dashboard ---------- */
 function renderDashboard() {
   const key = state.month;
@@ -690,67 +1711,92 @@ function renderDashboard() {
   const budgets = budgetsFor(key);
   const budgetTotal = budgets.reduce((s, b) => s + Number(b.amount), 0);
   const spentMap = spentByCat(key);
-  let spentBudgeted = 0;
-  for (const b of budgets) spentBudgeted += spentMap.get(b.category_id) || 0;
   const remain = budgets.length ? budgetTotal - expense : null;
 
-  const head = el("div", { class: "card month-nav" }, [
-    el("button", { type: "button", class: "icon-btn", "aria-label": "Bulan sebelumnya", text: "‹", onclick: () => { state.month = addMonths(key, -1); render(); } }),
-    el("strong", { text: monthLabel(key) }),
-    el("button", { type: "button", class: "icon-btn", "aria-label": "Bulan berikutnya", text: "›", onclick: () => { state.month = addMonths(key, 1); render(); } }),
-  ]);
-  main.append(head);
+  main.append(monthNavEl(key));
 
-  if (budgets.length) {
+  const layout = el("div", { class: "dash-layout" });
+  const colLeft = el("div", { class: "dash-col" });
+  const colRight = el("div", { class: "dash-col" });
+
+  if (budgets.length && remain != null) {
     const left = daysLeftInMonth(key);
     const over = remain < 0;
-    let msg;
-    if (over) msg = "Bulan ini sudah melebihi budget sebesar " + rp(Math.abs(remain)) + ".";
-    else if (left > 0) msg = "Sisa budget bulan ini " + rp(remain) + " untuk " + left + " hari lagi, jadi boleh jajan sekitar " + rp(Math.floor(remain / left)) + " per hari.";
-    else msg = "Sisa budget bulan ini " + rp(remain) + ".";
-    main.append(el("div", { class: "card" }, [el("p", { text: msg, style: "margin:0" })]));
+    const hero = el("div", { class: "hero-card" + (over ? " over-budget" : "") });
+    const top = el("div", { class: "hero-top" });
+    top.append(
+      el("div", { class: "hero-badge" }, [
+        icon(over ? "arrowUpRight" : "wallet", 14),
+        el("span", { text: over ? "Melebihi Budget" : "Sisa Budget Bulan Ini" })
+      ]),
+      left > 0 ? el("span", { class: "hero-days", text: left + " hari lagi" }) : null
+    );
+    hero.append(top);
+    hero.append(el("div", { class: "hero-amount", text: (over ? "-" : "") + rp(Math.abs(remain)) }));
+    let pillText = "";
+    if (over) {
+      pillText = "Bulan ini sudah melebihi budget sebesar " + rp(Math.abs(remain));
+    } else if (left > 0) {
+      pillText = "Boleh jajan sekitar " + rp(Math.floor(remain / left)) + " / hari";
+    } else {
+      pillText = "Sisa budget bulan ini " + rp(remain);
+    }
+    hero.append(el("div", { class: "hero-pill" }, [
+      icon(over ? "bulb" : "lightning", 14),
+      el("span", { text: pillText })
+    ]));
+    colLeft.append(hero);
   }
 
-  const stats = el("div", { class: "grid grid-2 grid-4" });
+  const stats = el("div", { class: "stats-grid" });
   const cards = [
-    ["Pemasukan", rp(income), "pos"],
-    ["Pengeluaran", rp(expense), "neg"],
-    ["Selisih", rp(income - expense), income - expense >= 0 ? "pos" : "neg"],
-    ["Sisa budget total", budgets.length ? rp(budgetTotal - expense) : "Belum diatur", ""],
+    { label: "Pemasukan", val: rp(income), icon: "arrowDownLeft", cls: "income" },
+    { label: "Pengeluaran", val: rp(expense), icon: "arrowUpRight", cls: "expense" },
+    { label: "Selisih", val: (income - expense >= 0 ? "+" : "-") + rp(Math.abs(income - expense)), icon: "scale", cls: "balance" },
+    { label: "Sisa Budget Total", val: budgets.length ? (budgetTotal - expense >= 0 ? "" : "-") + rp(Math.abs(budgetTotal - expense)) : "Belum diatur", icon: "target", cls: "budget" }
   ];
-  for (const [label, value, cls] of cards) {
-    stats.append(el("div", { class: "card stat" }, [
-      el("div", { class: "label", text: label }),
-      el("div", { class: "value " + cls, text: value }),
-    ]));
+  for (const c of cards) {
+    const card = el("div", { class: "stat-card" });
+    const top = el("div", { class: "stat-top" });
+    top.append(el("span", { class: "stat-label", text: c.label }));
+    top.append(el("span", { class: "stat-icon " + c.cls }, [icon(c.icon, 16)]));
+    card.append(top);
+    card.append(el("div", { class: "stat-val " + (c.cls === "income" || c.cls === "expense" ? c.cls : ""), text: c.val }));
+    stats.append(card);
   }
-  main.append(stats);
+  colLeft.append(stats);
+  colLeft.append(trendCard(key));
 
   const byCat = [...spentMap.entries()].map(([id, amount]) => ({ id, amount, name: catById(id)?.name || "Tanpa kategori" }))
     .sort((a, b) => b.amount - a.amount);
-  const catCard = el("div", { class: "card" }, [el("h2", { text: "Pengeluaran per kategori", style: "margin:0 0 10px;font-size:1rem" })]);
+  const catCard = el("div", { class: "card" });
+  catCard.append(el("h2", { class: "card-title", text: "Pengeluaran per Kategori" }));
   if (!byCat.length) {
-    catCard.append(el("div", { class: "empty" }, [
-      el("p", { text: "Belum ada pengeluaran bulan ini." }),
-      el("button", { type: "button", class: "btn btn-primary", text: "+ Catat", onclick: () => openTxForm({ type: "expense" }) }),
+    catCard.append(el("div", { class: "empty-state" }, [
+      el("div", { class: "empty-icon", text: "🍜" }),
+      el("p", { class: "empty-title", text: "Masih bersih! Belum ada pengeluaran bulan ini." }),
+      el("button", { type: "button", class: "btn btn-primary btn-sm", text: "+ Catat Pengeluaran", onclick: () => openTxForm({ type: "expense" }) }),
     ]));
   } else {
-    const max = byCat[0].amount || 1;
     for (const c of byCat) {
       const pct = expense ? Math.round(c.amount / expense * 100) : 0;
-      const row = el("div", { style: "margin-bottom:10px" });
-      const top = el("div", { class: "row-item", style: "border:0;padding:0 0 4px" });
-      top.append(el("span", { text: c.name }), el("span", { class: "small", text: rp(c.amount) + " · " + pct + "%" }));
+      const row = el("div", { class: "cat-bar-item" });
+      const top = el("div", { class: "cat-bar-header" });
+      const nameWrap = el("div", { class: "cat-bar-name" });
+      nameWrap.append(el("span", { text: c.name }), el("span", { class: "cat-bar-badge", text: pct + "%" }));
+      top.append(nameWrap, el("span", { class: "cat-bar-amount", text: rp(c.amount) }));
       row.append(top);
       const track = el("div", { class: "bar-track" });
-      track.append(el("div", { class: "bar-fill", style: "width:" + Math.max(2, c.amount / max * 100) + "%;background:var(--accent)" }));
+      track.append(el("div", { class: "bar-fill", style: "width:" + Math.max(2, pct) + "%;background:var(--accent)" }));
       row.append(track);
       catCard.append(row);
     }
   }
-  main.append(catCard);
-  main.append(trendCard(key));
-  main.append(insightsCard(key, income, expense, budgets, spentMap, remain));
+  colRight.append(catCard);
+  colRight.append(insightsCard(key, income, expense, budgets, spentMap, remain));
+
+  layout.append(colLeft, colRight);
+  main.append(layout);
 }
 
 function trendCard(key) {
@@ -760,30 +1806,53 @@ function trendCard(key) {
     const list = txInMonth(m);
     return { m, income: sumType(list, "income"), expense: sumType(list, "expense") };
   });
-  const max = Math.max(1, ...series.flatMap(s => [s.income, s.expense]));
+  const allVals = series.flatMap(s => [s.income, s.expense]);
+  const hasData = allVals.some(v => v > 0);
+  const max = Math.max(1, ...allVals);
+
   const card = el("div", { class: "card" });
-  card.append(el("h2", { text: "6 bulan terakhir", style: "margin:0 0 8px;font-size:1rem" }));
-  const legend = el("div", { class: "small muted", style: "display:flex;gap:12px;margin-bottom:8px" });
-  legend.append(el("span", { text: "■ Pemasukan" }), el("span", { text: "■ Pengeluaran" }));
-  legend.firstChild.style.color = "var(--income)";
-  legend.lastChild.style.color = "var(--expense)";
-  card.append(legend);
-  const W = 360, H = 160, pad = 28;
+  const head = el("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;" });
+  head.append(el("h2", { class: "card-title", style: "margin:0;", text: "Tren 6 Bulan Terakhir" }));
+
+  const legend = el("div", { class: "legend" }, [
+    el("span", { class: "legend-item" }, [el("span", { class: "legend-dot income" }), el("span", { text: "Pemasukan" })]),
+    el("span", { class: "legend-item" }, [el("span", { class: "legend-dot expense" }), el("span", { text: "Pengeluaran" })]),
+  ]);
+  head.append(legend);
+  card.append(head);
+
+  const W = 360, H = 160, pad = 36;
   const gw = (W - pad) / series.length;
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", "0 0 " + W + " " + (H + 28));
+  svg.setAttribute("viewBox", "0 0 " + W + " " + (H + 30));
   svg.setAttribute("width", "100%");
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", "Grafik pemasukan dan pengeluaran 6 bulan");
+
+  for (const yFrac of [0.25, 0.5, 0.75, 1.0]) {
+    const yPos = H - (H - 24) * yFrac;
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", pad - 8); line.setAttribute("y1", yPos);
+    line.setAttribute("x2", W); line.setAttribute("y2", yPos);
+    line.setAttribute("stroke", "var(--border)");
+    line.setAttribute("stroke-dasharray", "3,3");
+    line.setAttribute("stroke-width", "1");
+    svg.append(line);
+  }
+
   function bar(x, amount, color, label) {
-    const h = Math.max(amount ? 2 : 0, (amount / max) * (H - 16));
+    const h = hasData && amount > 0 ? Math.max(4, (amount / max) * (H - 24)) : 0;
     const r = document.createElementNS(svgNS, "rect");
-    r.setAttribute("x", x); r.setAttribute("y", H - h); r.setAttribute("width", 12); r.setAttribute("height", h);
-    r.setAttribute("rx", 3); r.setAttribute("fill", color);
+    r.setAttribute("x", x);
+    r.setAttribute("y", H - h);
+    r.setAttribute("width", 14);
+    r.setAttribute("height", h);
+    r.setAttribute("rx", 4);
+    r.setAttribute("fill", color);
     r.setAttribute("tabindex", "0");
     r.setAttribute("role", "button");
-    const tip = label + " " + rp(amount);
+    const tip = label + ": " + rp(amount);
     r.setAttribute("aria-label", tip);
     const title = document.createElementNS(svgNS, "title");
     title.textContent = tip;
@@ -792,20 +1861,48 @@ function trendCard(key) {
     r.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toast(tip); } });
     return r;
   }
+
   series.forEach((s, i) => {
-    const x = pad / 2 + i * gw;
-    svg.append(bar(x, s.income, "var(--income)", monthLabel(s.m) + " pemasukan"));
-    svg.append(bar(x + 16, s.expense, "var(--expense)", monthLabel(s.m) + " pengeluaran"));
+    const x = pad + i * gw + (gw - 32) / 2;
+    if (hasData) {
+      svg.append(bar(x, s.income, "var(--income)", monthLabel(s.m) + " pemasukan"));
+      svg.append(bar(x + 16, s.expense, "var(--expense)", monthLabel(s.m) + " pengeluaran"));
+    } else {
+      const r1 = document.createElementNS(svgNS, "rect");
+      r1.setAttribute("x", x); r1.setAttribute("y", H - 20); r1.setAttribute("width", 14); r1.setAttribute("height", 20);
+      r1.setAttribute("rx", 4); r1.setAttribute("fill", "var(--border)"); r1.setAttribute("opacity", "0.5");
+      const r2 = document.createElementNS(svgNS, "rect");
+      r2.setAttribute("x", x + 16); r2.setAttribute("y", H - 20); r2.setAttribute("width", 14); r2.setAttribute("height", 20);
+      r2.setAttribute("rx", 4); r2.setAttribute("fill", "var(--border)"); r2.setAttribute("opacity", "0.3");
+      svg.append(r1, r2);
+    }
     const t = document.createElementNS(svgNS, "text");
-    t.setAttribute("x", x + 12); t.setAttribute("y", H + 16); t.setAttribute("text-anchor", "middle");
-    t.setAttribute("font-size", "10"); t.setAttribute("fill", "currentColor");
-    t.textContent = monthLabel(s.m).split(" ")[0];
+    t.setAttribute("x", x + 15);
+    t.setAttribute("y", H + 18);
+    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("font-size", "11");
+    t.setAttribute("font-weight", "500");
+    t.setAttribute("fill", "var(--text-muted)");
+    t.textContent = monthLabel(s.m).split(" ")[0].slice(0, 3);
     svg.append(t);
   });
-  const axis = document.createElementNS(svgNS, "text");
-  axis.setAttribute("x", 2); axis.setAttribute("y", 12); axis.setAttribute("font-size", "10"); axis.setAttribute("fill", "currentColor");
-  axis.textContent = compact(max);
-  svg.append(axis);
+
+  if (hasData) {
+    const axis = document.createElementNS(svgNS, "text");
+    axis.setAttribute("x", 2); axis.setAttribute("y", 14);
+    axis.setAttribute("font-size", "10"); axis.setAttribute("font-weight", "600");
+    axis.setAttribute("fill", "var(--text-muted)");
+    axis.textContent = compact(max);
+    svg.append(axis);
+  } else {
+    const emptyMsg = document.createElementNS(svgNS, "text");
+    emptyMsg.setAttribute("x", W / 2); emptyMsg.setAttribute("y", H / 2);
+    emptyMsg.setAttribute("text-anchor", "middle");
+    emptyMsg.setAttribute("font-size", "12"); emptyMsg.setAttribute("fill", "var(--text-muted)");
+    emptyMsg.textContent = "Grafik muncul setelah ada transaksi";
+    svg.append(emptyMsg);
+  }
+
   card.append(svg);
   return card;
 }
@@ -850,12 +1947,20 @@ function insightsCard(key, income, expense, budgets, spentMap, remain) {
   }
   insights.sort((a, b) => b.score - a.score);
   const top5 = insights.slice(0, 5);
-  const card = el("div", { class: "card" }, [el("h2", { text: "Insight", style: "margin:0 0 8px;font-size:1rem" })]);
-  if (!top5.length) card.append(el("p", { class: "muted", text: "Catat beberapa transaksi dulu biar ada insight." }));
-  else {
-    const ul = el("ul", { style: "margin:0;padding-left:18px" });
-    for (const i of top5) ul.append(el("li", { text: i.text }));
-    card.append(ul);
+  if (!top5.length) return el("div", { style: "display:none;" });
+
+  const card = el("div", { class: "card" });
+  const head = el("div", { style: "display:flex;align-items:center;gap:8px;margin-bottom:12px;" }, [
+    icon("bulb", 18, "accent"),
+    el("h2", { class: "card-title", style: "margin:0;", text: "Insight Cerdas" })
+  ]);
+  card.append(head);
+  for (const i of top5) {
+    const item = el("div", { class: "insight-item" }, [
+      el("div", { class: "insight-icon" }, [icon("lightning", 14)]),
+      el("div", { style: "flex:1;font-weight:500;", text: i.text })
+    ]);
+    card.append(item);
   }
   return card;
 }
@@ -884,6 +1989,7 @@ function recentCombos() {
   }
   return out;
 }
+
 function renderTransaksi() {
   const f = state.txFilter;
   const filters = el("div", { class: "card grid" });
@@ -911,7 +2017,7 @@ function renderTransaksi() {
     if (v === f.type) o.selected = true;
     typeSel.append(o);
   }
-  const search = el("input", { type: "search", placeholder: "Cari catatan", "aria-label": "Cari catatan", value: f.q });
+  const search = el("input", { type: "search", placeholder: "Cari catatan transaksi...", "aria-label": "Cari catatan", value: f.q });
   let timer;
   search.addEventListener("input", () => {
     clearTimeout(timer);
@@ -922,21 +2028,28 @@ function renderTransaksi() {
 
   const combos = recentCombos();
   if (combos.length) {
-    const box = el("div", { class: "chips", style: "margin-bottom:12px" });
+    const wrap = el("div", { style: "margin-bottom:14px;" });
+    wrap.append(el("div", { class: "section-subtitle", text: "Transaksi Cepat (Sekali Ketuk)" }));
+    const box = el("div", { class: "chips" });
     for (const t of combos) {
       const name = catById(t.category_id)?.name || "?";
       box.append(el("button", {
         type: "button", class: "chip",
-        text: name + " " + rp(t.amount),
         onclick: () => quickAdd(t),
-      }));
+      }, [
+        icon("lightning", 14),
+        el("span", { text: name }),
+        el("span", { class: "chip-amount", text: rp(t.amount) })
+      ]));
     }
-    main.append(box);
+    wrap.append(box);
+    main.append(wrap);
   }
   const listHost = el("div", { id: "txList" });
   main.append(listHost);
   renderList();
 }
+
 function renderList() {
   const host = $("#txList");
   if (!host) return;
@@ -944,9 +2057,10 @@ function renderList() {
   const all = filteredTx();
   const slice = all.slice(0, state.txShown);
   if (!slice.length) {
-    host.append(el("div", { class: "card empty" }, [
-      el("p", { text: state.transactions.length ? "Tidak ada yang cocok dengan filter." : "Belum ada transaksi." }),
-      el("button", { type: "button", class: "btn btn-primary", text: "+ Catat transaksi", onclick: () => openTxForm() }),
+    host.append(el("div", { class: "card empty-state" }, [
+      el("div", { class: "empty-icon", text: "📝" }),
+      el("p", { class: "empty-title", text: state.transactions.length ? "Tidak ada transaksi yang cocok dengan filter." : "Belum ada transaksi tercatat." }),
+      el("button", { type: "button", class: "btn btn-primary", text: "+ Catat Transaksi Baru", onclick: () => openTxForm() }),
     ]));
     return;
   }
@@ -956,34 +2070,48 @@ function renderList() {
     if (t.date !== current) {
       current = t.date;
       const dayTotal = all.filter(x => x.date === t.date).reduce((s, x) => s + (x.type === "expense" ? -Number(x.amount) : Number(x.amount)), 0);
-      group = el("div", { class: "card" });
-      group.append(el("div", { class: "row-item" }, [
-        el("strong", { text: t.date }),
-        el("span", { class: "small " + (dayTotal >= 0 ? "pos" : "neg"), text: (dayTotal >= 0 ? "+" : "") + rp(dayTotal) }),
-      ]));
+      group = el("div", { class: "card tx-group" });
+      const groupHeader = el("div", { class: "tx-group-header" }, [
+        el("div", { class: "tx-group-date" }, [
+          icon("calendar", 14, "muted"),
+          el("strong", { text: t.date })
+        ]),
+        el("span", { class: "tx-group-total " + (dayTotal >= 0 ? "income" : "expense"), text: (dayTotal >= 0 ? "+" : "") + rp(dayTotal) }),
+      ]);
+      group.append(groupHeader);
       host.append(group);
     }
     const name = catById(t.category_id)?.name || "?";
-    const row = el("div", { class: "row-item" });
-    const left = el("div");
-    left.append(el("div", { text: name }));
-    if (t.note) left.append(el("div", { class: "small muted", text: t.note }));
+    const row = el("div", { class: "tx-row" });
+    const left = el("div", { class: "tx-left" });
+    const iconWrap = el("div", { class: "tx-avatar " + (t.type === "income" ? "income" : "expense") }, [
+      icon(t.type === "income" ? "arrowDownLeft" : "arrowUpRight", 16)
+    ]);
+    const info = el("div", { class: "tx-info" });
+    info.append(el("div", { class: "tx-name", text: name }));
+    if (t.note) info.append(el("div", { class: "tx-note", text: t.note }));
+    left.append(iconWrap, info);
     row.append(left);
-    const right = el("div", { style: "text-align:right" });
-    right.append(el("div", { class: t.type === "income" ? "pos" : "neg", text: (t.type === "income" ? "+" : "-") + rp(t.amount) }));
-    const actions = el("div", { class: "seg", style: "justify-content:flex-end" });
+
+    const right = el("div", { class: "tx-right" });
+    right.append(el("div", { class: "tx-amount " + (t.type === "income" ? "income" : "expense"), text: (t.type === "income" ? "+" : "-") + rp(t.amount) }));
+    const actions = el("div", { class: "tx-actions" });
     actions.append(
-      el("button", { type: "button", class: "btn btn-ghost", text: "Ubah", onclick: () => openTxForm(t) }),
-      el("button", { type: "button", class: "btn btn-ghost", text: "Hapus", onclick: () => deleteTx(t) }),
+      el("button", { type: "button", class: "btn-icon-subtle", "aria-label": "Ubah transaksi", onclick: () => openTxForm(t) }, [icon("edit", 14)]),
+      el("button", { type: "button", class: "btn-icon-subtle danger", "aria-label": "Hapus transaksi", onclick: () => deleteTx(t) }, [icon("trash", 14)]),
     );
     right.append(actions);
     row.append(right);
     group.append(row);
   }
   if (all.length > slice.length) {
-    host.append(el("button", { type: "button", class: "btn", text: "Muat lebih banyak", onclick: () => { state.txShown += PAGE; renderList(); } }));
+    host.append(el("button", {
+      type: "button", class: "btn full-width", style: "margin-top:12px;", text: "Muat Lebih Banyak",
+      onclick: () => { state.txShown += PAGE; renderList(); }
+    }));
   }
 }
+
 async function quickAdd(src) {
   const row = {
     id: uid(), date: localDate(), type: src.type, amount: src.amount,
@@ -992,9 +2120,15 @@ async function quickAdd(src) {
   state.transactions.push(row);
   saveLocal();
   render();
-  try { await cloudWrite("transactions", "insert", row); toast("Tercatat: " + (catById(src.category_id)?.name || "") + " " + rp(src.amount)); }
-  catch (err) { rollbackTx(row.id); toast("Gagal mencatat: " + (err.message || err)); }
+  try {
+    await cloudWrite("transactions", "insert", row);
+    toast("Tercatat: " + (catById(src.category_id)?.name || "") + " " + rp(src.amount));
+  } catch (err) {
+    rollbackTx(row.id);
+    toast("Gagal mencatat: " + (err.message || err));
+  }
 }
+
 function deleteTx(t) {
   const idx = state.transactions.findIndex(x => x.id === t.id);
   if (idx < 0) return;
@@ -1003,13 +2137,22 @@ function deleteTx(t) {
   saveLocal();
   render();
   let undone = false;
-  toast("Transaksi dihapus", { label: "Urungkan", fn: () => { undone = true; state.transactions.push(copy); saveLocal(); render(); } });
+  toast("Transaksi dihapus", {
+    label: "Urungkan",
+    fn: () => {
+      undone = true;
+      state.transactions.push(copy);
+      saveLocal();
+      render();
+    }
+  });
   setTimeout(async () => {
     if (undone) return;
     try { await cloudWrite("transactions", "delete", copy, { id: copy.id }); }
     catch (err) { state.transactions.push(copy); saveLocal(); render(); toast("Gagal menghapus: " + (err.message || err)); }
   }, 6000);
 }
+
 function rollbackTx(id) {
   const i = state.transactions.findIndex(t => t.id === id);
   if (i >= 0) state.transactions.splice(i, 1);
@@ -1026,39 +2169,63 @@ function openTxForm(existing) {
     category_id: existing?.category_id || "",
     note: existing?.note || "",
   };
-  openModal(isEdit ? "Ubah transaksi" : "Catat transaksi", (body, close) => {
+  openModal(isEdit ? "Ubah Transaksi" : "Catat Transaksi", (body, close) => {
+    const typeSeg = el("div", { class: "seg full-width", style: "margin-bottom:16px;" });
+    const btnExp = el("button", { type: "button", text: "Pengeluaran", "aria-pressed": draft.type === "expense" ? "true" : "false" });
+    const btnInc = el("button", { type: "button", text: "Pemasukan", "aria-pressed": draft.type === "income" ? "true" : "false" });
+    typeSeg.append(btnExp, btnInc);
+
+    const amountWrap = el("div", { class: "amount-hero" });
+    const rpSpan = el("span", { class: "rp-prefix", text: "Rp" });
+    const amount = el("input", {
+      type: "text", inputmode: "numeric", autocomplete: "off", placeholder: "0",
+      "aria-label": "Jumlah transaksi dalam rupiah",
+      value: draft.amount ? formatThousands(draft.amount) : ""
+    });
+    amountWrap.append(rpSpan, amount);
+
     const date = el("input", { type: "date", value: draft.date, required: "true" });
-    const type = el("select");
-    for (const [v, label] of [["expense", "Pengeluaran"], ["income", "Pemasukan"]]) {
-      const o = el("option", { value: v, text: label });
-      if (v === draft.type) o.selected = true;
-      type.append(o);
-    }
-    const amount = el("input", { type: "text", inputmode: "numeric", autocomplete: "off", value: draft.amount ? formatThousands(draft.amount) : "" });
-    const cat = el("select");
-    const note = el("input", { type: "text", value: draft.note, maxlength: "200" });
+    const cat = el("select", { "aria-label": "Pilih kategori" });
+    const note = el("input", { type: "text", placeholder: "Contoh: Nasi padang, bensin, dll", value: draft.note, maxlength: "200" });
+
     function refillCats() {
       clear(cat);
-      cat.append(el("option", { value: "", text: "Pilih kategori" }));
-      for (const c of activeCats(type.value)) {
+      cat.append(el("option", { value: "", text: "Pilih kategori..." }));
+      for (const c of activeCats(draft.type)) {
         const o = el("option", { value: c.id, text: c.name });
         if (c.id === draft.category_id) o.selected = true;
         cat.append(o);
       }
     }
-    type.addEventListener("change", () => { draft.category_id = ""; refillCats(); });
+
+    btnExp.addEventListener("click", () => {
+      draft.type = "expense";
+      btnExp.setAttribute("aria-pressed", "true");
+      btnInc.setAttribute("aria-pressed", "false");
+      draft.category_id = "";
+      refillCats();
+    });
+    btnInc.addEventListener("click", () => {
+      draft.type = "income";
+      btnInc.setAttribute("aria-pressed", "true");
+      btnExp.setAttribute("aria-pressed", "false");
+      draft.category_id = "";
+      refillCats();
+    });
+
     refillCats();
     amount.addEventListener("input", () => {
       const digits = amount.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
       amount.value = formatThousands(digits);
     });
+
     body.append(
-      field("Tanggal", date),
-      field("Jenis", type),
-      field("Jumlah (Rp)", amount),
+      typeSeg,
+      amountWrap,
       field("Kategori", cat),
+      field("Tanggal", date),
       field("Catatan (opsional)", note),
-      el("button", { type: "button", class: "btn btn-primary", text: "Simpan", onclick: async () => {
+      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: "Simpan Transaksi", onclick: async () => {
         const digits = amount.value.replace(/\D/g, "");
         const value = Number(digits);
         if (!date.value) return toast("Tanggal wajib diisi.");
@@ -1067,7 +2234,7 @@ function openTxForm(existing) {
         const row = {
           id: existing?.id || uid(),
           date: date.value,
-          type: type.value,
+          type: draft.type,
           amount: value,
           category_id: cat.value,
           note: note.value.trim(),
@@ -1094,9 +2261,10 @@ function openTxForm(existing) {
         }
       }}),
     );
-    setTimeout(() => amount.focus(), 50);
+    setTimeout(() => amount.focus(), 60);
   });
 }
+
 function formatThousands(digits) {
   const s = String(digits || "").replace(/\D/g, "");
   if (!s) return "";
@@ -1111,53 +2279,77 @@ function field(label, control) {
 /* ---------- budget ---------- */
 function renderBudget() {
   const key = state.month;
-  ensureBudgetCopyHint(key);
-  const head = el("div", { class: "card month-nav" }, [
-    el("button", { type: "button", class: "icon-btn", "aria-label": "Bulan sebelumnya", text: "‹", onclick: () => { state.month = addMonths(key, -1); render(); } }),
-    el("strong", { text: monthLabel(key) }),
-    el("button", { type: "button", class: "icon-btn", "aria-label": "Bulan berikutnya", text: "›", onclick: () => { state.month = addMonths(key, 1); render(); } }),
-  ]);
-  main.append(head);
+  main.append(monthNavEl(key));
+
   const prev = budgetsFor(addMonths(key, -1));
   if (!budgetsFor(key).length && prev.length) {
-    main.append(el("div", { class: "card" }, [
-      el("p", { text: "Belum ada budget bulan ini.", style: "margin-top:0" }),
-      el("button", { type: "button", class: "btn btn-primary", text: "Salin dari bulan lalu", onclick: () => copyBudgets(key) }),
+    main.append(el("div", { class: "card budget-copy-card" }, [
+      el("div", { style: "display:flex;align-items:center;gap:10px;margin-bottom:8px;" }, [
+        icon("calendar", 18, "accent"),
+        el("strong", { text: "Belum ada budget untuk bulan ini" })
+      ]),
+      el("p", { class: "muted small", style: "margin-bottom:12px;", text: "Mau pakai batas budget yang sama seperti bulan kemarin?" }),
+      el("button", { type: "button", class: "btn btn-primary", onclick: () => copyBudgets(key) }, [
+        icon("check", 14),
+        el("span", { text: "Salin dari Bulan Lalu" })
+      ]),
     ]));
   }
   const spent = spentByCat(key);
   const cats = activeCats("expense");
   if (!cats.length) {
-    main.append(el("div", { class: "card empty", text: "Belum ada kategori pengeluaran." }));
+    main.append(el("div", { class: "card empty-state" }, [
+      el("div", { class: "empty-icon", text: "🎯" }),
+      el("p", { class: "empty-title", text: "Belum ada kategori pengeluaran." }),
+      el("button", { type: "button", class: "btn btn-primary", text: "Tambah Kategori", onclick: () => editCategory(null) })
+    ]));
     return;
   }
   for (const c of cats) {
     const b = state.budgets.find(x => x.month === key && x.category_id === c.id);
     const used = spent.get(c.id) || 0;
-    const card = el("div", { class: "card" });
-    card.append(el("strong", { text: c.name }));
+    const card = el("div", { class: "card budget-item-card" });
+    const topRow = el("div", { class: "budget-top-row" });
+    topRow.append(el("strong", { class: "budget-cat-name", text: c.name }));
+
     if (!b) {
-      card.append(el("p", { class: "muted", text: "Belum diatur", style: "margin:6px 0" }));
-      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Budget " + c.name, placeholder: "Atur budget" });
+      topRow.append(el("span", { class: "tag muted-tag", text: "Belum diatur" }));
+      card.append(topRow);
+      card.append(el("div", { class: "small muted", style: "margin:6px 0 10px;", text: "Terpakai: " + rp(used) }));
+      const inputWrap = el("div", { style: "display:flex;gap:8px;" });
+      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Budget " + c.name, placeholder: "Atur budget (Rp)" });
       input.addEventListener("input", () => { input.value = formatThousands(input.value.replace(/\D/g, "")); });
-      card.append(input, el("button", { type: "button", class: "btn", text: "Simpan", style: "margin-top:8px", onclick: () => saveBudget(key, c.id, input.value) }));
+      const saveBtn = el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Simpan", onclick: () => saveBudget(key, c.id, input.value) });
+      inputWrap.append(input, saveBtn);
+      card.append(inputWrap);
     } else {
       const remain = Number(b.amount) - used;
       const ratio = b.amount > 0 ? used / b.amount : (used > 0 ? 2 : 0);
       const cls = ratio > 1 ? "over" : ratio >= 0.8 ? "warn" : "ok";
       const label = ratio > 1 ? "Melebihi budget" : ratio >= 0.8 ? "Hampir habis" : "Aman";
-      card.append(el("div", { class: "small", text: "Budget " + rp(b.amount) + " · Terpakai " + rp(used) + " · Sisa " + rp(remain) }));
-      const track = el("div", { class: "bar-track", style: "margin:8px 0" });
+      topRow.append(el("span", { class: "tag " + cls, text: label }));
+      card.append(topRow);
+
+      const meta = el("div", { class: "budget-meta" }, [
+        el("span", { text: "Budget: " + rp(b.amount) }),
+        el("span", { text: "Terpakai: " + rp(used) }),
+        el("span", { class: "budget-remain " + cls, text: "Sisa: " + (remain < 0 ? "-" : "") + rp(Math.abs(remain)) })
+      ]);
+      const track = el("div", { class: "bar-track", style: "margin:10px 0" });
       track.append(el("div", { class: "bar-fill " + cls, style: "width:" + Math.min(100, ratio * 100) + "%" }));
-      card.append(track, el("span", { class: "tag " + cls, text: label }));
-      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Ubah budget " + c.name, value: formatThousands(String(b.amount)), style: "margin-top:8px" });
+      card.append(meta, track);
+
+      const editWrap = el("div", { class: "budget-inline-edit" });
+      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Ubah budget " + c.name, value: formatThousands(String(b.amount)) });
       input.addEventListener("input", () => { input.value = formatThousands(input.value.replace(/\D/g, "")); });
       input.addEventListener("change", () => saveBudget(key, c.id, input.value));
-      card.append(input);
+      editWrap.append(el("span", { class: "small muted", text: "Ubah batas:" }), input);
+      card.append(editWrap);
     }
     main.append(card);
   }
 }
+
 async function saveBudget(month, category_id, raw) {
   const amount = Number(String(raw).replace(/\D/g, ""));
   if (!Number.isFinite(amount) || amount < 0) return toast("Jumlah budget tidak valid.");
@@ -1192,632 +2384,743 @@ async function copyBudgets(key) {
     toast("Budget disalin dari bulan lalu.");
   } catch (err) { toast("Gagal menyalin: " + (err.message || err)); }
 }
-function ensureBudgetCopyHint() { /* button shown in renderBudget */ }
 
 /* ---------- settings ---------- */
 function renderSettings() {
   let theme = "auto";
   try { theme = localStorage.getItem("duitku.theme") || "auto"; } catch {}
-  const card = el("div", { class: "card" }, [el("h2", { text: "Tampilan", style: "margin:0 0 8px;font-size:1rem" })]);
-  const seg = el("div", { class: "seg" });
-  for (const [v, label] of [["auto", "Otomatis"], ["light", "Terang"], ["dark", "Gelap"]]) {
-    seg.append(el("button", { type: "button", class: "btn", text: label, "aria-pressed": theme === v ? "true" : "false", onclick: () => applyTheme(v) }));
+  const cardTheme = el("div", { class: "card" });
+  cardTheme.append(el("h2", { class: "card-title", text: "Tema Tampilan" }));
+  const segTheme = el("div", { class: "seg full-width" });
+  for (const [v, label] of [["auto", "Sistem"], ["light", "Terang"], ["dark", "Gelap"]]) {
+    segTheme.append(el("button", { type: "button", text: label, "aria-pressed": theme === v ? "true" : "false", onclick: () => applyTheme(v) }));
   }
-  card.append(seg);
-  main.append(card);
+  cardTheme.append(segTheme);
+  main.append(cardTheme);
 
-  const data = el("div", { class: "card" }, [el("h2", { text: "Data", style: "margin:0 0 8px;font-size:1rem" })]);
-  data.append(
-    el("div", { class: "grid" }, [
-      el("button", { type: "button", class: "btn", text: "Ekspor CSV", onclick: exportCsv }),
-      el("button", { type: "button", class: "btn", text: "Impor CSV", onclick: () => pickFile(".csv,text/csv", startCsvImport) }),
-      el("button", { type: "button", class: "btn", text: "Cadangkan JSON", onclick: exportJson }),
-      el("button", { type: "button", class: "btn", text: "Pulihkan JSON", onclick: () => pickFile(".json,application/json", startJsonRestore) }),
-      el("button", { type: "button", class: "btn", text: "Muat data contoh", onclick: loadSample }),
-      el("button", { type: "button", class: "btn btn-danger", text: "Hapus semua data", onclick: wipeAll }),
-    ])
+  const acc = el("div", { class: "card" });
+  acc.append(el("h2", { class: "card-title", text: "Akun & Sinkronisasi" }));
+  if (state.mode === "cloud" && state.user) {
+    acc.append(
+      el("div", { style: "display:flex;align-items:center;gap:10px;margin-bottom:12px;" }, [
+        icon("mail", 18, "muted"),
+        el("span", { style: "font-weight:600;", text: state.user.email || "" })
+      ]),
+      el("button", { type: "button", class: "btn btn-ghost danger", text: "Keluar dari Akun", onclick: async () => {
+        try { await state.sb.auth.signOut(); } catch (e) { toast(authMsg(e)); }
+      }})
+    );
+  } else {
+    acc.append(el("p", { class: "muted small", text: "Sedang berjalan dalam Mode Lokal (data tersimpan di perangkat ini). Hubungkan ke Supabase di config.js untuk sinkronisasi antar perangkat." }));
+  }
+  main.append(acc);
+
+  const cats = el("div", { class: "card" });
+  const catsHead = el("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;" });
+  catsHead.append(
+    el("h2", { class: "card-title", style: "margin:0;", text: "Kategori Transaksi" }),
+    el("button", { type: "button", class: "btn btn-primary btn-sm", text: "+ Kategori", onclick: () => editCategory(null) })
   );
-  main.append(data);
-
-  const cats = el("div", { class: "card" }, [el("h2", { text: "Kategori", style: "margin:0 0 8px;font-size:1rem" })]);
-  cats.append(el("button", { type: "button", class: "btn btn-primary", text: "Tambah kategori", onclick: () => editCategory(null) }));
+  cats.append(catsHead);
   for (const c of [...state.categories].sort((a, b) => a.type.localeCompare(b.type) || a.sort_order - b.sort_order)) {
-    const row = el("div", { class: "row-item" });
+    const row = el("div", { class: "row-item", style: "display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);" });
     const left = el("div");
-    left.append(el("div", { text: c.name }), el("div", { class: "small muted", text: (c.type === "income" ? "Pemasukan" : "Pengeluaran") + (c.archived ? " · arsip" : "") }));
+    left.append(
+      el("div", { style: "font-weight:600;", text: c.name }),
+      el("div", { class: "small muted", text: (c.type === "income" ? "Pemasukan" : "Pengeluaran") + (c.archived ? " · Diarsipkan" : "") })
+    );
     row.append(left);
     row.append(el("div", { class: "seg" }, [
-      el("button", { type: "button", class: "btn btn-ghost", text: "Ubah", onclick: () => editCategory(c) }),
-      el("button", { type: "button", class: "btn btn-ghost", text: c.archived ? "Aktifkan" : "Arsip", onclick: () => archiveCategory(c) }),
+      el("button", { type: "button", class: "btn-icon-subtle", "aria-label": "Ubah nama kategori", onclick: () => editCategory(c) }, [icon("edit", 14)]),
+      el("button", { type: "button", class: "btn-icon-subtle", "aria-label": c.archived ? "Aktifkan kategori" : "Arsipkan kategori", onclick: () => archiveCategory(c) }, [icon("trash", 14)]),
     ]));
     cats.append(row);
   }
   main.append(cats);
 
-  const acc = el("div", { class: "card" }, [el("h2", { text: "Akun", style: "margin:0 0 8px;font-size:1rem" })]);
-  if (state.mode === "cloud" && state.user) {
-    acc.append(el("p", { text: state.user.email || "" }), el("button", { type: "button", class: "btn", text: "Keluar", onclick: async () => {
-      try { await state.sb.auth.signOut(); } catch (e) { toast(authMsg(e)); }
-    }}));
-  } else {
-    acc.append(el("p", { class: "muted", text: "Mode lokal. Isi config.js untuk sinkron cloud." }));
-  }
-  main.append(acc);
+  const data = el("div", { class: "card" });
+  data.append(el("h2", { class: "card-title", text: "Cadangan & Kelola Data" }));
+  data.append(
+    el("div", { class: "grid grid-2" }, [
+      el("button", { type: "button", class: "btn", onclick: exportCsv }, [icon("download", 14), el("span", { text: "Ekspor CSV" })]),
+      el("button", { type: "button", class: "btn", onclick: () => pickFile(".csv,text/csv", startCsvImport) }, [icon("upload", 14), el("span", { text: "Impor CSV" })]),
+      el("button", { type: "button", class: "btn", onclick: exportJson }, [icon("download", 14), el("span", { text: "Cadangkan JSON" })]),
+      el("button", { type: "button", class: "btn", onclick: () => pickFile(".json,application/json", startJsonRestore) }, [icon("upload", 14), el("span", { text: "Pulihkan JSON" })]),
+      el("button", { type: "button", class: "btn", onclick: loadSample }, [icon("lightning", 14), el("span", { text: "Muat Data Contoh" })]),
+      el("button", { type: "button", class: "btn btn-danger", onclick: wipeAll }, [icon("trash", 14), el("span", { text: "Hapus Semua Data" })]),
+    ])
+  );
+  main.append(data);
 }
+
 function applyTheme(v) {
   try { localStorage.setItem("duitku.theme", v); } catch {}
   if (v === "auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", v);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#0f766e");
+  if (meta) meta.setAttribute("content", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#10b981");
   render();
 }
+
 function editCategory(existing) {
-  openModal(existing ? "Ubah kategori" : "Kategori baru", (body, close) => {
-    const name = el("input", { type: "text", value: existing?.name || "", maxlength: "40" });
+  openModal(existing ? "Ubah Kategori" : "Kategori Baru", (body, close) => {
+    const name = el("input", { type: "text", value: existing?.name || "", placeholder: "Nama kategori", maxlength: "40", required: "true" });
     const type = el("select");
     for (const [v, label] of [["expense", "Pengeluaran"], ["income", "Pemasukan"]]) {
       const o = el("option", { value: v, text: label });
-      if ((existing?.type || "expense") === v) o.selected = true;
+      if (existing && existing.type === v) o.selected = true;
       type.append(o);
     }
-    if (existing) type.disabled = true;
-    body.append(field("Nama", name), field("Jenis", type), el("button", {
-      type: "button", class: "btn btn-primary", text: "Simpan", onclick: async () => {
-        const n = name.value.trim();
-        if (!n) return toast("Nama wajib diisi.");
-        const dup = state.categories.some(c => c.type === (existing?.type || type.value) && c.name.toLowerCase() === n.toLowerCase() && c.id !== existing?.id);
-        if (dup) return toast("Nama kategori sudah ada.");
+    body.append(
+      field("Nama", name),
+      existing ? null : field("Jenis", type),
+      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: "Simpan", onclick: async () => {
+        const val = name.value.trim();
+        if (!val) return toast("Nama kategori tidak boleh kosong.");
+        const dup = state.categories.find(c => c.type === (existing ? existing.type : type.value) && c.name.toLowerCase() === val.toLowerCase() && c.id !== existing?.id);
+        if (dup) return toast("Kategori dengan nama dan jenis ini sudah ada.");
         if (existing) {
-          const prev = existing.name;
-          existing.name = n;
-          saveLocal(); close(); render();
-          try { await cloudWrite("categories", "update", existing, { id: existing.id }); }
-          catch (err) { existing.name = prev; render(); toast("Gagal mengubah: " + (err.message || err)); }
+          existing.name = val;
+          saveLocal();
+          close();
+          render();
+          try { await cloudWrite("categories", "update", { name: val }, { id: existing.id }); }
+          catch (e) { toast("Gagal memperbarui: " + (e.message || e)); }
         } else {
-          const row = { id: uid(), name: n, type: type.value, archived: false, sort_order: activeCats(type.value).length, created_at: nowIso() };
+          const row = { id: uid(), name: val, type: type.value, archived: false, sort_order: state.categories.length };
           state.categories.push(row);
-          saveLocal(); close(); render();
+          saveLocal();
+          close();
+          render();
           try { await cloudWrite("categories", "insert", row); }
-          catch (err) {
-            state.categories = state.categories.filter(c => c.id !== row.id);
-            render(); toast("Gagal menambah: " + (err.message || err));
-          }
+          catch (e) { rollbackCat(row.id); toast("Gagal menyimpan: " + (e.message || e)); }
         }
-      },
-    }));
-    setTimeout(() => name.focus(), 40);
+      }})
+    );
+    setTimeout(() => name.focus(), 60);
   });
 }
+function rollbackCat(id) {
+  const i = state.categories.findIndex(c => c.id === id);
+  if (i >= 0) state.categories.splice(i, 1);
+  saveLocal();
+  render();
+}
 async function archiveCategory(c) {
-  const used = state.transactions.some(t => t.category_id === c.id);
-  if (!c.archived && used) {
-    /* archive, never hard-delete */
-  }
-  if (!c.archived && !used) {
-    /* still archive to honor "never hard-delete if has transactions"; unused can be archived too */
-  }
-  const prev = c.archived;
   c.archived = !c.archived;
-  saveLocal(); render();
-  try { await cloudWrite("categories", "update", c, { id: c.id }); }
-  catch (err) { c.archived = prev; render(); toast("Gagal: " + (err.message || err)); }
+  saveLocal();
+  render();
+  try { await cloudWrite("categories", "update", { archived: c.archived }, { id: c.id }); }
+  catch (e) { c.archived = !c.archived; saveLocal(); render(); toast("Gagal mengubah arsip: " + (e.message || e)); }
 }
 
 /* ---------- CSV ---------- */
-function csvEscape(v) {
-  const s = String(v ?? "");
+function csvEscape(val) {
+  const s = String(val == null ? "" : val);
   return '"' + s.replace(/"/g, '""') + '"';
 }
 function exportCsv() {
-  const lines = ["date,type,category,amount,note"];
-  const rows = [...state.transactions].sort((a, b) => a.date < b.date ? -1 : 1);
-  for (const t of rows) {
-    lines.push([t.date, t.type, catById(t.category_id)?.name || "", t.amount, t.note || ""].map(csvEscape).join(","));
+  const rows = [["date","type","category","amount","note"]];
+  for (const t of [...state.transactions].sort((a, b) => a.date.localeCompare(b.date))) {
+    const name = catById(t.category_id)?.name || "";
+    rows.push([t.date, t.type, name, t.amount, t.note || ""]);
   }
+  const body = rows.map(r => r.map(csvEscape).join(",")).join("\r\n");
   const bom = "\uFEFF";
-  download(bom + lines.join("\r\n"), "duitku-" + localDate() + ".csv", "text/csv;charset=utf-8");
+  download(bom + body, `duitku-${localDate()}.csv`, "text/csv;charset=utf-8");
 }
-function download(text, name, mime) {
-  const blob = new Blob([text], { type: mime });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
+function download(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = el("a", { href: url, download: filename });
+  document.body.append(a);
   a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 function pickFile(accept, cb) {
   const input = el("input", { type: "file", accept });
-  input.addEventListener("change", () => {
-    const file = input.files && input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => cb(String(reader.result || ""), file.name);
-    reader.onerror = () => toast("Gagal membaca file.");
-    reader.readAsText(file);
-  });
+  input.onchange = () => {
+    const file = input.files?.[0];
+    if (file) cb(file);
+  };
   input.click();
 }
+
 function parseCsv(text) {
-  let s = text;
-  if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
-  const sample = s.slice(0, 2000);
-  const commas = (sample.match(/,/g) || []).length;
-  const semis = (sample.match(/;/g) || []).length;
-  const delim = semis > commas ? ";" : ",";
+  let s = text.replace(/^\uFEFF/, "");
+  const firstLine = s.split(/\r\n|\n|\r/)[0] || "";
+  const delim = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ";" : ",";
   const rows = [];
-  let row = [], cur = "", q = false;
-  for (let i = 0; i < s.length; i++) {
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+  let i = 0;
+  while (i < s.length) {
     const ch = s[i];
-    if (q) {
+    if (inQuotes) {
       if (ch === '"') {
-        if (s[i + 1] === '"') { cur += '"'; i++; }
-        else q = false;
-      } else cur += ch;
-    } else if (ch === '"') q = true;
-    else if (ch === delim) { row.push(cur); cur = ""; }
-    else if (ch === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; }
-    else if (ch === "\r") { /* skip */ }
-    else cur += ch;
-  }
-  if (cur.length || row.length) { row.push(cur); rows.push(row); }
-  return { delim, rows: rows.filter(r => r.some(c => String(c).trim() !== "")) };
-}
-function guessMap(header) {
-  const alias = {
-    date: ["date", "tanggal", "tgl"],
-    type: ["type", "jenis", "tipe"],
-    category: ["category", "kategori", "kat"],
-    amount: ["amount", "jumlah", "nominal", "nilai"],
-    note: ["note", "catatan", "ket", "keterangan", "deskripsi"],
-  };
-  const map = {};
-  header.forEach((h, i) => {
-    const key = String(h || "").trim().toLowerCase();
-    for (const [field, names] of Object.entries(alias)) {
-      if (names.includes(key) && map[field] == null) map[field] = i;
+        if (s[i + 1] === '"') { field += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
+      }
+      field += ch; i++;
+    } else {
+      if (ch === '"') { inQuotes = true; i++; continue; }
+      if (ch === delim) { row.push(field); field = ""; i++; continue; }
+      if (ch === "\r" || ch === "\n") {
+        row.push(field); field = "";
+        if (ch === "\r" && s[i + 1] === "\n") i++;
+        i++;
+        if (row.some(x => x.trim().length)) rows.push(row);
+        row = [];
+        continue;
+      }
+      field += ch; i++;
     }
-  });
-  return map;
-}
-function parseAmount(raw) {
-  let s = String(raw || "").trim().replace(/rp/ig, "").replace(/\s/g, "");
-  if (!s) return { ok: false, reason: "Jumlah kosong" };
-  const lastDot = s.lastIndexOf(".");
-  const lastComma = s.lastIndexOf(",");
-  const sep = Math.max(lastDot, lastComma);
-  if (sep >= 0) {
-    const tail = s.slice(sep + 1);
-    if (/^\d{3}$/.test(tail) || (s.match(/[.,]/g) || []).length > 1) {
-      s = s.replace(/[.,]/g, "");
-    } else return { ok: false, reason: "Jumlah tidak dikenali: " + raw };
   }
-  if (!/^\d+$/.test(s)) return { ok: false, reason: "Jumlah tidak dikenali: " + raw };
-  const n = Number(s);
-  if (!n || n <= 0) return { ok: false, reason: "Jumlah harus lebih dari 0" };
-  return { ok: true, value: n };
+  if (field.length || row.length) {
+    row.push(field);
+    if (row.some(x => x.trim().length)) rows.push(row);
+  }
+  return { delim, rows };
+}
+
+function guessMap(headers) {
+  const out = { date: -1, type: -1, category: -1, amount: -1, note: -1 };
+  headers.forEach((h, idx) => {
+    const norm = h.trim().toLowerCase();
+    if (["date","tanggal","tgl"].includes(norm)) out.date = idx;
+    else if (["type","jenis","tipe"].includes(norm)) out.type = idx;
+    else if (["category","kategori","pos"].includes(norm)) out.category = idx;
+    else if (["amount","jumlah","nominal","total","nilai"].includes(norm)) out.amount = idx;
+    else if (["note","catatan","keterangan","deskripsi","memo"].includes(norm)) out.note = idx;
+  });
+  return out;
+}
+
+function parseAmount(raw) {
+  if (raw == null) return null;
+  let s = String(raw).trim().replace(/^rp\.?\s*/i, "").trim();
+  if (/^\d+$/.test(s)) return Number(s);
+  if (/^\d{1,3}(\.\d{3})+$/.test(s)) return Number(s.replace(/\./g, ""));
+  if (/^\d{1,3}(,\d{3})+$/.test(s)) return Number(s.replace(/,/g, ""));
+  return null;
 }
 function parseDateLoose(raw) {
-  const s = String(raw || "").trim();
-  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (m) return m[1] + "-" + m[2] + "-" + m[3];
-  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) return m[3] + "-" + pad(Number(m[2])) + "-" + pad(Number(m[1]));
+  if (!raw) return null;
+  const s = String(raw).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const d = parseDate(s);
+    return isNaN(d.getTime()) ? null : s;
+  }
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m) {
+    const [_, d, mo, y] = m;
+    const iso = `${y}-${pad(mo)}-${pad(d)}`;
+    const dt = parseDate(iso);
+    return isNaN(dt.getTime()) ? null : iso;
+  }
   return null;
 }
 function parseTypeLoose(raw) {
   const s = String(raw || "").trim().toLowerCase();
-  if (["expense", "pengeluaran", "keluar"].includes(s)) return "expense";
-  if (["income", "pemasukan", "masuk"].includes(s)) return "income";
+  if (["income","pemasukan","masuk"].includes(s)) return "income";
+  if (["expense","pengeluaran","keluar"].includes(s)) return "expense";
   return null;
 }
-function txSig(t) { return [t.date, t.type, (t.category || "").toLowerCase(), t.amount, t.note || ""].join("|"); }
 
-function startCsvImport(text) {
-  const { rows } = parseCsv(text);
-  if (rows.length < 2) return toast("File CSV kosong atau tidak ada data.");
-  const header = rows[0];
-  const map = guessMap(header);
-  openModal("Impor CSV", (body, close) => {
-    body.append(el("p", { class: "small muted", text: "Pratinjau 10 baris pertama. Sesuaikan kolom bila perlu." }));
-    const fields = ["date", "type", "category", "amount", "note"];
-    const labels = { date: "Tanggal", type: "Jenis", category: "Kategori", amount: "Jumlah", note: "Catatan" };
+function txSig(t) {
+  const catName = (catById(t.category_id)?.name || t.category_name || "").toLowerCase();
+  return [t.date, t.type, catName, Number(t.amount), (t.note || "").trim().toLowerCase()].join("|");
+}
+
+function startCsvImport(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const { delim, rows } = parseCsv(String(reader.result));
+      if (rows.length < 2) return toast("File CSV kosong atau tidak memiliki baris data.");
+      reviewImport(rows);
+    } catch (err) { toast("Gagal membaca CSV: " + err.message); }
+  };
+  reader.readAsText(file, "utf-8");
+}
+
+function reviewImport(rows) {
+  const headers = rows[0];
+  const dataRows = rows.slice(1);
+  const mapping = guessMap(headers);
+  const existingSigs = new Set(state.transactions.map(txSig));
+
+  openModal("Pratinjau Impor CSV", (body, close) => {
+    const mapForm = el("div", { class: "card", style: "margin-bottom:12px" }, [
+      el("h3", { text: "Pemetaan Kolom", style: "margin:0 0 8px;font-size:0.95rem" })
+    ]);
+    const fields = [
+      ["date", "Tanggal", mapping.date],
+      ["type", "Jenis", mapping.type],
+      ["category", "Kategori", mapping.category],
+      ["amount", "Jumlah", mapping.amount],
+      ["note", "Catatan", mapping.note],
+    ];
     const selects = {};
-    for (const f of fields) {
-      const sel = el("select", { "aria-label": labels[f] });
-      sel.append(el("option", { value: "", text: "(lewati)" }));
-      header.forEach((h, i) => {
-        const o = el("option", { value: String(i), text: h || ("Kolom " + (i + 1)) });
-        if (map[f] === i) o.selected = true;
+    const mapGrid = el("div", { class: "grid grid-2" });
+    for (const [k, lbl, guessed] of fields) {
+      const sel = el("select");
+      sel.append(el("option", { value: "-1", text: "(abaikan)" }));
+      headers.forEach((h, idx) => {
+        const o = el("option", { value: String(idx), text: `${idx + 1}. ${h}` });
+        if (idx === guessed) o.selected = true;
         sel.append(o);
       });
-      selects[f] = sel;
-      body.append(field(labels[f], sel));
+      selects[k] = sel;
+      mapGrid.append(field(lbl, sel));
     }
-    const preview = el("table", { class: "map" });
-    const hr = el("tr");
-    header.forEach(h => hr.append(el("th", { text: h })));
-    preview.append(hr);
-    rows.slice(1, 11).forEach(r => {
-      const tr = el("tr");
-      header.forEach((_, i) => tr.append(el("td", { text: r[i] || "" })));
-      preview.append(tr);
-    });
-    body.append(preview);
-    body.append(el("button", { type: "button", class: "btn btn-primary", text: "Lanjut", style: "margin-top:10px", onclick: () => {
-      const col = {};
-      for (const f of fields) col[f] = selects[f].value === "" ? -1 : Number(selects[f].value);
-      if (col.date < 0 || col.amount < 0 || col.category < 0 || col.type < 0) return toast("Tanggal, jenis, kategori, dan jumlah wajib dipetakan.");
-      close();
-      reviewImport(rows.slice(1), col);
-    }}));
-  });
-}
-function reviewImport(dataRows, col) {
-  const parsed = [];
-  const invalid = [];
-  dataRows.forEach((r, i) => {
-    const date = parseDateLoose(r[col.date]);
-    const type = parseTypeLoose(r[col.type]);
-    const category = String(r[col.category] || "").trim();
-    const amount = parseAmount(r[col.amount]);
-    const note = col.note >= 0 ? String(r[col.note] || "").trim() : "";
-    const reasons = [];
-    if (!date) reasons.push("Tanggal tidak valid");
-    if (!type) reasons.push("Jenis tidak dikenali");
-    if (!category) reasons.push("Kategori kosong");
-    if (!amount.ok) reasons.push(amount.reason);
-    if (reasons.length) invalid.push({ line: i + 2, reason: reasons.join(", ") });
-    else parsed.push({ date, type, category, amount: amount.value, note });
-  });
-  const existing = new Set(state.transactions.map(t => txSig({
-    date: t.date, type: t.type, category: catById(t.category_id)?.name || "", amount: t.amount, note: t.note || "",
-  })));
-  const seen = new Set();
-  const dupes = [];
-  const fresh = [];
-  for (const row of parsed) {
-    const sig = txSig(row);
-    if (existing.has(sig) || seen.has(sig)) dupes.push(row);
-    else fresh.push(row);
-    seen.add(sig);
-  }
-  const unknown = [...new Set(parsed.map(p => p.type + "|" + p.category).filter(k => {
-    const [type, name] = k.split("|");
-    return !state.categories.some(c => c.type === type && c.name.toLowerCase() === name.toLowerCase());
-  }))];
-  openModal("Tinjau impor", (body, close) => {
-    body.append(el("p", { text: fresh.length + " baru, " + dupes.length + " duplikat, " + invalid.length + " tidak valid." }));
-    if (invalid.length) {
-      const ul = el("ul");
-      invalid.slice(0, 20).forEach(x => ul.append(el("li", { text: "Baris " + x.line + ": " + x.reason })));
-      body.append(el("p", { class: "small", text: "Baris tidak valid dilewati:" }), ul);
-    }
-    const choices = {};
-    if (unknown.length) {
-      body.append(el("p", { text: "Kategori yang belum ada:" }));
-      for (const key of unknown) {
-        const [type, name] = [key.slice(0, key.indexOf("|")), key.slice(key.indexOf("|") + 1)];
-        const sel = el("select", { "aria-label": "Kategori " + name });
-        sel.append(el("option", { value: "create", text: "Buat kategori baru" }), el("option", { value: "other", text: "Masukkan ke Lainnya" }));
-        choices[key] = sel;
-        body.append(field(name + " (" + (type === "income" ? "pemasukan" : "pengeluaran") + ")", sel));
+    mapForm.append(mapGrid);
+    body.append(mapForm);
+
+    const dupBox = el("div", { class: "card", style: "margin-bottom:12px" });
+    const dupSel = el("select", {}, [
+      el("option", { value: "skip", text: "Lewati baris duplikat" }),
+      el("option", { value: "import", text: "Tetap impor duplikat" }),
+    ]);
+    dupBox.append(field("Penanganan Duplikat", dupSel));
+    body.append(dupBox);
+
+    const unknownMap = new Map();
+    function scanUnknown() {
+      unknownMap.clear();
+      const catIdx = Number(selects.category.value);
+      const typeIdx = Number(selects.type.value);
+      if (catIdx < 0) return;
+      for (const r of dataRows) {
+        const name = (r[catIdx] || "").trim();
+        if (!name) continue;
+        const tVal = typeIdx >= 0 ? parseTypeLoose(r[typeIdx]) || "expense" : "expense";
+        const found = state.categories.find(c => c.name.toLowerCase() === name.toLowerCase());
+        if (!found && !unknownMap.has(name)) unknownMap.set(name, { choice: "create", type: tVal });
       }
     }
-    let importDupes = false;
-    if (dupes.length) {
-      const box = el("label", { class: "field" }, [
-        el("input", { type: "checkbox", onchange: e => { importDupes = e.target.checked; } }),
-        document.createTextNode(" Impor juga duplikat"),
-      ]);
-      body.append(box);
+    scanUnknown();
+
+    const unknownCard = el("div", { class: "card", style: "margin-bottom:12px" });
+    function renderUnknown() {
+      clear(unknownCard);
+      unknownCard.append(el("h3", { text: "Kategori Baru Terdeteksi", style: "margin:0 0 8px;font-size:0.95rem" }));
+      if (!unknownMap.size) {
+        unknownCard.append(el("p", { class: "muted small", text: "Semua kategori cocok dengan data yang sudah ada." }));
+        return;
+      }
+      for (const [name, meta] of unknownMap) {
+        const sel = el("select", { onchange: e => { meta.choice = e.target.value; } }, [
+          el("option", { value: "create", text: `Buat kategori baru "${name}"` }),
+          el("option", { value: "other", text: `Masukkan ke "Lainnya"` }),
+        ]);
+        unknownCard.append(field(name, sel));
+      }
     }
-    body.append(el("button", { type: "button", class: "btn btn-primary", text: "Impor", onclick: async () => {
-      close();
-      await commitImport(importDupes ? parsed : fresh, choices, dupes.length, invalid.length, importDupes);
-    }}));
+    renderUnknown();
+    body.append(unknownCard);
+
+    for (const s of Object.values(selects)) {
+      s.addEventListener("change", () => { scanUnknown(); renderUnknown(); });
+    }
+
+    const prevCard = el("div", { class: "card", style: "margin-bottom:12px" }, [
+      el("h3", { text: "10 Baris Pertama", style: "margin:0 0 8px;font-size:0.95rem" })
+    ]);
+    const tbl = el("table", { style: "width:100%;border-collapse:collapse;font-size:0.75rem;" });
+    const headRow = el("tr");
+    for (const h of headers) headRow.append(el("th", { style: "border-bottom:1px solid var(--border);padding:4px;text-align:left;", text: h }));
+    tbl.append(headRow);
+    for (const r of dataRows.slice(0, 10)) {
+      const rowEl = el("tr");
+      for (const col of r) rowEl.append(el("td", { style: "border-bottom:1px solid var(--border);padding:4px;", text: col }));
+      tbl.append(rowEl);
+    }
+    prevCard.append(tbl);
+    body.append(prevCard);
+
+    body.append(el("button", {
+      type: "button", class: "btn btn-primary full-width", text: "Mulai Impor",
+      onclick: async () => {
+        const m = {
+          date: Number(selects.date.value),
+          type: Number(selects.type.value),
+          category: Number(selects.category.value),
+          amount: Number(selects.amount.value),
+          note: Number(selects.note.value),
+        };
+        if (m.date < 0 || m.amount < 0 || m.category < 0) {
+          return toast("Kolom Tanggal, Kategori, dan Jumlah wajib dipetakan.");
+        }
+        await commitImport(dataRows, m, unknownMap, dupSel.value, existingSigs);
+        close();
+      }
+    }));
   });
 }
-async function commitImport(rows, choices, dupeCount, invalidCount, importedDupes) {
-  const created = new Map();
-  function resolveCat(type, name) {
-    const found = state.categories.find(c => c.type === type && c.name.toLowerCase() === name.toLowerCase());
-    if (found) return found;
-    const key = type + "|" + name;
-    const choice = choices[key];
-    const mode = choice ? choice.value : "create";
-    if (mode === "other") {
-      let other = state.categories.find(c => c.type === type && c.name.toLowerCase() === "lainnya");
-      if (!other) {
-        other = { id: uid(), name: "Lainnya", type, archived: false, sort_order: 99, created_at: nowIso() };
-        state.categories.push(other);
-        created.set(type + "|lainnya", other);
-      }
-      return other;
+
+async function commitImport(rows, map, unknownMap, dupChoice, existingSigs) {
+  let imported = 0, skipped = 0, dups = 0;
+  const invalidReasons = [];
+  const fileSigs = new Set();
+  const toInsert = [];
+  const createdCats = new Map();
+
+  for (let idx = 0; idx < rows.length; idx++) {
+    const r = rows[idx];
+    const lineNum = idx + 2;
+    const rawDate = r[map.date];
+    const rawType = map.type >= 0 ? r[map.type] : "expense";
+    const rawCat = (r[map.category] || "").trim();
+    const rawAmount = r[map.amount];
+    const rawNote = map.note >= 0 ? (r[map.note] || "").trim() : "";
+
+    const date = parseDateLoose(rawDate);
+    if (!date) { skipped++; invalidReasons.push(`Baris ${lineNum}: tanggal tidak valid "${rawDate}"`); continue; }
+    const type = parseTypeLoose(rawType);
+    if (!type) { skipped++; invalidReasons.push(`Baris ${lineNum}: jenis tidak valid "${rawType}"`); continue; }
+    const amount = parseAmount(rawAmount);
+    if (!amount || amount <= 0) { skipped++; invalidReasons.push(`Baris ${lineNum}: jumlah tidak valid "${rawAmount}"`); continue; }
+    if (!rawCat) { skipped++; invalidReasons.push(`Baris ${lineNum}: kategori kosong`); continue; }
+
+    let catId = resolveCat(rawCat, type, unknownMap, createdCats);
+    const sig = [date, type, rawCat.toLowerCase(), amount, rawNote.toLowerCase()].join("|");
+    const isDup = existingSigs.has(sig) || fileSigs.has(sig);
+    if (isDup) {
+      dups++;
+      if (dupChoice === "skip") continue;
     }
-    const cache = type + "|" + name.toLowerCase();
-    if (created.has(cache)) return created.get(cache);
-    const row = { id: uid(), name, type, archived: false, sort_order: activeCats(type).length, created_at: nowIso() };
-    state.categories.push(row);
-    created.set(cache, row);
-    return row;
-  }
-  const newTx = [];
-  for (const r of rows) {
-    const cat = resolveCat(r.type, r.category);
-    newTx.push({
-      id: uid(), date: r.date, type: r.type, amount: r.amount, category_id: cat.id,
-      note: r.note || "", created_at: nowIso(), updated_at: nowIso(),
+    fileSigs.add(sig);
+
+    toInsert.push({
+      id: uid(), date, type, amount, category_id: catId, note: rawNote,
+      created_at: nowIso(), updated_at: nowIso(),
     });
+    imported++;
   }
-  state.transactions.push(...newTx);
+
+  for (const cat of createdCats.values()) {
+    state.categories.push(cat);
+    try { await cloudWrite("categories", "insert", cat); } catch {}
+  }
+
+  for (const row of toInsert) state.transactions.push(row);
   saveLocal();
   render();
-  let failed = 0;
-  try {
-    if (state.mode === "cloud") {
-      const cats = [...created.values()];
-      if (cats.length) {
-        const { error } = await state.sb.from("categories").insert(cats.map(c => ({ id: c.id, name: c.name, type: c.type, archived: false, sort_order: c.sort_order })));
-        if (error) throw error;
-      }
-      await insertChunked("transactions", newTx.map(t => ({ id: t.id, date: t.date, type: t.type, amount: t.amount, category_id: t.category_id, note: t.note })));
+
+  if (state.mode === "cloud" && toInsert.length) {
+    try {
+      await insertChunked("transactions", toInsert.map(x => ({ ...x, user_id: state.user.id })));
+    } catch (err) {
+      toast("Sebagian data cloud gagal disimpan: " + (err.message || err));
     }
-  } catch (err) {
-    failed = 1;
-    toast("Sebagian gagal tersimpan ke cloud: " + (err.message || err));
   }
-  const skipped = invalidCount;
-  const dupShown = importedDupes ? 0 : dupeCount;
-  toast(newTx.length + " diimpor, " + skipped + " dilewati, " + dupShown + " duplikat" + (failed ? " (cek cloud)" : ""));
+
+  toast(`${imported} diimpor, ${skipped} dilewati, ${dups} duplikat.`);
+  if (invalidReasons.length) {
+    openModal("Baris yang Dilewati", body => {
+      const ul = el("ul", { style: "padding-left:18px;font-size:0.85rem;" });
+      for (const r of invalidReasons.slice(0, 50)) ul.append(el("li", { text: r }));
+      if (invalidReasons.length > 50) ul.append(el("li", { text: `...dan ${invalidReasons.length - 50} lainnya` }));
+      body.append(ul);
+    });
+  }
 }
 
-function exportJson() {
-  const payload = { categories: state.categories, transactions: state.transactions, budgets: state.budgets, exported_at: nowIso() };
-  download(JSON.stringify(payload, null, 2), "duitku-backup-" + localDate() + ".json", "application/json");
+function resolveCat(name, type, unknownMap, createdCats) {
+  const norm = name.toLowerCase();
+  const existing = state.categories.find(c => c.name.toLowerCase() === norm);
+  if (existing) return existing.id;
+  if (createdCats.has(norm)) return createdCats.get(norm).id;
+  const meta = unknownMap.get(name);
+  if (!meta || meta.choice === "create") {
+    const row = { id: uid(), name, type, archived: false, sort_order: state.categories.length + createdCats.size };
+    createdCats.set(norm, row);
+    return row.id;
+  }
+  const fallback = state.categories.find(c => c.name.toLowerCase() === "lainnya" && c.type === type)
+    || state.categories.find(c => c.type === type)
+    || state.categories[0];
+  return fallback ? fallback.id : uid();
 }
-function startJsonRestore(text) {
-  let data;
-  try { data = JSON.parse(text.replace(/^\uFEFF/, "")); }
-  catch { return toast("File JSON tidak valid."); }
-  if (!data || !Array.isArray(data.transactions) || !Array.isArray(data.categories)) return toast("Format cadangan tidak dikenali.");
-  openModal("Pulihkan cadangan", (body, close) => {
-    body.append(el("p", { text: "Ini mengganti data di perangkat ini" + (state.mode === "cloud" ? " dan mengunggah ke cloud" : "") + ". Lanjut?" }));
-    body.append(el("button", { type: "button", class: "btn btn-danger", text: "Pulihkan", onclick: async () => {
-      close();
+
+/* ---------- JSON backup & restore ---------- */
+function exportJson() {
+  const payload = {
+    version: 1,
+    exported_at: nowIso(),
+    categories: state.categories,
+    transactions: state.transactions,
+    budgets: state.budgets,
+  };
+  download(JSON.stringify(payload, null, 2), `duitku-backup-${localDate()}.json`, "application/json");
+}
+function startJsonRestore(file) {
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const data = JSON.parse(String(reader.result));
+      if (!Array.isArray(data.categories) || !Array.isArray(data.transactions) || !Array.isArray(data.budgets)) {
+        return toast("Format file JSON cadangan tidak valid.");
+      }
+      if (!confirm(`Pulihkan cadangan ini? (${data.transactions.length} transaksi). Data sekarang akan ditimpa.`)) return;
       state.categories = data.categories;
       state.transactions = data.transactions;
-      state.budgets = Array.isArray(data.budgets) ? data.budgets : [];
+      state.budgets = data.budgets;
       saveLocal();
-      try {
-        if (state.mode === "cloud") await uploadAllLocal();
-        toast("Cadangan dipulihkan.");
-      } catch (err) { toast("Data lokal pulih, cloud gagal: " + (err.message || err)); }
       render();
-    }}));
-  });
+      if (state.mode === "cloud") {
+        await wipeAllCloud();
+        await state.sb.from("categories").insert(state.categories.map(c => ({ ...c, user_id: state.user.id })));
+        await insertChunked("transactions", state.transactions.map(t => ({ ...t, user_id: state.user.id })));
+        await state.sb.from("budgets").insert(state.budgets.map(b => ({ ...b, user_id: state.user.id })));
+      }
+      toast("Data berhasil dipulihkan dari JSON.");
+    } catch (err) { toast("Gagal memulihkan: " + err.message); }
+  };
+  reader.readAsText(file, "utf-8");
 }
 
-function loadSample() {
-  openModal("Data contoh", (body, close) => {
-    body.append(el("p", { text: "Menambah sekitar 3 bulan transaksi mahasiswa. Data yang sudah ada tidak dihapus." }));
-    body.append(el("button", { type: "button", class: "btn btn-primary", text: "Muat", onclick: async () => {
-      close();
-      seedIfEmpty();
-      const rows = buildSample();
-      state.transactions.push(...rows.transactions);
-      for (const b of rows.budgets) {
-        if (!state.budgets.some(x => x.month === b.month && x.category_id === b.category_id)) state.budgets.push(b);
-      }
-      saveLocal();
-      render();
-      try {
-        if (state.mode === "cloud") {
-          await insertChunked("transactions", rows.transactions.map(t => ({ id: t.id, date: t.date, type: t.type, amount: t.amount, category_id: t.category_id, note: t.note })));
-          if (rows.budgets.length) {
-            const { error } = await state.sb.from("budgets").upsert(rows.budgets.map(b => ({ month: b.month, category_id: b.category_id, amount: b.amount })));
-            if (error) throw error;
-          }
-        }
-        toast("Data contoh dimuat.");
-      } catch (err) { toast("Tersimpan lokal, cloud gagal: " + (err.message || err)); }
-    }}));
-  });
+/* ---------- sample data & reset ---------- */
+async function loadSample() {
+  if (!confirm("Muat data contoh ~3 bulan pengeluaran mahasiswa? Data akan ditambahkan ke riwayatmu.")) return;
+  const sample = buildSample();
+  for (const t of sample) state.transactions.push(t);
+  const curMonth = monthKey();
+  const prev1 = addMonths(curMonth, -1);
+  const prev2 = addMonths(curMonth, -2);
+  const catMakan = state.categories.find(c => c.name === "Makan")?.id;
+  const catKos = state.categories.find(c => c.name === "Kos")?.id;
+  const catJajan = state.categories.find(c => c.name === "Jajan")?.id;
+  for (const m of [prev2, prev1, curMonth]) {
+    if (catMakan) state.budgets.push({ month: m, category_id: catMakan, amount: 800000 });
+    if (catKos) state.budgets.push({ month: m, category_id: catKos, amount: 750000 });
+    if (catJajan) state.budgets.push({ month: m, category_id: catJajan, amount: 300000 });
+  }
+  saveLocal();
+  render();
+  if (state.mode === "cloud") {
+    try {
+      await insertChunked("transactions", sample.map(x => ({ ...x, user_id: state.user.id })));
+      await state.sb.from("budgets").upsert(state.budgets.map(b => ({ ...b, user_id: state.user.id })));
+    } catch (e) { toast("Gagal simpan contoh ke cloud: " + e.message); }
+  }
+  toast("Data contoh berhasil dimuat.");
 }
+
 function buildSample() {
-  const find = (type, name) => state.categories.find(c => c.type === type && c.name === name);
-  const exp = name => find("expense", name)?.id;
-  const inc = name => find("income", name)?.id;
-  const meals = ["Nasi goreng","Mie ayam","Soto","Gado-gado","Bakso","Nasi padang","Ayam geprek","Pecel lele","Indomie","Warteg"];
-  const snacks = ["Es teh","Boba","Kopi","Roti","Gorengan","Martabak","Pisang goreng"];
-  const plan = [
-    ["expense", "Makan", [12000, 15000, 18000, 20000, 22000, 25000, 28000, 30000]],
-    ["expense", "Jajan", [5000, 8000, 10000, 12000, 15000, 18000]],
-    ["expense", "Transport", [4000, 5000, 7000, 8000, 10000, 15000]],
-    ["expense", "Pulsa/Internet", [50000, 65000, 75000]],
-    ["expense", "Tugas/Print", [2000, 3000, 5000, 8000, 10000, 15000]],
-    ["expense", "Hiburan", [15000, 25000, 35000, 45000, 50000]],
-  ];
-  const transactions = [];
-  const budgets = [];
-  const base = new Date();
-  for (let m = 2; m >= 0; m--) {
-    const d0 = new Date(base.getFullYear(), base.getMonth() - m, 1);
-    const key = d0.getFullYear() + "-" + pad(d0.getMonth() + 1);
-    const dim = daysInMonth(key);
-    const limit = m === 0 ? Math.min(dim, new Date().getDate()) : dim;
-    const kos = exp("Kos");
-    if (kos) transactions.push(tx(key + "-01", "expense", 750000, kos, "Bayar kos bulan ini"));
-    const uang = inc("Uang Saku");
-    if (uang) transactions.push(tx(key + "-01", "income", 1500000, uang, "Transfer dari ortu"));
-    if (m === 1) {
-      const bea = inc("Beasiswa");
-      if (bea) transactions.push(tx(key + "-10", "income", 500000, bea, "Beasiswa semester ini"));
-    }
-    if (m === 0) {
-      const gaji = inc("Gaji/Freelance");
-      if (gaji) transactions.push(tx(key + "-15", "income", 350000, gaji, "Freelance desain logo"));
-    }
-    const pulsa = exp("Pulsa/Internet");
-    if (pulsa) {
-      const amt = plan[3][2][m % plan[3][2].length];
-      transactions.push(tx(key + "-05", "expense", amt, pulsa, "Paket internet bulanan"));
-    }
-    for (let day = 1; day <= limit; day++) {
-      const seed = (day * 7 + m * 31) % 100;
-      if (seed < 15) continue;
-      const makan = exp("Makan");
-      if (makan && seed > 20) {
-        const amt = plan[0][2][(day + m) % plan[0][2].length];
-        const note = meals[(day + m * 3) % meals.length];
-        transactions.push(tx(key + "-" + pad(day), "expense", amt, makan, note));
-        if (seed > 60) {
-          const amt2 = plan[0][2][(day + m + 3) % plan[0][2].length];
-          transactions.push(tx(key + "-" + pad(day), "expense", amt2, makan, meals[(day + m * 5 + 2) % meals.length]));
-        }
-      }
-      const jajan = exp("Jajan");
-      if (jajan && seed > 40 && day % 2 === 0) {
-        const amt = plan[1][2][(day + m) % plan[1][2].length];
-        transactions.push(tx(key + "-" + pad(day), "expense", amt, jajan, snacks[(day + m) % snacks.length]));
-      }
-      const transport = exp("Transport");
-      if (transport && seed > 50 && (day % 7 !== 0 && day % 7 !== 6)) {
-        transactions.push(tx(key + "-" + pad(day), "expense", plan[2][2][(day + m) % plan[2][2].length], transport, ""));
-      }
-      const tugas = exp("Tugas/Print");
-      if (tugas && day % 7 === 2) {
-        transactions.push(tx(key + "-" + pad(day), "expense", plan[4][2][(day + m) % plan[4][2].length], tugas, "Print tugas kuliah"));
-      }
-      const hiburan = exp("Hiburan");
-      if (hiburan && (day % 7 === 0 || day % 7 === 6) && seed > 30) {
-        transactions.push(tx(key + "-" + pad(day), "expense", plan[5][2][(day + m) % plan[5][2].length], hiburan, ""));
-      }
-    }
-    for (const [name, amount] of [["Makan", 900000], ["Jajan", 300000], ["Transport", 250000], ["Kos", 750000], ["Pulsa/Internet", 100000], ["Tugas/Print", 50000], ["Hiburan", 200000], ["Lainnya", 100000]]) {
-      const id = exp(name);
-      if (id) budgets.push({ month: key, category_id: id, amount });
-    }
+  const list = [];
+  const now = new Date();
+  const curMonth = monthKey(now);
+  const prev1 = addMonths(curMonth, -1);
+  const prev2 = addMonths(curMonth, -2);
+
+  const findCat = (n, t) => state.categories.find(c => c.name === n && c.type === t)?.id || state.categories[0].id;
+  const cUangSaku = findCat("Uang Saku", "income");
+  const cGaji = findCat("Gaji/Freelance", "income");
+  const cMakan = findCat("Makan", "expense");
+  const cJajan = findCat("Jajan", "expense");
+  const cTransport = findCat("Transport", "expense");
+  const cKos = findCat("Kos", "expense");
+  const cPulsa = findCat("Pulsa/Internet", "expense");
+  const cTugas = findCat("Tugas/Print", "expense");
+  const cHiburan = findCat("Hiburan", "expense");
+
+  function tx(date, type, catId, amount, note = "") {
+    list.push({ id: uid(), date, type, amount, category_id: catId, note, created_at: nowIso(), updated_at: nowIso() });
   }
-  return { transactions, budgets };
-  function tx(date, type, amount, category_id, note) {
-    return { id: uid(), date, type, amount, category_id, note, created_at: nowIso(), updated_at: nowIso() };
+
+  for (const m of [prev2, prev1, curMonth]) {
+    tx(`${m}-01`, "income", cUangSaku, 2000000, "Transfer ortu awal bulan");
+    tx(`${m}-02`, "expense", cKos, 750000, "Bayar kos bulanan");
+    tx(`${m}-03`, "expense", cPulsa, 75000, "Paket kuota internet");
   }
+  tx(`${prev2}-15`, "income", cGaji, 450000, "Freelance desain poster");
+  tx(`${prev1}-20`, "income", cGaji, 500000, "Asisten lab");
+
+  for (let day = 1; day <= 28; day++) {
+    const dStr = pad(day);
+    tx(`${prev2}-${dStr}`, "expense", cMakan, 22000, "Makan siang warteg");
+    if (day % 3 === 0) tx(`${prev2}-${dStr}`, "expense", cJajan, 15000, "Kopi susu");
+    if (day % 4 === 0) tx(`${prev2}-${dStr}`, "expense", cTransport, 10000, "Bensin motor");
+  }
+  for (let day = 1; day <= 28; day++) {
+    const dStr = pad(day);
+    tx(`${prev1}-${dStr}`, "expense", cMakan, 24000, "Makan siang kantin");
+    if (day % 2 === 0) tx(`${prev1}-${dStr}`, "expense", cJajan, 18000, "Boba / roti bakar");
+    if (day % 5 === 0) tx(`${prev1}-${dStr}`, "expense", cTugas, 12000, "Print laporan praktikum");
+  }
+
+  const todayDate = parseDate(localDate()).getDate();
+  for (let day = 1; day <= Math.min(todayDate, 28); day++) {
+    const dStr = pad(day);
+    tx(`${curMonth}-${dStr}`, "expense", cMakan, 25000, "Makan harian");
+    if (day % 2 === 0) tx(`${curMonth}-${dStr}`, "expense", cJajan, 16000, "Es teh jumbo & cemilan");
+    if (day % 3 === 0) tx(`${curMonth}-${dStr}`, "expense", cTransport, 14000, "Bensin / ojol");
+  }
+  tx(`${curMonth}-05`, "expense", cHiburan, 50000, "Nonton bioskop bareng kating");
+  return list;
 }
 
-function wipeAll() {
-  openModal("Hapus semua data?", (body, close) => {
-    body.append(el("p", { text: "Semua transaksi, kategori, dan budget di perangkat ini akan hilang." }));
-    body.append(el("button", { type: "button", class: "btn btn-danger", text: "Lanjut", onclick: () => {
-      close();
-      openModal("Yakin sekali lagi?", (body2, close2) => {
-        body2.append(el("p", { text: "Tidak bisa dikembalikan kecuali kamu punya cadangan." }));
-        body2.append(el("button", { type: "button", class: "btn btn-danger", text: "Hapus sekarang", onclick: async () => {
-          close2();
-          try {
-            if (state.mode === "cloud" && state.sb) {
-              const { error: e1 } = await state.sb.from("transactions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-              if (e1) throw e1;
-              const { error: e2 } = await state.sb.from("budgets").delete().neq("category_id", "00000000-0000-0000-0000-000000000000");
-              if (e2) throw e2;
-              const { error: e3 } = await state.sb.from("categories").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-              if (e3) throw e3;
-            }
-          } catch (err) { toast("Gagal menghapus di cloud: " + (err.message || err)); return; }
-          state.transactions = [];
-          state.budgets = [];
-          state.categories = [];
-          state.pending = [];
-          seedIfEmpty();
-          saveLocal();
-          if (state.mode === "cloud") {
-            try { await pushSeedCategories(); } catch (e) { toast(authMsg(e)); }
-          }
-          render();
-          toast("Semua data dihapus.");
-        }}));
-      });
-    }}));
-  });
+async function wipeAll() {
+  if (!confirm("PERINGATAN: Semua transaksi, budget, dan kategori akan dihapus!")) return;
+  if (!confirm("Apakah kamu benar-benar yakin? Tindakan ini tidak dapat dibatalkan.")) return;
+  state.transactions = [];
+  state.budgets = [];
+  state.categories = [];
+  saveLocal();
+  if (state.mode === "cloud") {
+    try { await wipeAllCloud(); } catch (e) { toast("Gagal hapus data cloud: " + e.message); }
+  }
+  seedIfEmpty();
+  saveLocal();
+  render();
+  toast("Semua data telah dihapus.");
+}
+async function wipeAllCloud() {
+  await state.sb.from("transactions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await state.sb.from("budgets").delete().neq("month", "");
+  await state.sb.from("categories").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 }
 
-/* ---------- auth ---------- */
+/* ---------- auth screen ---------- */
 function renderAuth() {
   clear(main);
   $("#fabCatat").hidden = true;
+  $("#mainNav").style.display = "none";
   showBanner("");
   setSync("");
   let tab = "masuk";
-  const card = el("div", { class: "card" });
-  main.append(card);
+
+  const wrap = el("div", { class: "auth-wrap" });
+  const card = el("div", { class: "auth-card" });
+
+  const brand = el("div", { class: "auth-brand" }, [
+    el("div", { class: "brand-badge" }, [icon("walletLogo", 28)]),
+    el("div", { class: "auth-title", text: "Selamat Datang di Duitku" }),
+    el("div", { class: "auth-sub", text: "Catat pengeluaran & uang saku mahasiswa tanpa ribet." }),
+  ]);
+  card.append(brand);
+
+  const tabs = el("div", { class: "seg full-width", style: "margin-bottom:18px;" });
+  const btnMasuk = el("button", { type: "button", text: "Masuk", "aria-pressed": "true" });
+  const btnDaftar = el("button", { type: "button", text: "Daftar", "aria-pressed": "false" });
+  tabs.append(btnMasuk, btnDaftar);
+  card.append(tabs);
+
+  const formBox = el("div", { class: "auth-form" });
+  card.append(formBox);
+
   function paint() {
-    clear(card);
-    card.append(el("h2", { text: "Masuk ke Duitku", style: "margin-top:0" }));
-    const tabs = el("div", { class: "seg", style: "margin-bottom:12px" });
-    tabs.append(
-      el("button", { type: "button", class: "btn", text: "Masuk", "aria-pressed": tab === "masuk" ? "true" : "false", onclick: () => { tab = "masuk"; paint(); } }),
-      el("button", { type: "button", class: "btn", text: "Daftar", "aria-pressed": tab === "daftar" ? "true" : "false", onclick: () => { tab = "daftar"; paint(); } }),
-    );
-    const email = el("input", { type: "email", autocomplete: "username", required: "true" });
-    const pass = el("input", { type: "password", autocomplete: tab === "masuk" ? "current-password" : "new-password", required: "true", minlength: "6" });
-    card.append(tabs, field("Email", email), field("Kata sandi", pass), el("button", {
-      type: "button", class: "btn btn-primary", text: tab === "masuk" ? "Masuk" : "Daftar",
-      onclick: async () => {
-        if (!email.value.includes("@")) return toast("Isi email yang valid.");
-        if (pass.value.length < 6) return toast("Kata sandi minimal 6 karakter.");
-        try {
-          if (tab === "masuk") {
-            const { data, error } = await state.sb.auth.signInWithPassword({ email: email.value.trim(), password: pass.value });
-            if (error) throw error;
-            state.user = data.user;
-            await bootCloud();
-          } else {
-            const { data, error } = await state.sb.auth.signUp({ email: email.value.trim(), password: pass.value });
-            if (error) throw error;
-            if (data.session) {
+    clear(formBox);
+    btnMasuk.setAttribute("aria-pressed", tab === "masuk" ? "true" : "false");
+    btnDaftar.setAttribute("aria-pressed", tab === "daftar" ? "true" : "false");
+
+    const email = el("input", { type: "email", autocomplete: "username", placeholder: "nama@kampus.ac.id", required: "true" });
+    const pass = el("input", { type: "password", autocomplete: tab === "masuk" ? "current-password" : "new-password", placeholder: "Minimal 6 karakter", required: "true", minlength: "6" });
+
+    formBox.append(
+      field("Email", email),
+      field("Kata Sandi", pass),
+      el("button", {
+        type: "button", class: "btn btn-primary full-width", style: "margin-top:12px;min-height:48px;font-size:1rem;",
+        text: tab === "masuk" ? "Masuk ke Duitku" : "Buat Akun Baru",
+        onclick: async () => {
+          if (!email.value.includes("@")) return toast("Isi email yang valid.");
+          if (pass.value.length < 6) return toast("Kata sandi minimal 6 karakter.");
+          try {
+            if (tab === "masuk") {
+              const { data, error } = await state.sb.auth.signInWithPassword({ email: email.value.trim(), password: pass.value });
+              if (error) throw error;
               state.user = data.user;
               await bootCloud();
-            } else toast("Cek email untuk konfirmasi, lalu masuk.");
+            } else {
+              const { data, error } = await state.sb.auth.signUp({ email: email.value.trim(), password: pass.value });
+              if (error) throw error;
+              if (data.session) {
+                state.user = data.user;
+                await bootCloud();
+              } else toast("Pendaftaran berhasil! Silakan masuk.");
+            }
+          } catch (err) { toast(authMsg(err)); }
+        }
+      }),
+      el("div", { style: "text-align:center;margin-top:16px;" }, [
+        el("button", {
+          type: "button", class: "btn-link small", text: "Atau coba Mode Lokal (tanpa login)",
+          onclick: () => {
+            enterLocal();
+            $("#mainNav").style.display = "";
+            render();
           }
-        } catch (err) { toast(authMsg(err)); }
-      },
-    }));
-    setTimeout(() => email.focus(), 30);
+        })
+      ])
+    );
   }
+
+  btnMasuk.onclick = () => { tab = "masuk"; paint(); };
+  btnDaftar.onclick = () => { tab = "daftar"; paint(); };
+
   paint();
+  wrap.append(card);
+  main.append(wrap);
 }
 
 /* ---------- modal ---------- */
-function openModal(title, build) {
+function openModal(titleText, builder) {
   const root = $("#modalRoot");
   clear(root);
   const back = el("div", { class: "modal-back" });
-  const sheet = el("div", { class: "sheet", role: "dialog", "aria-modal": "true" });
-  const h = el("h2", { text: title, style: "margin:0 0 12px;font-size:1.1rem" });
-  const body = el("div");
-  const closeBtn = el("button", { type: "button", class: "btn btn-ghost", text: "Tutup", onclick: close });
-  sheet.append(h, body, closeBtn);
+  const sheet = el("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-label": titleText });
+  const dragHandle = el("div", { class: "sheet-handle" });
+  const head = el("div", { class: "sheet-header" });
+  head.append(
+    el("h2", { text: titleText, style: "margin:0;font-size:1.15rem;font-weight:750;" }),
+    el("button", { type: "button", class: "btn-icon-subtle", "aria-label": "Tutup modal", onclick: close }, [icon("plus", 18, "rotate-45")])
+  );
+  const body = el("div", { class: "sheet-body" });
+  sheet.append(dragHandle, head, body);
   back.append(sheet);
-  back.addEventListener("click", e => { if (e.target === back) close(); });
-  function onKey(e) { if (e.key === "Escape") close(); }
+  root.append(back);
+
   function close() {
     document.removeEventListener("keydown", onKey);
     clear(root);
   }
+  function onKey(e) { if (e.key === "Escape") close(); }
   document.addEventListener("keydown", onKey);
-  root.append(back);
-  build(body, close);
-  const focusable = sheet.querySelector("input, select, button");
-  if (focusable) focusable.focus();
+  back.addEventListener("click", e => { if (e.target === back) close(); });
+  builder(body, close);
 }
 
 /* ---------- boot ---------- */
-(function initTheme() {
+function initTheme() {
   let t = "auto";
   try { t = localStorage.getItem("duitku.theme") || "auto"; } catch {}
-  if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
-})();
-initBackend();
+  if (t !== "auto") document.documentElement.setAttribute("data-theme", t);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+
+  // Populate brand logo & icons
+  const logoEl = $("#brandLogo");
+  if (logoEl && !logoEl.firstChild) logoEl.append(icon("walletLogo", 22));
+  const fabIcon = $("#fabIcon");
+  if (fabIcon && !fabIcon.firstChild) fabIcon.append(icon("plus", 18));
+  const deskIcon = $("#desktopCatatIcon");
+  if (deskIcon && !deskIcon.firstChild) deskIcon.append(icon("plus", 18));
+  $("#desktopCatatBtn")?.addEventListener("click", () => openTxForm());
+  $("#navIcon-dashboard")?.append(icon("dashboard", 20));
+  $("#navIcon-transaksi")?.append(icon("transaksi", 20));
+  $("#navIcon-budget")?.append(icon("budget", 20));
+  $("#navIcon-lainnya")?.append(icon("lainnya", 20));
+
+  initBackend();
+});
+
 })();
 </script>
 </body>
