@@ -1,7 +1,8 @@
-// Duitku Service Worker v4
-// Cache-first for app shell, network-first for config, stale-while-revalidate for others
+// Duitku Service Worker v5
+// HTML: network-first (always fresh, offline fallback).
+// Assets (config/icons/manifest): cache-first (rarely change).
 
-const CACHE_NAME = 'duitku-v4';
+const CACHE_NAME = 'duitku-v5';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -43,7 +44,13 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // App shell: cache-first
+  // HTML: network-first so updates always propagate (offline fallback to cache)
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    e.respondWith(networkFirst(e.request));
+    return;
+  }
+
+  // Local assets: cache-first (rarely change)
   if (isAppShell(url)) {
     e.respondWith(cacheFirst(e.request));
     return;
