@@ -1018,11 +1018,45 @@ input:focus, select:focus, textarea:focus {
     gap: 32px;
     padding: 32px 40px;
   }
+
+#headerExtra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lang-pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  line-height: 1;
+}
+.lang-pill:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.lang-pill .lang-active {
+  color: var(--accent);
+  font-weight: 800;
+}
+
   header.top {
     grid-column: 1 / -1;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 12px;
+  }
+  main:has(.auth-wrap), main.auth-mode {
+    grid-column: 1 / -1;
+    width: 100%;
   }
   #banner {
     grid-column: 1 / -1;
@@ -1187,6 +1221,7 @@ const state = {
   transactions: [],
   budgets: [],
   screen: "dashboard",
+  lang: (function() { try { return localStorage.getItem("duitku.lang") || "id"; } catch { return "id"; } })(),
   month: monthKey(new Date()),
   txFilter: { month: "", category: "", type: "", q: "" },
   txShown: PAGE,
@@ -1245,6 +1280,17 @@ function rp(n) {
 }
 function compact(n) {
   const num = Math.abs(Number(n) || 0);
+  if (state.lang === "en") {
+    if (num >= 1000000) {
+      const v = (num / 1000000).toFixed(1).replace(".0", "");
+      return v + "M";
+    }
+    if (num >= 1000) {
+      const v = Math.round(num / 1000);
+      return v + "k";
+    }
+    return String(num);
+  }
   if (num >= 1000000) {
     const v = (num / 1000000).toFixed(1).replace(".0", "").replace(".", ",");
     return v + "jt";
@@ -1255,10 +1301,284 @@ function compact(n) {
   }
   return String(num);
 }
-const MONTH_NAMES = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"];
+
+const I18N = {
+  id: {
+    nav_dashboard: "Dashboard",
+    nav_transaksi: "Transaksi",
+    nav_budget: "Budget",
+    nav_lainnya: "Lainnya",
+    btn_catat: "Catat",
+    btn_catat_tx: "Catat Transaksi",
+    sync_online: "Tersinkron",
+    sync_saving: "Menyimpan...",
+    sync_offline: "Offline",
+    sync_local: "Mode lokal",
+    banner_local: "Mode lokal: data hanya tersimpan di perangkat ini",
+    banner_cloud_fail: "Mode lokal: tidak dapat terhubung ke Supabase",
+    banner_offer_upload: "Ada data lokal di perangkat ini. Upload ke akun cloud?",
+    btn_upload_local: "Upload data lokal",
+    btn_this_month: "Bulan Ini",
+    hero_over_budget: "Melebihi Budget",
+    hero_budget_left: "Sisa Budget Bulan Ini",
+    hero_days_left: "{days} hari lagi",
+    hero_over_pill: "Bulan ini sudah melebihi budget sebesar {amount}",
+    hero_daily_pill: "Boleh jajan sekitar {amount} / hari",
+    hero_remain_pill: "Sisa budget bulan ini {amount}",
+    kpi_income: "Pemasukan",
+    kpi_expense: "Pengeluaran",
+    kpi_balance: "Selisih",
+    kpi_budget_remain: "Sisa Budget Total",
+    not_set: "Belum diatur",
+    card_spending_by_cat: "Pengeluaran per Kategori",
+    empty_cat_title: "Masih bersih! Belum ada pengeluaran bulan ini.",
+    btn_add_expense: "+ Catat Pengeluaran",
+    card_trend_6m: "Tren 6 Bulan Terakhir",
+    card_insights: "Insight Cerdas",
+    chart_empty_msg: "Grafik muncul setelah ada transaksi",
+    filter_all_months: "Semua bulan",
+    filter_all_cats: "Semua kategori",
+    filter_all_types: "Semua jenis",
+    filter_expense: "Pengeluaran",
+    filter_income: "Pemasukan",
+    search_placeholder: "Cari catatan transaksi...",
+    quick_chips_title: "Transaksi Cepat (Sekali Ketuk)",
+    empty_tx_filtered: "Tidak ada transaksi yang cocok dengan filter.",
+    empty_tx_empty: "Belum ada transaksi tercatat.",
+    btn_new_tx: "+ Catat Transaksi Baru",
+    btn_load_more: "Muat Lebih Banyak",
+    toast_tx_deleted: "Transaksi dihapus",
+    toast_undo: "Urungkan",
+    toast_tx_logged: "Tercatat: {name} {amount}",
+    modal_new_tx: "Catat Transaksi",
+    modal_edit_tx: "Ubah Transaksi",
+    field_category: "Kategori",
+    field_category_placeholder: "Pilih kategori...",
+    field_date: "Tanggal",
+    field_note: "Catatan (opsional)",
+    field_note_placeholder: "Contoh: Nasi padang, bensin, dll",
+    btn_save_tx: "Simpan Transaksi",
+    budget_no_budget_title: "Belum ada budget untuk bulan ini",
+    budget_no_budget_sub: "Mau pakai batas budget yang sama seperti bulan kemarin?",
+    btn_copy_budget: "Salin dari Bulan Lalu",
+    empty_budget_title: "Belum ada kategori pengeluaran.",
+    btn_add_category: "+ Kategori",
+    tag_ok: "Aman",
+    tag_warn: "Hampir habis",
+    tag_over: "Melebihi budget",
+    tag_not_set: "Belum diatur",
+    meta_budget: "Budget: {amount}",
+    meta_spent: "Terpakai: {amount}",
+    meta_remain: "Sisa: {amount}",
+    edit_limit: "Ubah batas:",
+    set_budget_ph: "Atur budget (Rp)",
+    btn_save: "Simpan",
+    settings_lang: "Bahasa / Language",
+    settings_theme: "Tema Tampilan",
+    theme_auto: "Sistem",
+    theme_light: "Terang",
+    theme_dark: "Gelap",
+    settings_account: "Akun & Sinkronisasi",
+    btn_sign_out: "Keluar dari Akun",
+    settings_local_info: "Sedang berjalan dalam Mode Lokal (data tersimpan di perangkat ini). Hubungkan ke Supabase di config.js untuk sinkronisasi antar perangkat.",
+    settings_categories: "Kategori Transaksi",
+    settings_data_manage: "Cadangan & Kelola Data",
+    btn_export_csv: "Ekspor CSV",
+    btn_import_csv: "Impor CSV",
+    btn_export_json: "Cadangkan JSON",
+    btn_import_json: "Pulihkan JSON",
+    btn_sample_data: "Muat Data Contoh",
+    btn_wipe_data: "Hapus Semua Data",
+    auth_title: "Selamat Datang di Duitku",
+    auth_sub: "Catat pengeluaran & uang saku mahasiswa tanpa ribet.",
+    auth_tab_in: "Masuk",
+    auth_tab_up: "Daftar",
+    field_email: "Email",
+    field_password: "Kata Sandi",
+    auth_pass_placeholder: "Minimal 6 karakter",
+    btn_auth_submit_in: "Masuk ke Duitku",
+    btn_auth_submit_up: "Buat Akun Baru",
+    btn_auth_try_local: "Atau coba Mode Lokal (tanpa login)",
+    insight_over: "{name} {pct}% di atas budget ({spent} dari {budget}).",
+    insight_lower: "Pengeluaran bulan ini {pct}% lebih rendah dari bulan lalu ({curr} vs {prev}). Bagus!",
+    insight_higher: "Pengeluaran bulan ini {pct}% lebih tinggi dari bulan lalu ({curr} vs {prev}). Perhatikan jajan ya!",
+    insight_save: "Dengan kecepatan sekarang (Rp {daily}/hari), bulan ini kamu akan lebih hemat sekitar {gap} dari budget.",
+    insight_projected_over: "Dengan kecepatan sekarang (Rp {daily}/hari), bulan ini kamu akan melebihi budget sekitar {gap}.",
+    insight_top: "Kategori terbesar bulan ini: {name} ({pct}% dari total pengeluaran).",
+    insight_clean: "Belum ada cukup data pengeluaran untuk insight bulan ini."
+  },
+  en: {
+    nav_dashboard: "Dashboard",
+    nav_transaksi: "Transactions",
+    nav_budget: "Budgets",
+    nav_lainnya: "Settings",
+    btn_catat: "Log",
+    btn_catat_tx: "Log Transaction",
+    sync_online: "Synced",
+    sync_saving: "Saving...",
+    sync_offline: "Offline",
+    sync_local: "Local mode",
+    banner_local: "Local mode: data is stored on this device only",
+    banner_cloud_fail: "Local mode: unable to reach Supabase",
+    banner_offer_upload: "Local data found on this device. Upload to cloud account?",
+    btn_upload_local: "Upload local data",
+    btn_this_month: "This Month",
+    hero_over_budget: "Over Budget",
+    hero_budget_left: "Remaining Monthly Budget",
+    hero_days_left: "{days} days left",
+    hero_over_pill: "Exceeded monthly budget by {amount}",
+    hero_daily_pill: "Daily allowance approx. {amount} / day",
+    hero_remain_pill: "Remaining budget this month {amount}",
+    kpi_income: "Income",
+    kpi_expense: "Expense",
+    kpi_balance: "Net Balance",
+    kpi_budget_remain: "Total Remaining Budget",
+    not_set: "Not set",
+    card_spending_by_cat: "Spending by Category",
+    empty_cat_title: "Clean slate! No spending this month.",
+    btn_add_expense: "+ Log Expense",
+    card_trend_6m: "6-Month Trend",
+    card_insights: "Smart Insights",
+    chart_empty_msg: "Chart appears once transactions are logged",
+    filter_all_months: "All months",
+    filter_all_cats: "All categories",
+    filter_all_types: "All types",
+    filter_expense: "Expense",
+    filter_income: "Income",
+    search_placeholder: "Search transaction notes...",
+    quick_chips_title: "Quick Log (One Tap)",
+    empty_tx_filtered: "No transactions match your filter.",
+    empty_tx_empty: "No transactions recorded yet.",
+    btn_new_tx: "+ Log New Transaction",
+    btn_load_more: "Load More",
+    toast_tx_deleted: "Transaction deleted",
+    toast_undo: "Undo",
+    toast_tx_logged: "Logged: {name} {amount}",
+    modal_new_tx: "Log Transaction",
+    modal_edit_tx: "Edit Transaction",
+    field_category: "Category",
+    field_category_placeholder: "Select category...",
+    field_date: "Date",
+    field_note: "Note (optional)",
+    field_note_placeholder: "e.g., Lunch, groceries, books, etc.",
+    btn_save_tx: "Save Transaction",
+    budget_no_budget_title: "No budget set for this month",
+    budget_no_budget_sub: "Use the same budget limits as last month?",
+    btn_copy_budget: "Copy from Last Month",
+    empty_budget_title: "No expense categories found.",
+    btn_add_category: "+ Category",
+    tag_ok: "On Track",
+    tag_warn: "Almost Gone",
+    tag_over: "Over Budget",
+    tag_not_set: "Not Set",
+    meta_budget: "Budget: {amount}",
+    meta_spent: "Spent: {amount}",
+    meta_remain: "Remaining: {amount}",
+    edit_limit: "Edit limit:",
+    set_budget_ph: "Set budget (Rp)",
+    btn_save: "Save",
+    settings_lang: "Language / Bahasa",
+    settings_theme: "Appearance",
+    theme_auto: "System",
+    theme_light: "Light",
+    theme_dark: "Dark",
+    settings_account: "Account & Sync",
+    btn_sign_out: "Sign Out",
+    settings_local_info: "Running in Local Mode (data stored on this device). Connect to Supabase in config.js to sync across devices.",
+    settings_categories: "Transaction Categories",
+    settings_data_manage: "Backup & Data Management",
+    btn_export_csv: "Export CSV",
+    btn_import_csv: "Import CSV",
+    btn_export_json: "Backup JSON",
+    btn_import_json: "Restore JSON",
+    btn_sample_data: "Load Sample Data",
+    btn_wipe_data: "Wipe All Data",
+    auth_title: "Welcome to Duitku",
+    auth_sub: "Track student expenses and pocket money with ease.",
+    auth_tab_in: "Sign In",
+    auth_tab_up: "Sign Up",
+    field_email: "Email",
+    field_password: "Password",
+    auth_pass_placeholder: "At least 6 characters",
+    btn_auth_submit_in: "Sign In to Duitku",
+    btn_auth_submit_up: "Create New Account",
+    btn_auth_try_local: "Or try Local Mode (without login)",
+    insight_over: "{name} is {pct}% over budget ({spent} of {budget}).",
+    insight_lower: "Spending this month is {pct}% lower than last month ({curr} vs {prev}). Great job!",
+    insight_higher: "Spending this month is {pct}% higher than last month ({curr} vs {prev}). Watch your spending!",
+    insight_save: "At this pace (Rp {daily}/day), you will save around {gap} from your budget this month.",
+    insight_projected_over: "At this pace (Rp {daily}/day), you will exceed your budget by around {gap}.",
+    insight_top: "Top category this month: {name} ({pct}% of total spending).",
+    insight_clean: "Not enough spending data for insights this month."
+  }
+};
+
+function t(key, params = {}) {
+  const dict = I18N[state.lang] || I18N.id;
+  let str = dict[key] !== undefined ? dict[key] : (I18N.id[key] !== undefined ? I18N.id[key] : key);
+  for (const [k, v] of Object.entries(params)) {
+    str = str.replace(new RegExp(`{${k}}`, "g"), v);
+  }
+  return str;
+}
+
+function setLang(lang) {
+  state.lang = lang === "en" ? "en" : "id";
+  try { localStorage.setItem("duitku.lang", state.lang); } catch {}
+  updateHeaderExtra();
+  updateNavLabels();
+  if (state.sync) setSync(state.sync);
+  if (state.mode === "local") showBanner(t("banner_local"));
+  if (state.mode === "cloud" && !state.user) {
+    renderAuth();
+  } else {
+    render();
+  }
+}
+
+function updateHeaderExtra() {
+  const host = $("#headerExtra");
+  if (!host) return;
+  clear(host);
+  const isEn = state.lang === "en";
+  const btn = el("button", {
+    type: "button",
+    class: "lang-pill",
+    "aria-label": isEn ? "Ganti ke Bahasa Indonesia" : "Switch to English",
+    onclick: () => setLang(state.lang === "en" ? "id" : "en")
+  }, [
+    el("span", { class: !isEn ? "lang-active" : "", text: "ID" }),
+    el("span", { style: "opacity:0.35;margin:0 2px;", text: "/" }),
+    el("span", { class: isEn ? "lang-active" : "", text: "EN" })
+  ]);
+  host.append(btn);
+}
+
+function updateNavLabels() {
+  const map = {
+    dashboard: t("nav_dashboard"),
+    transaksi: t("nav_transaksi"),
+    budget: t("nav_budget"),
+    lainnya: t("nav_lainnya"),
+  };
+  document.querySelectorAll("#mainNav button[data-screen]").forEach(btn => {
+    const s = btn.getAttribute("data-screen");
+    const span = btn.querySelector("span:last-child");
+    if (span && map[s]) span.textContent = map[s];
+    if (map[s]) btn.setAttribute("aria-label", map[s]);
+  });
+  const catatBtn = $("#desktopCatatBtn span:last-child");
+  if (catatBtn) catatBtn.textContent = t("btn_catat_tx");
+  const fab = $("#fabCatat span:last-child");
+  if (fab) fab.textContent = t("btn_catat");
+}
+
+const MONTH_NAMES_ID = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"];
+const MONTH_NAMES_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function monthLabel(key) {
   const [y, m] = key.split("-").map(Number);
-  return `${MONTH_NAMES[m - 1]} ${y}`;
+  const arr = state.lang === "en" ? MONTH_NAMES_EN : MONTH_NAMES_ID;
+  return `${arr[m - 1]} ${y}`;
 }
 
 function el(tag, attrs = {}, children = []) {
@@ -1283,6 +1603,8 @@ function clear(node) {
 
 function toast(msg, action) {
   const wrap = $("#toasts");
+  if (!wrap) return;
+  if ([...wrap.children].some(c => c.textContent.includes(msg))) return;
   const t = el("div", { class: "toast", role: "status" }, [
     el("span", { text: msg }),
     action ? el("button", {
@@ -1295,14 +1617,47 @@ function toast(msg, action) {
   setTimeout(() => t.remove(), 4000);
 }
 
-function setSync(text, dotClass = "") {
-  state.sync = text;
+const CAT_EN = {
+  "Makan": "Food & Dining",
+  "Transport": "Transportation",
+  "Kos": "Rent / Housing",
+  "Pulsa/Internet": "Phone & Internet",
+  "Kuliah/Buku": "Tuition & Books",
+  "Tugas/Print": "Printing & Supplies",
+  "Jajan": "Snacks & Coffee",
+  "Hiburan": "Entertainment",
+  "Uang Saku": "Allowance",
+  "Gaji/Freelance": "Salary / Freelance",
+  "Beasiswa": "Scholarship",
+  "Lainnya": "Other"
+};
+function catName(name) {
+  if (state.lang === "en" && CAT_EN[name]) return CAT_EN[name];
+  return name || "";
+}
+
+function setSync(type) {
+  state.sync = type;
   const host = $("#syncStatus");
   if (!host) return;
   clear(host);
-  if (!text) return;
+  if (!type) return;
+  let text = "", dotClass = "local";
+  if (type === "online" || type === "Tersinkron") {
+    text = t("sync_online");
+    dotClass = "online";
+  } else if (type === "saving" || type === "Menyimpan...") {
+    text = t("sync_saving");
+    dotClass = "saving";
+  } else if (type === "offline" || type === "Offline") {
+    text = t("sync_offline");
+    dotClass = "offline";
+  } else {
+    text = t("sync_local");
+    dotClass = "local";
+  }
   const pill = el("span", { class: "sync-pill" });
-  const dot = el("span", { class: "sync-dot " + (dotClass || (text === "Tersinkron" ? "online" : text === "Menyimpan..." ? "saving" : text === "Offline" ? "offline" : "local")) });
+  const dot = el("span", { class: "sync-dot " + dotClass });
   pill.append(dot, text);
   host.append(pill);
 }
@@ -1333,6 +1688,11 @@ function saveLocal() {
 function catById(id) {
   return state.categories.find(c => c.id === id);
 }
+function catNameById(id) {
+  const c = catById(id);
+  if (!c) return state.lang === "en" ? "Uncategorized" : "Tanpa kategori";
+  return catName(c.name);
+}
 function activeCats(type) {
   return state.categories.filter(c => !c.archived && (!type || c.type === type))
     .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
@@ -1355,15 +1715,17 @@ function cfg() {
 async function initBackend() {
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = cfg();
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !window.supabase) {
-    enterLocal("Mode lokal: data hanya tersimpan di perangkat ini");
+    enterLocal(t("banner_local"));
     return;
   }
+  state.mode = "cloud";
+  renderAuth();
+
   try {
     state.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true },
     });
     const { data: { session } } = await state.sb.auth.getSession();
-    state.mode = "cloud";
     if (session?.user) {
       state.user = session.user;
       await bootCloud();
@@ -1381,7 +1743,7 @@ async function initBackend() {
       }
     });
   } catch (err) {
-    enterLocal("Mode lokal: tidak dapat terhubung ke Supabase");
+    enterLocal(t("banner_cloud_fail"));
   }
 }
 
@@ -1389,8 +1751,8 @@ function enterLocal(msg) {
   state.mode = "local";
   state.user = null;
   loadLocal();
-  showBanner(msg || "Mode lokal: data hanya tersimpan di perangkat ini");
-  setSync("Mode lokal", "local");
+  showBanner(msg || t("banner_local"));
+  setSync("local");
   $("#mainNav").style.display = "";
   render();
 }
@@ -1412,20 +1774,21 @@ function showBanner(text, action) {
 
 function authMsg(err) {
   const m = (err?.message || String(err)).toLowerCase();
-  if (m.includes("invalid login credentials")) return "Email atau kata sandi salah.";
-  if (m.includes("user already registered")) return "Email sudah terdaftar. Silakan masuk.";
-  if (m.includes("password should be at least")) return "Kata sandi minimal 6 karakter.";
-  if (m.includes("rate limit")) return "Terlalu banyak percobaan. Coba beberapa saat lagi.";
-  return err.message || "Terjadi kesalahan. Coba lagi.";
+  const isEn = state.lang === "en";
+  if (m.includes("invalid login credentials")) return isEn ? "Invalid email or password." : "Email atau kata sandi salah.";
+  if (m.includes("user already registered")) return isEn ? "Email is already registered. Please sign in." : "Email sudah terdaftar. Silakan masuk.";
+  if (m.includes("password should be at least")) return isEn ? "Password must be at least 6 characters." : "Kata sandi minimal 6 karakter.";
+  if (m.includes("rate limit")) return isEn ? "Too many attempts. Please try again later." : "Terlalu banyak percobaan. Coba beberapa saat lagi.";
+  return err.message || (isEn ? "An error occurred. Please try again." : "Terjadi kesalahan. Coba lagi.");
 }
 
 async function bootCloud() {
-  setSync("Menyimpan...", "saving");
+  setSync(t("sync_saving"), "saving");
   showBanner("");
   await loadAllCloud();
   subscribeRealtime();
   await offerUpload();
-  setSync("Tersinkron", "online");
+  setSync(t("sync_online"), "online");
   $("#mainNav").style.display = "";
   render();
 }
@@ -1482,14 +1845,14 @@ async function offerUpload() {
   } catch {}
   if (localTxs.length && !state.transactions.length) {
     showBanner("Ada data lokal di perangkat ini. Upload ke akun cloud?", {
-      label: "Upload data lokal",
+      label: t("btn_upload_local"),
       fn: () => uploadAllLocal(),
     });
   }
 }
 
 async function uploadAllLocal() {
-  setSync("Menyimpan...", "saving");
+  setSync(t("sync_saving"), "saving");
   try {
     const c = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "categories") || "[]");
     const t = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "transactions") || "[]");
@@ -1507,7 +1870,7 @@ async function uploadAllLocal() {
   } catch (err) {
     toast("Gagal upload data: " + (err.message || err));
   } finally {
-    setSync("Tersinkron", "online");
+    setSync(t("sync_online"), "online");
   }
 }
 
@@ -1575,11 +1938,11 @@ async function cloudWrite(table, op, row, match) {
   if (state.mode !== "cloud") return;
   const key = rowKey(table, row || match);
   state.writing.add(key);
-  setSync("Menyimpan...", "saving");
+  setSync(t("sync_saving"), "saving");
   try {
     if (!state.online) {
       state.pending.push({ table, op, row, match });
-      setSync("Offline", "offline");
+      setSync(t("sync_offline"), "offline");
       return;
     }
     const t = state.sb.from(table);
@@ -1589,9 +1952,9 @@ async function cloudWrite(table, op, row, match) {
     else if (op === "upsert") res = await t.upsert({ ...strip(row), user_id: state.user.id });
     else if (op === "delete") res = await t.delete().match(match);
     if (res?.error) throw res.error;
-    setSync("Tersinkron", "online");
+    setSync(t("sync_online"), "online");
   } catch (err) {
-    setSync("Offline", "offline");
+    setSync(t("sync_offline"), "offline");
     state.pending.push({ table, op, row, match });
     throw err;
   } finally {
@@ -1606,13 +1969,13 @@ function strip(r) {
 
 window.addEventListener("online", () => {
   state.online = true;
-  setSync("Tersinkron", "online");
+  setSync(t("sync_online"), "online");
   flushQueue();
   if (state.mode === "cloud" && state.user) loadAllCloud().then(render);
 });
 window.addEventListener("offline", () => {
   state.online = false;
-  setSync("Offline", "offline");
+  setSync(t("sync_offline"), "offline");
 });
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && state.mode === "cloud" && state.user && state.online) {
@@ -1622,7 +1985,7 @@ document.addEventListener("visibilitychange", () => {
 
 async function flushQueue() {
   if (!state.pending.length || !state.sb || !state.online) return;
-  setSync("Menyimpan...", "saving");
+  setSync(t("sync_saving"), "saving");
   const q = [...state.pending];
   state.pending = [];
   for (const item of q) {
@@ -1657,6 +2020,9 @@ function budgetsFor(key) {
 
 /* ---------- navigation & rendering ---------- */
 function render() {
+  main.classList.remove("auth-mode");
+  updateHeaderExtra();
+  updateNavLabels();
   document.querySelectorAll(".nav button").forEach(b => {
     if (b.id === "desktopCatatBtn") return;
     b.setAttribute("aria-current", b.dataset.screen === state.screen ? "page" : "false");
@@ -1728,19 +2094,19 @@ function renderDashboard() {
     top.append(
       el("div", { class: "hero-badge" }, [
         icon(over ? "arrowUpRight" : "wallet", 14),
-        el("span", { text: over ? "Melebihi Budget" : "Sisa Budget Bulan Ini" })
+        el("span", { text: over ? t("hero_over_budget") : t("hero_budget_left") })
       ]),
-      left > 0 ? el("span", { class: "hero-days", text: left + " hari lagi" }) : null
+      left > 0 ? el("span", { class: "hero-days", text: t("hero_days_left", { days: left }) }) : null
     );
     hero.append(top);
     hero.append(el("div", { class: "hero-amount", text: (over ? "-" : "") + rp(Math.abs(remain)) }));
     let pillText = "";
     if (over) {
-      pillText = "Bulan ini sudah melebihi budget sebesar " + rp(Math.abs(remain));
+      pillText = t("hero_over_pill", { amount: rp(Math.abs(remain)) });
     } else if (left > 0) {
-      pillText = "Boleh jajan sekitar " + rp(Math.floor(remain / left)) + " / hari";
+      pillText = t("hero_daily_pill", { amount: rp(Math.floor(remain / left)) });
     } else {
-      pillText = "Sisa budget bulan ini " + rp(remain);
+      pillText = t("hero_remain_pill", { amount: rp(remain) });
     }
     hero.append(el("div", { class: "hero-pill" }, [
       icon(over ? "bulb" : "lightning", 14),
@@ -1751,10 +2117,10 @@ function renderDashboard() {
 
   const stats = el("div", { class: "stats-grid" });
   const cards = [
-    { label: "Pemasukan", val: rp(income), icon: "arrowDownLeft", cls: "income" },
-    { label: "Pengeluaran", val: rp(expense), icon: "arrowUpRight", cls: "expense" },
-    { label: "Selisih", val: (income - expense >= 0 ? "+" : "-") + rp(Math.abs(income - expense)), icon: "scale", cls: "balance" },
-    { label: "Sisa Budget Total", val: budgets.length ? (budgetTotal - expense >= 0 ? "" : "-") + rp(Math.abs(budgetTotal - expense)) : "Belum diatur", icon: "target", cls: "budget" }
+    { label: t("kpi_income"), val: rp(income), icon: "arrowDownLeft", cls: "income" },
+    { label: t("kpi_expense"), val: rp(expense), icon: "arrowUpRight", cls: "expense" },
+    { label: t("kpi_balance"), val: (income - expense >= 0 ? "+" : "-") + rp(Math.abs(income - expense)), icon: "scale", cls: "balance" },
+    { label: t("kpi_budget_remain"), val: budgets.length ? (budgetTotal - expense >= 0 ? "" : "-") + rp(Math.abs(budgetTotal - expense)) : t("not_set"), icon: "target", cls: "budget" }
   ];
   for (const c of cards) {
     const card = el("div", { class: "stat-card" });
@@ -1768,15 +2134,15 @@ function renderDashboard() {
   colLeft.append(stats);
   colLeft.append(trendCard(key));
 
-  const byCat = [...spentMap.entries()].map(([id, amount]) => ({ id, amount, name: catById(id)?.name || "Tanpa kategori" }))
+  const byCat = [...spentMap.entries()].map(([id, amount]) => ({ id, amount, name: catNameById(id) }))
     .sort((a, b) => b.amount - a.amount);
   const catCard = el("div", { class: "card" });
-  catCard.append(el("h2", { class: "card-title", text: "Pengeluaran per Kategori" }));
+  catCard.append(el("h2", { class: "card-title", text: t("card_spending_by_cat") }));
   if (!byCat.length) {
     catCard.append(el("div", { class: "empty-state" }, [
       el("div", { class: "empty-icon", text: "🍜" }),
-      el("p", { class: "empty-title", text: "Masih bersih! Belum ada pengeluaran bulan ini." }),
-      el("button", { type: "button", class: "btn btn-primary btn-sm", text: "+ Catat Pengeluaran", onclick: () => openTxForm({ type: "expense" }) }),
+      el("p", { class: "empty-title", text: t("empty_cat_title") }),
+      el("button", { type: "button", class: "btn btn-primary btn-sm", text: t("btn_add_expense"), onclick: () => openTxForm({ type: "expense" }) }),
     ]));
   } else {
     for (const c of byCat) {
@@ -1813,11 +2179,11 @@ function trendCard(key) {
 
   const card = el("div", { class: "card" });
   const head = el("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;" });
-  head.append(el("h2", { class: "card-title", style: "margin:0;", text: "Tren 6 Bulan Terakhir" }));
+  head.append(el("h2", { class: "card-title", style: "margin:0;", text: t("card_trend_6m") }));
 
   const legend = el("div", { class: "legend" }, [
-    el("span", { class: "legend-item" }, [el("span", { class: "legend-dot income" }), el("span", { text: "Pemasukan" })]),
-    el("span", { class: "legend-item" }, [el("span", { class: "legend-dot expense" }), el("span", { text: "Pengeluaran" })]),
+    el("span", { class: "legend-item" }, [el("span", { class: "legend-dot income" }), el("span", { text: t("filter_income") })]),
+    el("span", { class: "legend-item" }, [el("span", { class: "legend-dot expense" }), el("span", { text: t("filter_expense") })]),
   ]);
   head.append(legend);
   card.append(head);
@@ -1900,7 +2266,7 @@ function trendCard(key) {
     emptyMsg.setAttribute("x", W / 2); emptyMsg.setAttribute("y", H / 2);
     emptyMsg.setAttribute("text-anchor", "middle");
     emptyMsg.setAttribute("font-size", "12"); emptyMsg.setAttribute("fill", "var(--text-muted)");
-    emptyMsg.textContent = "Grafik muncul setelah ada transaksi";
+    emptyMsg.textContent = t("chart_empty_msg");
     svg.append(emptyMsg);
   }
 
@@ -1917,14 +2283,14 @@ function insightsCard(key, income, expense, budgets, spentMap, remain) {
     const spent = spentMap.get(b.category_id) || 0;
     if (b.amount > 0 && spent > b.amount) {
       const pct = Math.round((spent - b.amount) / b.amount * 100);
-      const name = catById(b.category_id)?.name || "Kategori";
-      insights.push({ score: pct, text: name + " " + pct + "% di atas budget" });
+      const name = catNameById(b.category_id);
+      insights.push({ score: pct, text: t("insight_over", { name, pct, spent: rp(spent), budget: rp(b.amount) }) });
     }
   }
   if (prevExp > 0 && expense > 0) {
     const delta = Math.round((expense - prevExp) / prevExp * 100);
-    if (delta <= -5) insights.push({ score: Math.abs(delta), text: "Pengeluaran bulan ini " + Math.abs(delta) + "% lebih rendah dari bulan lalu" });
-    else if (delta >= 5) insights.push({ score: delta, text: "Pengeluaran bulan ini " + delta + "% lebih tinggi dari bulan lalu" });
+    if (delta <= -5) insights.push({ score: Math.abs(delta), text: t("insight_lower", { pct: Math.abs(delta), curr: rp(expense), prev: rp(prevExp) }) });
+    else if (delta >= 5) insights.push({ score: delta, text: t("insight_higher", { pct: delta, curr: rp(expense), prev: rp(prevExp) }) });
   }
   const today = localDate();
   if (monthKey(today) === key && budgets.length && remain != null) {
@@ -1934,8 +2300,9 @@ function insightsCard(key, income, expense, budgets, spentMap, remain) {
       const projected = Math.round(expense / day * dim);
       const budgetTotal = budgets.reduce((s, b) => s + Number(b.amount), 0);
       const gap = budgetTotal - projected;
-      if (gap > 0) insights.push({ score: 40, text: "Dengan kecepatan sekarang, bulan ini kamu akan lebih hemat sekitar " + rp(gap) + " dari budget" });
-      else if (gap < 0) insights.push({ score: 50, text: "Dengan kecepatan sekarang, bulan ini kamu akan melebihi budget sekitar " + rp(Math.abs(gap)) });
+      const daily = rp(Math.round(expense / day));
+      if (gap > 0) insights.push({ score: 40, text: t("insight_save", { daily, gap: rp(gap) }) });
+      else if (gap < 0) insights.push({ score: 50, text: t("insight_projected_over", { daily, gap: rp(Math.abs(gap)) }) });
     }
   }
   if (expense > 0) {
@@ -1943,7 +2310,7 @@ function insightsCard(key, income, expense, budgets, spentMap, remain) {
     for (const [id, amount] of spentMap) if (!top || amount > top.amount) top = { id, amount };
     if (top) {
       const pct = Math.round(top.amount / expense * 100);
-      insights.push({ score: pct > 30 ? pct : 10, text: "Kategori terbesar bulan ini: " + (catById(top.id)?.name || "?") + " (" + pct + "%)" });
+      insights.push({ score: pct > 30 ? pct : 10, text: t("insight_top", { name: catNameById(top.id), pct }) });
     }
   }
   insights.sort((a, b) => b.score - a.score);
@@ -1953,7 +2320,7 @@ function insightsCard(key, income, expense, budgets, spentMap, remain) {
   const card = el("div", { class: "card" });
   const head = el("div", { style: "display:flex;align-items:center;gap:8px;margin-bottom:12px;" }, [
     icon("bulb", 18, "accent"),
-    el("h2", { class: "card-title", style: "margin:0;", text: "Insight Cerdas" })
+    el("h2", { class: "card-title", style: "margin:0;", text: t("card_insights") })
   ]);
   card.append(head);
   for (const i of top5) {
@@ -1995,7 +2362,7 @@ function renderTransaksi() {
   const f = state.txFilter;
   const filters = el("div", { class: "card grid" });
   const monthSel = el("select", { "aria-label": "Filter bulan", onchange: e => { f.month = e.target.value; state.txShown = PAGE; render(); } }, [
-    el("option", { value: "", text: "Semua bulan" }),
+    el("option", { value: "", text: t("filter_all_months") }),
   ]);
   const months = [...new Set(state.transactions.map(t => t.date.slice(0, 7)))].sort().reverse();
   if (!months.includes(state.month)) months.unshift(state.month);
@@ -2005,20 +2372,20 @@ function renderTransaksi() {
     monthSel.append(o);
   }
   const catSel = el("select", { "aria-label": "Filter kategori", onchange: e => { f.category = e.target.value; state.txShown = PAGE; render(); } }, [
-    el("option", { value: "", text: "Semua kategori" }),
+    el("option", { value: "", text: t("filter_all_cats") }),
   ]);
   for (const c of state.categories) {
-    const o = el("option", { value: c.id, text: c.name + (c.archived ? " (arsip)" : "") });
+    const o = el("option", { value: c.id, text: catName(c.name) + (c.archived ? (state.lang === "en" ? " (archived)" : " (arsip)") : "") });
     if (c.id === f.category) o.selected = true;
     catSel.append(o);
   }
   const typeSel = el("select", { "aria-label": "Filter jenis", onchange: e => { f.type = e.target.value; state.txShown = PAGE; render(); } });
-  for (const [v, label] of [["", "Semua jenis"], ["expense", "Pengeluaran"], ["income", "Pemasukan"]]) {
+  for (const [v, label] of [["", t("filter_all_types")], ["expense", t("filter_expense")], ["income", t("filter_income")]]) {
     const o = el("option", { value: v, text: label });
     if (v === f.type) o.selected = true;
     typeSel.append(o);
   }
-  const search = el("input", { type: "search", placeholder: "Cari catatan transaksi...", "aria-label": "Cari catatan", value: f.q });
+  const search = el("input", { type: "search", placeholder: t("search_placeholder"), "aria-label": t("search_placeholder"), value: f.q });
   let timer;
   search.addEventListener("input", () => {
     clearTimeout(timer);
@@ -2030,10 +2397,10 @@ function renderTransaksi() {
   const combos = recentCombos();
   if (combos.length) {
     const wrap = el("div", { style: "margin-bottom:14px;" });
-    wrap.append(el("div", { class: "section-subtitle", text: "Transaksi Cepat (Sekali Ketuk)" }));
+    wrap.append(el("div", { class: "section-subtitle", text: t("quick_chips_title") }));
     const box = el("div", { class: "chips" });
     for (const t of combos) {
-      const name = catById(t.category_id)?.name || "?";
+      const name = catNameById(t.category_id);
       box.append(el("button", {
         type: "button", class: "chip",
         onclick: () => quickAdd(t),
@@ -2060,8 +2427,8 @@ function renderList() {
   if (!slice.length) {
     host.append(el("div", { class: "card empty-state" }, [
       el("div", { class: "empty-icon", text: "📝" }),
-      el("p", { class: "empty-title", text: state.transactions.length ? "Tidak ada transaksi yang cocok dengan filter." : "Belum ada transaksi tercatat." }),
-      el("button", { type: "button", class: "btn btn-primary", text: "+ Catat Transaksi Baru", onclick: () => openTxForm() }),
+      el("p", { class: "empty-title", text: state.transactions.length ? t("empty_tx_filtered") : t("empty_tx_empty") }),
+      el("button", { type: "button", class: "btn btn-primary", text: t("btn_new_tx"), onclick: () => openTxForm() }),
     ]));
     return;
   }
@@ -2082,7 +2449,7 @@ function renderList() {
       group.append(groupHeader);
       host.append(group);
     }
-    const name = catById(t.category_id)?.name || "?";
+    const name = catNameById(t.category_id);
     const row = el("div", { class: "tx-row" });
     const left = el("div", { class: "tx-left" });
     const iconWrap = el("div", { class: "tx-avatar " + (t.type === "income" ? "income" : "expense") }, [
@@ -2107,7 +2474,7 @@ function renderList() {
   }
   if (all.length > slice.length) {
     host.append(el("button", {
-      type: "button", class: "btn full-width", style: "margin-top:12px;", text: "Muat Lebih Banyak",
+      type: "button", class: "btn full-width", style: "margin-top:12px;", text: t("btn_load_more"),
       onclick: () => { state.txShown += PAGE; renderList(); }
     }));
   }
@@ -2123,23 +2490,23 @@ async function quickAdd(src) {
   render();
   try {
     await cloudWrite("transactions", "insert", row);
-    toast("Tercatat: " + (catById(src.category_id)?.name || "") + " " + rp(src.amount));
+    toast(t("toast_tx_logged", { name: catNameById(src.category_id), amount: rp(src.amount) }));
   } catch (err) {
     rollbackTx(row.id);
     toast("Gagal mencatat: " + (err.message || err));
   }
 }
 
-function deleteTx(t) {
-  const idx = state.transactions.findIndex(x => x.id === t.id);
+function deleteTx(tRow) {
+  const idx = state.transactions.findIndex(x => x.id === tRow.id);
   if (idx < 0) return;
   const copy = state.transactions[idx];
   state.transactions.splice(idx, 1);
   saveLocal();
   render();
   let undone = false;
-  toast("Transaksi dihapus", {
-    label: "Urungkan",
+  toast(t("toast_tx_deleted"), {
+    label: t("toast_undo"),
     fn: () => {
       undone = true;
       state.transactions.push(copy);
@@ -2170,10 +2537,10 @@ function openTxForm(existing) {
     category_id: existing?.category_id || "",
     note: existing?.note || "",
   };
-  openModal(isEdit ? "Ubah Transaksi" : "Catat Transaksi", (body, close) => {
+  openModal(isEdit ? t("modal_edit_tx") : t("modal_new_tx"), (body, close) => {
     const typeSeg = el("div", { class: "seg full-width", style: "margin-bottom:16px;" });
-    const btnExp = el("button", { type: "button", text: "Pengeluaran", "aria-pressed": draft.type === "expense" ? "true" : "false" });
-    const btnInc = el("button", { type: "button", text: "Pemasukan", "aria-pressed": draft.type === "income" ? "true" : "false" });
+    const btnExp = el("button", { type: "button", text: t("filter_expense"), "aria-pressed": draft.type === "expense" ? "true" : "false" });
+    const btnInc = el("button", { type: "button", text: t("filter_income"), "aria-pressed": draft.type === "income" ? "true" : "false" });
     typeSeg.append(btnExp, btnInc);
 
     const amountWrap = el("div", { class: "amount-hero" });
@@ -2187,13 +2554,13 @@ function openTxForm(existing) {
 
     const date = el("input", { type: "date", value: draft.date, required: "true" });
     const cat = el("select", { "aria-label": "Pilih kategori" });
-    const note = el("input", { type: "text", placeholder: "Contoh: Nasi padang, bensin, dll", value: draft.note, maxlength: "200" });
+    const note = el("input", { type: "text", placeholder: t("field_note_placeholder"), value: draft.note, maxlength: "200" });
 
     function refillCats() {
       clear(cat);
-      cat.append(el("option", { value: "", text: "Pilih kategori..." }));
+      cat.append(el("option", { value: "", text: t("field_category_placeholder") }));
       for (const c of activeCats(draft.type)) {
-        const o = el("option", { value: c.id, text: c.name });
+        const o = el("option", { value: c.id, text: catName(c.name) });
         if (c.id === draft.category_id) o.selected = true;
         cat.append(o);
       }
@@ -2223,15 +2590,15 @@ function openTxForm(existing) {
     body.append(
       typeSeg,
       amountWrap,
-      field("Kategori", cat),
-      field("Tanggal", date),
-      field("Catatan (opsional)", note),
-      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: "Simpan Transaksi", onclick: async () => {
+      field(t("field_category"), cat),
+      field(t("field_date"), date),
+      field(t("field_note"), note),
+      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: t("btn_save_tx"), onclick: async () => {
         const digits = amount.value.replace(/\D/g, "");
         const value = Number(digits);
-        if (!date.value) return toast("Tanggal wajib diisi.");
-        if (!value || value <= 0) return toast("Jumlah harus lebih dari 0.");
-        if (!cat.value) return toast("Kategori wajib dipilih.");
+        if (!date.value) return toast(state.lang === "en" ? "Date is required." : "Tanggal wajib diisi.");
+        if (!value || value <= 0) return toast(state.lang === "en" ? "Amount must be greater than 0." : "Jumlah harus lebih dari 0.");
+        if (!cat.value) return toast(state.lang === "en" ? "Category is required." : "Kategori wajib dipilih.");
         const row = {
           id: existing?.id || uid(),
           date: date.value,
@@ -2287,12 +2654,12 @@ function renderBudget() {
     main.append(el("div", { class: "card budget-copy-card" }, [
       el("div", { style: "display:flex;align-items:center;gap:10px;margin-bottom:8px;" }, [
         icon("calendar", 18, "accent"),
-        el("strong", { text: "Belum ada budget untuk bulan ini" })
+        el("strong", { text: t("budget_no_budget_title") })
       ]),
-      el("p", { class: "muted small", style: "margin-bottom:12px;", text: "Mau pakai batas budget yang sama seperti bulan kemarin?" }),
+      el("p", { class: "muted small", style: "margin-bottom:12px;", text: t("budget_no_budget_sub") }),
       el("button", { type: "button", class: "btn btn-primary", onclick: () => copyBudgets(key) }, [
         icon("check", 14),
-        el("span", { text: "Salin dari Bulan Lalu" })
+        el("span", { text: t("btn_copy_budget") })
       ]),
     ]));
   }
@@ -2301,8 +2668,8 @@ function renderBudget() {
   if (!cats.length) {
     main.append(el("div", { class: "card empty-state" }, [
       el("div", { class: "empty-icon", text: "🎯" }),
-      el("p", { class: "empty-title", text: "Belum ada kategori pengeluaran." }),
-      el("button", { type: "button", class: "btn btn-primary", text: "Tambah Kategori", onclick: () => editCategory(null) })
+      el("p", { class: "empty-title", text: t("empty_budget_title") }),
+      el("button", { type: "button", class: "btn btn-primary", text: t("btn_add_category"), onclick: () => editCategory(null) })
     ]));
     return;
   }
@@ -2311,40 +2678,40 @@ function renderBudget() {
     const used = spent.get(c.id) || 0;
     const card = el("div", { class: "card budget-item-card" });
     const topRow = el("div", { class: "budget-top-row" });
-    topRow.append(el("strong", { class: "budget-cat-name", text: c.name }));
+    topRow.append(el("strong", { class: "budget-cat-name", text: catName(c.name) }));
 
     if (!b) {
-      topRow.append(el("span", { class: "tag muted-tag", text: "Belum diatur" }));
+      topRow.append(el("span", { class: "tag muted-tag", text: t("tag_not_set") }));
       card.append(topRow);
-      card.append(el("div", { class: "small muted", style: "margin:6px 0 10px;", text: "Terpakai: " + rp(used) }));
+      card.append(el("div", { class: "small muted", style: "margin:6px 0 10px;", text: t("meta_spent", { amount: rp(used) }) }));
       const inputWrap = el("div", { style: "display:flex;gap:8px;" });
-      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Budget " + c.name, placeholder: "Atur budget (Rp)" });
+      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Budget " + catName(c.name), placeholder: t("set_budget_ph") });
       input.addEventListener("input", () => { input.value = formatThousands(input.value.replace(/\D/g, "")); });
-      const saveBtn = el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Simpan", onclick: () => saveBudget(key, c.id, input.value) });
+      const saveBtn = el("button", { type: "button", class: "btn btn-primary btn-sm", text: t("btn_save"), onclick: () => saveBudget(key, c.id, input.value) });
       inputWrap.append(input, saveBtn);
       card.append(inputWrap);
     } else {
       const remain = Number(b.amount) - used;
       const ratio = b.amount > 0 ? used / b.amount : (used > 0 ? 2 : 0);
       const cls = ratio > 1 ? "over" : ratio >= 0.8 ? "warn" : "ok";
-      const label = ratio > 1 ? "Melebihi budget" : ratio >= 0.8 ? "Hampir habis" : "Aman";
+      const label = ratio > 1 ? t("tag_over") : ratio >= 0.8 ? t("tag_warn") : t("tag_ok");
       topRow.append(el("span", { class: "tag " + cls, text: label }));
       card.append(topRow);
 
       const meta = el("div", { class: "budget-meta" }, [
-        el("span", { text: "Budget: " + rp(b.amount) }),
-        el("span", { text: "Terpakai: " + rp(used) }),
-        el("span", { class: "budget-remain " + cls, text: "Sisa: " + (remain < 0 ? "-" : "") + rp(Math.abs(remain)) })
+        el("span", { text: t("meta_budget", { amount: rp(b.amount) }) }),
+        el("span", { text: t("meta_spent", { amount: rp(used) }) }),
+        el("span", { class: "budget-remain " + cls, text: t("meta_remain", { amount: (remain < 0 ? "-" : "") + rp(Math.abs(remain)) }) })
       ]);
       const track = el("div", { class: "bar-track", style: "margin:10px 0" });
       track.append(el("div", { class: "bar-fill " + cls, style: "width:" + Math.min(100, ratio * 100) + "%" }));
       card.append(meta, track);
 
       const editWrap = el("div", { class: "budget-inline-edit" });
-      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Ubah budget " + c.name, value: formatThousands(String(b.amount)) });
+      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Ubah budget " + catName(c.name), value: formatThousands(String(b.amount)) });
       input.addEventListener("input", () => { input.value = formatThousands(input.value.replace(/\D/g, "")); });
       input.addEventListener("change", () => saveBudget(key, c.id, input.value));
-      editWrap.append(el("span", { class: "small muted", text: "Ubah batas:" }), input);
+      editWrap.append(el("span", { class: "small muted", text: t("edit_limit") }), input);
       card.append(editWrap);
     }
     main.append(card);
@@ -2388,47 +2755,61 @@ async function copyBudgets(key) {
 
 /* ---------- settings ---------- */
 function renderSettings() {
+  const cardLang = el("div", { class: "card" });
+  cardLang.append(el("h2", { class: "card-title", text: t("settings_lang") }));
+  const segLang = el("div", { class: "seg full-width" });
+  for (const [code, label] of [["id", "Bahasa Indonesia"], ["en", "English"]]) {
+    segLang.append(el("button", {
+      type: "button",
+      text: label,
+      "aria-pressed": state.lang === code ? "true" : "false",
+      onclick: () => setLang(code)
+    }));
+  }
+  cardLang.append(segLang);
+  main.append(cardLang);
+
   let theme = "auto";
   try { theme = localStorage.getItem("duitku.theme") || "auto"; } catch {}
   const cardTheme = el("div", { class: "card" });
-  cardTheme.append(el("h2", { class: "card-title", text: "Tema Tampilan" }));
+  cardTheme.append(el("h2", { class: "card-title", text: t("settings_theme") }));
   const segTheme = el("div", { class: "seg full-width" });
-  for (const [v, label] of [["auto", "Sistem"], ["light", "Terang"], ["dark", "Gelap"]]) {
+  for (const [v, label] of [["auto", t("theme_auto")], ["light", t("theme_light")], ["dark", t("theme_dark")]]) {
     segTheme.append(el("button", { type: "button", text: label, "aria-pressed": theme === v ? "true" : "false", onclick: () => applyTheme(v) }));
   }
   cardTheme.append(segTheme);
   main.append(cardTheme);
 
   const acc = el("div", { class: "card" });
-  acc.append(el("h2", { class: "card-title", text: "Akun & Sinkronisasi" }));
+  acc.append(el("h2", { class: "card-title", text: t("settings_account") }));
   if (state.mode === "cloud" && state.user) {
     acc.append(
       el("div", { style: "display:flex;align-items:center;gap:10px;margin-bottom:12px;" }, [
         icon("mail", 18, "muted"),
         el("span", { style: "font-weight:600;", text: state.user.email || "" })
       ]),
-      el("button", { type: "button", class: "btn btn-ghost danger", text: "Keluar dari Akun", onclick: async () => {
+      el("button", { type: "button", class: "btn btn-ghost danger", text: t("btn_sign_out"), onclick: async () => {
         try { await state.sb.auth.signOut(); } catch (e) { toast(authMsg(e)); }
       }})
     );
   } else {
-    acc.append(el("p", { class: "muted small", text: "Sedang berjalan dalam Mode Lokal (data tersimpan di perangkat ini). Hubungkan ke Supabase di config.js untuk sinkronisasi antar perangkat." }));
+    acc.append(el("p", { class: "muted small", text: t("settings_local_info") }));
   }
   main.append(acc);
 
   const cats = el("div", { class: "card" });
   const catsHead = el("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;" });
   catsHead.append(
-    el("h2", { class: "card-title", style: "margin:0;", text: "Kategori Transaksi" }),
-    el("button", { type: "button", class: "btn btn-primary btn-sm", text: "+ Kategori", onclick: () => editCategory(null) })
+    el("h2", { class: "card-title", style: "margin:0;", text: t("settings_categories") }),
+    el("button", { type: "button", class: "btn btn-primary btn-sm", text: t("btn_add_category"), onclick: () => editCategory(null) })
   );
   cats.append(catsHead);
   for (const c of [...state.categories].sort((a, b) => a.type.localeCompare(b.type) || a.sort_order - b.sort_order)) {
     const row = el("div", { class: "row-item", style: "display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);" });
     const left = el("div");
     left.append(
-      el("div", { style: "font-weight:600;", text: c.name }),
-      el("div", { class: "small muted", text: (c.type === "income" ? "Pemasukan" : "Pengeluaran") + (c.archived ? " · Diarsipkan" : "") })
+      el("div", { style: "font-weight:600;", text: catName(c.name) }),
+      el("div", { class: "small muted", text: (c.type === "income" ? t("filter_income") : t("filter_expense")) + (c.archived ? " · " + (state.lang === "en" ? "Archived" : "Diarsipkan") : "") })
     );
     row.append(left);
     row.append(el("div", { class: "seg" }, [
@@ -2440,15 +2821,15 @@ function renderSettings() {
   main.append(cats);
 
   const data = el("div", { class: "card" });
-  data.append(el("h2", { class: "card-title", text: "Cadangan & Kelola Data" }));
+  data.append(el("h2", { class: "card-title", text: t("settings_data_manage") }));
   data.append(
     el("div", { class: "grid grid-2" }, [
-      el("button", { type: "button", class: "btn", onclick: exportCsv }, [icon("download", 14), el("span", { text: "Ekspor CSV" })]),
-      el("button", { type: "button", class: "btn", onclick: () => pickFile(".csv,text/csv", startCsvImport) }, [icon("upload", 14), el("span", { text: "Impor CSV" })]),
-      el("button", { type: "button", class: "btn", onclick: exportJson }, [icon("download", 14), el("span", { text: "Cadangkan JSON" })]),
-      el("button", { type: "button", class: "btn", onclick: () => pickFile(".json,application/json", startJsonRestore) }, [icon("upload", 14), el("span", { text: "Pulihkan JSON" })]),
-      el("button", { type: "button", class: "btn", onclick: loadSample }, [icon("lightning", 14), el("span", { text: "Muat Data Contoh" })]),
-      el("button", { type: "button", class: "btn btn-danger", onclick: wipeAll }, [icon("trash", 14), el("span", { text: "Hapus Semua Data" })]),
+      el("button", { type: "button", class: "btn", onclick: exportCsv }, [icon("download", 14), el("span", { text: t("btn_export_csv") })]),
+      el("button", { type: "button", class: "btn", onclick: () => pickFile(".csv,text/csv", startCsvImport) }, [icon("upload", 14), el("span", { text: t("btn_import_csv") })]),
+      el("button", { type: "button", class: "btn", onclick: exportJson }, [icon("download", 14), el("span", { text: t("btn_export_json") })]),
+      el("button", { type: "button", class: "btn", onclick: () => pickFile(".json,application/json", startJsonRestore) }, [icon("upload", 14), el("span", { text: t("btn_import_json") })]),
+      el("button", { type: "button", class: "btn", onclick: loadSample }, [icon("lightning", 14), el("span", { text: t("btn_sample_data") })]),
+      el("button", { type: "button", class: "btn btn-danger", onclick: wipeAll }, [icon("trash", 14), el("span", { text: t("btn_wipe_data") })]),
     ])
   );
   main.append(data);
@@ -2464,22 +2845,22 @@ function applyTheme(v) {
 }
 
 function editCategory(existing) {
-  openModal(existing ? "Ubah Kategori" : "Kategori Baru", (body, close) => {
-    const name = el("input", { type: "text", value: existing?.name || "", placeholder: "Nama kategori", maxlength: "40", required: "true" });
+  openModal(existing ? (state.lang === "en" ? "Edit Category" : "Ubah Kategori") : (state.lang === "en" ? "New Category" : "Kategori Baru"), (body, close) => {
+    const name = el("input", { type: "text", value: existing?.name || "", placeholder: state.lang === "en" ? "Category name" : "Nama kategori", maxlength: "40", required: "true" });
     const type = el("select");
-    for (const [v, label] of [["expense", "Pengeluaran"], ["income", "Pemasukan"]]) {
+    for (const [v, label] of [["expense", t("filter_expense")], ["income", t("filter_income")]]) {
       const o = el("option", { value: v, text: label });
       if (existing && existing.type === v) o.selected = true;
       type.append(o);
     }
     body.append(
-      field("Nama", name),
-      existing ? null : field("Jenis", type),
-      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: "Simpan", onclick: async () => {
+      field(state.lang === "en" ? "Name" : "Nama", name),
+      existing ? null : field(state.lang === "en" ? "Type" : "Jenis", type),
+      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: t("btn_save"), onclick: async () => {
         const val = name.value.trim();
-        if (!val) return toast("Nama kategori tidak boleh kosong.");
+        if (!val) return toast(state.lang === "en" ? "Category name cannot be empty." : "Nama kategori tidak boleh kosong.");
         const dup = state.categories.find(c => c.type === (existing ? existing.type : type.value) && c.name.toLowerCase() === val.toLowerCase() && c.id !== existing?.id);
-        if (dup) return toast("Kategori dengan nama dan jenis ini sudah ada.");
+        if (dup) return toast(state.lang === "en" ? "Category with this name and type already exists." : "Kategori dengan nama dan jenis ini sudah ada.");
         if (existing) {
           existing.name = val;
           saveLocal();
@@ -2886,7 +3267,8 @@ function startJsonRestore(file) {
 
 /* ---------- sample data & reset ---------- */
 async function loadSample() {
-  if (!confirm("Muat data contoh ~3 bulan pengeluaran mahasiswa? Data akan ditambahkan ke riwayatmu.")) return;
+  const isEn = state.lang === "en";
+  if (!confirm(isEn ? "Load sample data with ~3 months of student expenses? This will be added to your history." : "Muat data contoh ~3 bulan pengeluaran mahasiswa? Data akan ditambahkan ke riwayatmu.")) return;
   const sample = buildSample();
   for (const t of sample) state.transactions.push(t);
   const curMonth = monthKey();
@@ -2906,9 +3288,9 @@ async function loadSample() {
     try {
       await insertChunked("transactions", sample.map(x => ({ ...x, user_id: state.user.id })));
       await state.sb.from("budgets").upsert(state.budgets.map(b => ({ ...b, user_id: state.user.id })));
-    } catch (e) { toast("Gagal simpan contoh ke cloud: " + e.message); }
+    } catch (e) { toast((isEn ? "Failed to save sample data to cloud: " : "Gagal simpan contoh ke cloud: ") + e.message); }
   }
-  toast("Data contoh berhasil dimuat.");
+  toast(isEn ? "Sample data loaded successfully." : "Data contoh berhasil dimuat.");
 }
 
 function buildSample() {
@@ -2966,19 +3348,20 @@ function buildSample() {
 }
 
 async function wipeAll() {
-  if (!confirm("PERINGATAN: Semua transaksi, budget, dan kategori akan dihapus!")) return;
-  if (!confirm("Apakah kamu benar-benar yakin? Tindakan ini tidak dapat dibatalkan.")) return;
+  const isEn = state.lang === "en";
+  if (!confirm(isEn ? "WARNING: All transactions, budgets, and categories will be deleted!" : "PERINGATAN: Semua transaksi, budget, dan kategori akan dihapus!")) return;
+  if (!confirm(isEn ? "Are you sure? This action cannot be undone." : "Apakah kamu benar-benar yakin? Tindakan ini tidak dapat dibatalkan.")) return;
   state.transactions = [];
   state.budgets = [];
   state.categories = [];
   saveLocal();
   if (state.mode === "cloud") {
-    try { await wipeAllCloud(); } catch (e) { toast("Gagal hapus data cloud: " + e.message); }
+    try { await wipeAllCloud(); } catch (e) { toast((isEn ? "Failed to delete cloud data: " : "Gagal hapus data cloud: ") + e.message); }
   }
   seedIfEmpty();
   saveLocal();
   render();
-  toast("Semua data telah dihapus.");
+  toast(isEn ? "All data has been wiped." : "Semua data telah dihapus.");
 }
 async function wipeAllCloud() {
   await state.sb.from("transactions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -2989,6 +3372,8 @@ async function wipeAllCloud() {
 /* ---------- auth screen ---------- */
 function renderAuth() {
   clear(main);
+  main.classList.add("auth-mode");
+  updateHeaderExtra();
   $("#fabCatat").hidden = true;
   $("#mainNav").style.display = "none";
   showBanner("");
@@ -3000,14 +3385,14 @@ function renderAuth() {
 
   const brand = el("div", { class: "auth-brand" }, [
     el("div", { class: "brand-badge" }, [icon("walletLogo", 28)]),
-    el("div", { class: "auth-title", text: "Selamat Datang di Duitku" }),
-    el("div", { class: "auth-sub", text: "Catat pengeluaran & uang saku mahasiswa tanpa ribet." }),
+    el("div", { class: "auth-title", text: t("auth_title") }),
+    el("div", { class: "auth-sub", text: t("auth_sub") }),
   ]);
   card.append(brand);
 
   const tabs = el("div", { class: "seg full-width", style: "margin-bottom:18px;" });
-  const btnMasuk = el("button", { type: "button", text: "Masuk", "aria-pressed": "true" });
-  const btnDaftar = el("button", { type: "button", text: "Daftar", "aria-pressed": "false" });
+  const btnMasuk = el("button", { type: "button", text: t("auth_tab_in"), "aria-pressed": "true" });
+  const btnDaftar = el("button", { type: "button", text: t("auth_tab_up"), "aria-pressed": "false" });
   tabs.append(btnMasuk, btnDaftar);
   card.append(tabs);
 
@@ -3020,17 +3405,17 @@ function renderAuth() {
     btnDaftar.setAttribute("aria-pressed", tab === "daftar" ? "true" : "false");
 
     const email = el("input", { type: "email", autocomplete: "username", placeholder: "nama@kampus.ac.id", required: "true" });
-    const pass = el("input", { type: "password", autocomplete: tab === "masuk" ? "current-password" : "new-password", placeholder: "Minimal 6 karakter", required: "true", minlength: "6" });
+    const pass = el("input", { type: "password", autocomplete: tab === "masuk" ? "current-password" : "new-password", placeholder: t("auth_pass_placeholder"), required: "true", minlength: "6" });
 
     formBox.append(
-      field("Email", email),
-      field("Kata Sandi", pass),
+      field(t("field_email"), email),
+      field(t("field_password"), pass),
       el("button", {
         type: "button", class: "btn btn-primary full-width", style: "margin-top:12px;min-height:48px;font-size:1rem;",
-        text: tab === "masuk" ? "Masuk ke Duitku" : "Buat Akun Baru",
+        text: tab === "masuk" ? t("btn_auth_submit_in") : t("btn_auth_submit_up"),
         onclick: async () => {
-          if (!email.value.includes("@")) return toast("Isi email yang valid.");
-          if (pass.value.length < 6) return toast("Kata sandi minimal 6 karakter.");
+          if (!email.value.includes("@")) return toast(state.lang === "en" ? "Enter a valid email." : "Isi email yang valid.");
+          if (pass.value.length < 6) return toast(state.lang === "en" ? "Password must be at least 6 characters." : "Kata sandi minimal 6 karakter.");
           try {
             if (tab === "masuk") {
               const { data, error } = await state.sb.auth.signInWithPassword({ email: email.value.trim(), password: pass.value });
@@ -3043,14 +3428,14 @@ function renderAuth() {
               if (data.session) {
                 state.user = data.user;
                 await bootCloud();
-              } else toast("Pendaftaran berhasil! Silakan masuk.");
+              } else toast(state.lang === "en" ? "Sign up successful! Please log in." : "Pendaftaran berhasil! Silakan masuk.");
             }
           } catch (err) { toast(authMsg(err)); }
         }
       }),
       el("div", { style: "text-align:center;margin-top:16px;" }, [
         el("button", {
-          type: "button", class: "btn-link small", text: "Atau coba Mode Lokal (tanpa login)",
+          type: "button", class: "btn-link small", text: t("btn_auth_try_local"),
           onclick: () => {
             enterLocal();
             $("#mainNav").style.display = "";
@@ -3103,8 +3488,10 @@ function initTheme() {
   if (t !== "auto") document.documentElement.setAttribute("data-theme", t);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function boot() {
   initTheme();
+  updateHeaderExtra();
+  updateNavLabels();
 
   // Populate brand logo & icons
   const logoEl = $("#brandLogo");
@@ -3120,7 +3507,13 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#navIcon-lainnya")?.append(icon("lainnya", 20));
 
   initBackend();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
 
 })();
 </script>
