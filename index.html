@@ -1117,7 +1117,6 @@ input:focus, select:focus, textarea:focus {
     font-size: 0.95rem;
   }
   .fab { display: none !important; }
-  .catat-dash-btn { display: none; }
   .toast-wrap { top: 24px; bottom: auto; }
   .modal-back { align-items: center; }
   .sheet { border-radius: 24px; }
@@ -1157,10 +1156,6 @@ input:focus, select:focus, textarea:focus {
     <button type="button" data-screen="lainnya" aria-label="Lainnya">
       <span class="nav-icon" id="navIcon-lainnya"></span>
       <span>Lainnya</span>
-    </button>
-    <button type="button" class="btn btn-primary nav-catat-btn" id="desktopCatatBtn" aria-label="Catat transaksi baru">
-      <span id="desktopCatatIcon"></span>
-      <span>Catat Transaksi</span>
     </button>
   </nav>
   <main id="main"></main>
@@ -2372,8 +2367,9 @@ function renderDashboard() {
   const catatBtn = el("button", {
     type: "button",
     class: "btn btn-primary full-width catat-dash-btn",
+    text: t("btn_catat_tx"),
     onclick: () => openTxForm(),
-  }, [icon("plus", 18), el("span", { text: t("btn_catat_tx") })]);
+  });
   main.append(catatBtn);
 
   const layout = el("div", { class: "dash-layout" });
