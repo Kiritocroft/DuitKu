@@ -1,8 +1,8 @@
-// Duitku Service Worker v5
+// Duitku Service Worker v6
 // HTML: network-first (always fresh, offline fallback).
 // Assets (config/icons/manifest): cache-first (rarely change).
 
-const CACHE_NAME = 'duitku-v5';
+const CACHE_NAME = 'duitku-v6';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -11,6 +11,7 @@ const APP_SHELL = [
   '/icon.svg',
   '/icon-192.png',
   '/icon-512.png',
+  '/icon-maskable-512.png',
   '/apple-touch-icon.png'
 ];
 

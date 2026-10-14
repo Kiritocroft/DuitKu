@@ -1,7 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="128" fill="#10b981"/>
-  <g fill="#fff">
-    <path d="M256 120c-75 0-136 61-136 136s61 136 136 136 136-61 136-136-61-136-136-136zm0 240c-57 0-104-47-104-104s47-104 104-104 104 47 104 104-47 104-104 104z"/>
-    <text x="256" y="290" font-size="180" font-weight="bold" text-anchor="middle" font-family="system-ui">Rp</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bgGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#044e3b"/>
+    </linearGradient>
+
+    <!-- Card Gradient -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#d1fae5" stop-opacity="0.85"/>
+    </linearGradient>
+
+    <!-- Wallet Body Gradient -->
+    <linearGradient id="walletGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+
+    <!-- Flap Gradient -->
+    <linearGradient id="flapGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+
+    <!-- Gold Accent Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+
+    <!-- Soft Glow Filter -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#059669" flood-opacity="0.4"/>
+    </filter>
+
+    <!-- Element Shadow -->
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#022c22" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- 1. Squircle Base with Glow -->
+  <rect x="40" y="40" width="432" height="432" rx="116" fill="url(#bgGrad)" filter="url(#softGlow)"/>
+
+  <!-- 2. Subtle Inset Glass Highlight -->
+  <rect x="42" y="42" width="428" height="428" rx="114" fill="none" stroke="#ffffff" stroke-width="3" stroke-opacity="0.28"/>
+  <path d="M 42 156 C 42 80, 80 42, 156 42 L 356 42 C 432 42, 470 80, 470 156" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.45"/>
+
+  <!-- 3. Top Emerging Cards (Stack Effect) -->
+  <!-- Back Card -->
+  <rect x="176" y="140" width="160" height="90" rx="14" fill="#6ee7b7" fill-opacity="0.6" transform="rotate(-6 256 185)"/>
+  <!-- Front Card with chip -->
+  <g filter="url(#cardShadow)">
+    <rect x="156" y="152" width="200" height="110" rx="16" fill="url(#cardGrad)"/>
+    <!-- Card Chip -->
+    <rect x="180" y="176" width="34" height="26" rx="6" fill="url(#goldGrad)"/>
+    <line x1="180" y1="189" x2="214" y2="189" stroke="#92400e" stroke-width="1.5" stroke-opacity="0.4"/>
+    <line x1="197" y1="176" x2="197" y2="202" stroke="#92400e" stroke-width="1.5" stroke-opacity="0.4"/>
+    <!-- Decorative Card Lines -->
+    <rect x="236" y="180" width="80" height="6" rx="3" fill="#059669" fill-opacity="0.4"/>
+    <rect x="236" y="194" width="50" height="6" rx="3" fill="#059669" fill-opacity="0.25"/>
+  </g>
+
+  <!-- 4. Main Wallet Body -->
+  <g filter="url(#cardShadow)">
+    <rect x="120" y="200" width="272" height="184" rx="26" fill="url(#walletGrad)" stroke="#10b981" stroke-width="3" stroke-opacity="0.4"/>
+    
+    <!-- Top Rim Highlight -->
+    <path d="M 124 206 L 388 206" stroke="#34d399" stroke-width="2.5" stroke-opacity="0.6" stroke-linecap="round"/>
+
+    <!-- Wallet Front Pocket Crease -->
+    <path d="M 120 256 Q 256 288 392 256" fill="none" stroke="#047857" stroke-width="3" stroke-opacity="0.8"/>
+  </g>
+
+  <!-- 5. Horizontal Flap Closure & Clasp -->
+  <g filter="url(#cardShadow)">
+    <!-- Flap Tongue -->
+    <path d="M 296 266 L 382 266 C 392 266, 396 272, 396 282 L 396 306 C 396 316, 392 322, 382 322 L 296 322 C 286 322, 280 316, 280 306 L 280 282 C 280 272, 286 266, 296 266 Z" fill="url(#flapGrad)" stroke="#34d399" stroke-width="2.5" stroke-opacity="0.5"/>
+    
+    <!-- Metallic Gold Emblem / Clasp Button -->
+    <circle cx="316" cy="294" r="14" fill="url(#goldGrad)" filter="url(#cardShadow)"/>
+    <circle cx="316" cy="294" r="10" fill="#fef08a" fill-opacity="0.9"/>
+    <circle cx="316" cy="294" r="5" fill="#d97706"/>
   </g>
 </svg>
