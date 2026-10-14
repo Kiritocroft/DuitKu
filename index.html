@@ -2970,7 +2970,7 @@ function goalCard(g) {
   if (g.due) card.append(el("div", { class: "small muted", text: (state.lang === "en" ? "Due " : "Tenggat ") + g.due }));
   card.append(el("div", { class: "muted small", style: "margin-bottom:8px;", text: t("goal_progress", { progress: rp(progress), target: rp(target) }) }));
   const track = el("div", { class: "bar-track", style: "margin-bottom:10px;" });
-  track.append(el("div", { class: "bar-fill " + (g.status === "done" ? "ok" : reached ? "ok" : g.kind === "debt" ? "over" : "warn"), style: "width:" + Math.max(2, pct) + "%" }));
+  track.append(el("div", { class: "bar-fill " + (g.kind === "debt" && g.status !== "done" ? "over" : "ok"), style: "width:" + Math.max(2, pct) + "%" }));
   card.append(track);
 
   if (g.status === "done") {
