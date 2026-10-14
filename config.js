@@ -1,14 +1,7 @@
 // Konfigurasi Supabase untuk Duitku
-// Temukan nilai ini di Dashboard Supabase > Project Settings > API:
-// - Project URL -> SUPABASE_URL
-// - Project API keys -> 'anon' 'public' -> SUPABASE_ANON_KEY
-//
-// CATATAN KEAMANAN:
-// Anon key aman ditaruh di sini karena dilindungi Row Level Security (RLS).
-// JANGAN PERNAH memakai service_role key di frontend!
-// Kosongkan string jika ingin menjalankan aplikasi dalam Mode Lokal (localStorage).
+// Nilai otomatis dikonfigurasi via Supabase Management API
 
 window.APP_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: ""
+  SUPABASE_URL: "https://ejtdkjkktpgbshsmmfwf.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqdGRramtrdHBnYnNoc21tZndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MTkyMTMsImV4cCI6MjEwNzQ5NTIxM30.DyoFmptCuJKBkQuoxWcA7QH01nYr7vmvtpS1V9h_Ndo"
 };
