@@ -496,6 +496,10 @@ header.top {
   border-radius: 99px;
   transition: width 0.3s ease;
 }
+.bar-fill.ok { background: var(--ok); }
+.bar-fill.warn { background: var(--warn); }
+.bar-fill.over { background: var(--over); }
+.bar-fill.budget { background: var(--budget); }
 
 /* Trend Chart */
 .legend {
@@ -811,7 +815,7 @@ input:focus, select:focus, textarea:focus {
   display: none;
 }
 
-/* Floating Action Button */
+/* Floating Action Button (disabled — replaced by dashboard "Catat Transaksi" button) */
 .fab {
   position: fixed;
   right: 20px;
@@ -826,10 +830,16 @@ input:focus, select:focus, textarea:focus {
   font-weight: 750;
   font-size: 0.95rem;
   box-shadow: var(--shadow-glow), 0 4px 16px rgba(0,0,0,0.15);
-  display: flex;
+  display: none;
   align-items: center;
   gap: 8px;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
+}
+.catat-dash-btn {
+  margin-bottom: 14px;
+  min-height: 52px;
+  font-size: 1rem;
+  font-weight: 750;
 }
 .fab:hover { transform: translateY(-2px) scale(1.02); }
 .fab:active { transform: translateY(0) scale(0.98); }
@@ -1107,6 +1117,7 @@ input:focus, select:focus, textarea:focus {
     font-size: 0.95rem;
   }
   .fab { display: none !important; }
+  .catat-dash-btn { display: none; }
   .toast-wrap { top: 24px; bottom: auto; }
   .modal-back { align-items: center; }
   .sheet { border-radius: 24px; }
@@ -1429,8 +1440,8 @@ const I18N = {
     allowance_amount: "Nominal per hari (Rp)",
     goal_wish: "Wishlist",
     goal_debt: "Utang / Bayar",
-    goal_add_wish: "+ Tambah Wishlist",
-    goal_add_debt: "+ Tambah Utang",
+    goal_add_wish: "Tambah Wishlist",
+    goal_add_debt: "Tambah Utang",
     goal_name_ph: "Nama target (mis. Baju Jersey)",
     goal_amount_ph: "Jumlah (Rp)",
     goal_due: "Tenggat (opsional)",
@@ -1579,8 +1590,8 @@ const I18N = {
     allowance_amount: "Amount per day (Rp)",
     goal_wish: "Wishlist",
     goal_debt: "Debts / Pay",
-    goal_add_wish: "+ Add Wish",
-    goal_add_debt: "+ Add Debt",
+    goal_add_wish: "Add Wish",
+    goal_add_debt: "Add Debt",
     goal_name_ph: "Goal name (e.g. Jersey)",
     goal_amount_ph: "Amount (Rp)",
     goal_due: "Due (optional)",
@@ -2357,6 +2368,13 @@ function renderDashboard() {
   const activeCount = activeGoals("wish").length + activeGoals("debt").length;
 
   main.append(monthNavEl(key));
+
+  const catatBtn = el("button", {
+    type: "button",
+    class: "btn btn-primary full-width catat-dash-btn",
+    onclick: () => openTxForm(),
+  }, [icon("plus", 18), el("span", { text: t("btn_catat_tx") })]);
+  main.append(catatBtn);
 
   const layout = el("div", { class: "dash-layout" });
   const colLeft = el("div", { class: "dash-col" });
