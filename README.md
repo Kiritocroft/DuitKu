@@ -1,19 +1,20 @@
-# Duitku — Student Budget Tracker
+# Duitku — Student Cash Balance & Finance Tracker
 
-A static, zero-build personal budget and expense tracker designed for college students. Data syncs in real time between your Android phone and laptop via Supabase.
+A static, zero-build personal finance tracker designed for college students. Track your **cash balance (saldo)**, claim a **daily allowance**, save toward a **wishlist**, and manage **debts** — all synced in real time between your phone and laptop via Supabase.
 
 ---
 
 ## Key Features
 
+- **Balance-First Model**: The dashboard shows your total cash balance (`saldo = pemasukan − pengeluaran`), not a monthly budget. Log income once (e.g. 131k) and it becomes your balance; each expense reduces it.
+- **Daily Allowance**: Set a daily amount (default Rp 20.000). One tap on **"Klaim Uang Saku Hari Ini"** adds it to your balance — perfect for students who get a fixed allowance each campus day.
+- **Wishlist & Debt Goals**: Add a target (e.g. "Baju Jersey — 175k"). A progress bar shows how close your balance is. When your saldo reaches the target, tap **"Realisasikan"** (or **"Bayar Utang"**) to pay it — your balance drops accordingly and the goal is marked done.
 - **Dual Mode (Local & Cloud)**: Automatically stores data in `localStorage` when unconfigured or offline; seamlessly upgrades to cloud storage when Supabase credentials are provided in `config.js`.
-- **Real-Time Cross-Device Sync**: Transactions entered on your mobile phone appear immediately on your laptop without refreshing the page.
-- **Bilingual Interface**: Seamless toggle between **Bahasa Indonesia** and **English** with localized labels, insights, dates, and currency formatting.
-- **Quick Logging**: Fast "+ Log" modal with automatic thousand separators, numeric keypad focus, and quick-repeat chips for your 5 most frequent transactions.
-- **Monthly Budgets**: Category-based budget limits with responsive color-coded progress bars (green <80%, amber 80–100%, red >100%) and explicit status labels ("On Track", "Almost Gone", "Over Budget").
-- **Dashboard & Smart Insights**: At-a-glance income, expense, net balance, remaining daily allowance, 6-month SVG trend bar chart, and automated financial insights.
-- **CSV & JSON Import/Export**: Strict RFC 4180 compliant CSV parser with delimiter auto-detection, column mapping, duplicate detection, and full JSON backup/restore.
-- **PWA Ready**: Add to Home Screen on Android Chrome to run as a native-like standalone app with custom icons and theme colors.
+- **Reliable Local-First Sync**: Every edit is written locally first and queued to Supabase in the background — no manual refresh, no lost data, works offline and catches up on reconnect.
+- **Bilingual Interface**: Seamless toggle between **Bahasa Indonesia** and **English**.
+- **Quick Logging**: Fast "+ Catat" modal with automatic thousand separators, numeric keypad focus, and quick-repeat chips.
+- **CSV & JSON Import/Export**: RFC 4180 compliant CSV parser with delimiter auto-detection, column mapping, duplicate detection, and full JSON backup/restore.
+- **PWA + Offline**: Installable to the home screen (service worker + manifest + icons); the app shell is cached and loads offline.
 
 ---
 
@@ -23,11 +24,14 @@ A static, zero-build personal budget and expense tracker designed for college st
 1. Go to [supabase.com](https://supabase.com) and create a free account.
 2. Click **New Project**, name it (e.g., `duitku`), choose a region close to you (e.g., `Singapore / ap-southeast-1`), set a strong database password, and click **Create new project**.
 
-### 2. Execute Database Schema (`schema.sql`)
+### 2. Execute Database Schema (`schema.sql` then `migration_v4.sql`)
 1. In the Supabase dashboard sidebar, navigate to **SQL Editor**.
 2. Click **New query**, then copy the entire content of `schema.sql`.
-3. Paste into the editor and click **Run** (or press Ctrl+Enter).
-4. Verify you receive `Success. No rows returned`. This creates the tables (`categories`, `transactions`, `budgets`), timestamp triggers, indexes, Row Level Security (RLS) policies, and enables the Realtime publication.
+3. Paste into the editor and click **Run**. This creates the core tables (`categories`, `transactions`, `budgets`), timestamp triggers, indexes, Row Level Security (RLS) policies, and enables the Realtime publication.
+4. Run `migration_v4.sql` the same way. This adds the balance-based tables:
+   - `goals` — wishlist & debts (`kind`: `wish`/`debt`, `status`: `active`/`done`, `amount`, `paid`, `due`, `tx_id`).
+   - `app_settings` — per-user daily allowance config (amount, enabled, last claim date).
+   - `transactions.source` — marker column (`''`, `allowance`, or `goal`).
 
 ### 3. Configure Authentication
 1. Go to **Authentication** > **Providers** > **Email**.

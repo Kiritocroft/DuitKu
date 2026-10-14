@@ -3,11 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Duitku — Budget Tracker Mahasiswa</title>
+<title>Duitku — Catatan Saldo & Uang Saku</title>
 <meta name="theme-color" content="#10b981">
-<meta name="description" content="Aplikasi pencatat keuangan dan budget bulanan simpel untuk mahasiswa.">
+<meta name="description" content="Catat saldo, uang saku harian, wishlist & utang untuk mahasiswa.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Duitku">
 <meta name="color-scheme" content="light dark">
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" integrity="sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug" crossorigin="anonymous"></script>
@@ -1134,9 +1139,9 @@ input:focus, select:focus, textarea:focus {
       <span class="nav-icon" id="navIcon-transaksi"></span>
       <span>Transaksi</span>
     </button>
-    <button type="button" data-screen="budget" aria-label="Budget">
-      <span class="nav-icon" id="navIcon-budget"></span>
-      <span>Budget</span>
+    <button type="button" data-screen="goals" aria-label="Target">
+      <span class="nav-icon" id="navIcon-goals"></span>
+      <span>Target</span>
     </button>
     <button type="button" data-screen="lainnya" aria-label="Lainnya">
       <span class="nav-icon" id="navIcon-lainnya"></span>
@@ -1220,6 +1225,8 @@ const state = {
   categories: [],
   transactions: [],
   budgets: [],
+  goals: [],
+  allowance: { amount: 20000, enabled: true, lastClaim: "" },
   screen: "dashboard",
   lang: (function() { try { return localStorage.getItem("duitku.lang") || "id"; } catch { return "id"; } })(),
   month: monthKey(new Date()),
@@ -1231,6 +1238,7 @@ const state = {
   sb: null,
   channel: null,
   writing: new Set(),
+  deferredPrompt: null,
 };
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1390,7 +1398,7 @@ const I18N = {
     btn_sample_data: "Muat Data Contoh",
     btn_wipe_data: "Hapus Semua Data",
     auth_title: "Selamat Datang di Duitku",
-    auth_sub: "Catat pengeluaran & uang saku mahasiswa tanpa ribet.",
+    auth_sub: "Catat saldo tunai, uang saku harian, wishlist & utang dalam satu aplikasi.",
     auth_tab_in: "Masuk",
     auth_tab_up: "Daftar",
     field_email: "Email",
@@ -1405,7 +1413,53 @@ const I18N = {
     insight_save: "Dengan kecepatan sekarang (Rp {daily}/hari), bulan ini kamu akan lebih hemat sekitar {gap} dari budget.",
     insight_projected_over: "Dengan kecepatan sekarang (Rp {daily}/hari), bulan ini kamu akan melebihi budget sekitar {gap}.",
     insight_top: "Kategori terbesar bulan ini: {name} ({pct}% dari total pengeluaran).",
-    insight_clean: "Belum ada cukup data pengeluaran untuk insight bulan ini."
+    insight_clean: "Belum ada cukup data pengeluaran untuk insight bulan ini.",
+    nav_goals: "Target",
+    saldo: "Saldo",
+    saldo_hero: "Saldo Tunai Kamu",
+    saldo_empty: "Belum ada saldo. Catat pemasukan dulu (mis. uang saku / saldo awal).",
+    kpi_allowance: "Uang Saku",
+    allowance_title: "Uang Saku Harian",
+    allowance_desc: "Klaim uang saku {amount}/hari buat masuk kampus.",
+    allowance_claim: "Klaim Uang Saku Hari Ini",
+    allowance_claimed: "Uang saku hari ini sudah diklaim ✅",
+    allowance_off: "Uang saku harian nonaktif",
+    allowance_setting: "Uang Saku Harian",
+    allowance_enabled: "Aktifkan uang saku harian",
+    allowance_amount: "Nominal per hari (Rp)",
+    goal_wish: "Wishlist",
+    goal_debt: "Utang / Bayar",
+    goal_add_wish: "+ Tambah Wishlist",
+    goal_add_debt: "+ Tambah Utang",
+    goal_name_ph: "Nama target (mis. Baju Jersey)",
+    goal_amount_ph: "Jumlah (Rp)",
+    goal_due: "Tenggat (opsional)",
+    goal_note_ph: "Catatan (opsional)",
+    goal_reached: "Saldo cukup, bisa direalisasikan!",
+    goal_approve: "Realisasikan",
+    goal_approve_wish: "Realisasikan Wishlist",
+    goal_approve_debt: "Bayar Utang",
+    goal_delete: "Hapus",
+    goal_done: "Selesai",
+    goal_progress: "Terkumpul {progress} dari {target}",
+    goal_empty_wish: "Belum ada wishlist. Tambahkan barang yang mau kamu beli!",
+    goal_empty_debt: "Tidak ada utang. Mantap! 💪",
+    goal_confirm_approve: "Realisasikan \"{name}\" sebesar {amount}? Saldo kamu akan berkurang {amount}.",
+    goal_add_title: "Tambah Target",
+    goal_add_name: "Nama",
+    goal_add_amount: "Jumlah (Rp)",
+    goal_add_kind: "Jenis",
+    goal_add_btn: "Simpan Target",
+    goal_wish_badge: "Wishlist",
+    goal_debt_badge: "Utang",
+    pwa_install: "Install ke Homescreen",
+    pwa_hint: "Simpan Duitku ke homescreen HP biar kebuka seperti aplikasi.",
+    pwa_installed: "Sudah terpasang di homescreen 🎉",
+    pwa_not_supported: "Browser ini belum dukung install otomatis. Buka menu browser → \"Tambahkan ke layar utama\".",
+    title_dashboard: "Dashboard",
+    title_transaksi: "Transaksi",
+    title_goals: "Target & Utang",
+    title_settings: "Pengaturan"
   },
   en: {
     nav_dashboard: "Dashboard",
@@ -1494,7 +1548,7 @@ const I18N = {
     btn_sample_data: "Load Sample Data",
     btn_wipe_data: "Wipe All Data",
     auth_title: "Welcome to Duitku",
-    auth_sub: "Track student expenses and pocket money with ease.",
+    auth_sub: "Track cash balance, daily allowance, wishlist & debts in one app.",
     auth_tab_in: "Sign In",
     auth_tab_up: "Sign Up",
     field_email: "Email",
@@ -1509,7 +1563,53 @@ const I18N = {
     insight_save: "At this pace (Rp {daily}/day), you will save around {gap} from your budget this month.",
     insight_projected_over: "At this pace (Rp {daily}/day), you will exceed your budget by around {gap}.",
     insight_top: "Top category this month: {name} ({pct}% of total spending).",
-    insight_clean: "Not enough spending data for insights this month."
+    insight_clean: "Not enough spending data for insights this month.",
+    nav_goals: "Goals",
+    saldo: "Balance",
+    saldo_hero: "Your Cash Balance",
+    saldo_empty: "No balance yet. Log some income first (e.g. allowance / starting balance).",
+    kpi_allowance: "Allowance",
+    allowance_title: "Daily Allowance",
+    allowance_desc: "Claim {amount}/day for going to campus.",
+    allowance_claim: "Claim Today's Allowance",
+    allowance_claimed: "Today's allowance already claimed ✅",
+    allowance_off: "Daily allowance is off",
+    allowance_setting: "Daily Allowance",
+    allowance_enabled: "Enable daily allowance",
+    allowance_amount: "Amount per day (Rp)",
+    goal_wish: "Wishlist",
+    goal_debt: "Debts / Pay",
+    goal_add_wish: "+ Add Wish",
+    goal_add_debt: "+ Add Debt",
+    goal_name_ph: "Goal name (e.g. Jersey)",
+    goal_amount_ph: "Amount (Rp)",
+    goal_due: "Due (optional)",
+    goal_note_ph: "Note (optional)",
+    goal_reached: "Balance enough — you can realize it!",
+    goal_approve: "Realize",
+    goal_approve_wish: "Realize Wish",
+    goal_approve_debt: "Pay Debt",
+    goal_delete: "Delete",
+    goal_done: "Done",
+    goal_progress: "Saved {progress} of {target}",
+    goal_empty_wish: "No wishlist yet. Add something you want to buy!",
+    goal_empty_debt: "No debts. Nice! 💪",
+    goal_confirm_approve: "Realize \"{name}\" for {amount}? Your balance will drop by {amount}.",
+    goal_add_title: "Add Goal",
+    goal_add_name: "Name",
+    goal_add_amount: "Amount (Rp)",
+    goal_add_kind: "Type",
+    goal_add_btn: "Save Goal",
+    goal_wish_badge: "Wishlist",
+    goal_debt_badge: "Debt",
+    pwa_install: "Install to Home Screen",
+    pwa_hint: "Add Duitku to your phone's home screen so it opens like an app.",
+    pwa_installed: "Installed to home screen 🎉",
+    pwa_not_supported: "This browser doesn't support auto-install. Open the browser menu → \"Add to Home Screen\".",
+    title_dashboard: "Dashboard",
+    title_transaksi: "Transactions",
+    title_goals: "Goals & Debts",
+    title_settings: "Settings"
   }
 };
 
@@ -1558,7 +1658,7 @@ function updateNavLabels() {
   const map = {
     dashboard: t("nav_dashboard"),
     transaksi: t("nav_transaksi"),
-    budget: t("nav_budget"),
+    goals: t("nav_goals"),
     lainnya: t("nav_lainnya"),
   };
   document.querySelectorAll("#mainNav button[data-screen]").forEach(btn => {
@@ -1667,11 +1767,17 @@ const STORAGE_PREFIX = "duitku.";
 function loadLocal() {
   try {
     const c = localStorage.getItem(STORAGE_PREFIX + "categories");
-    const t = localStorage.getItem(STORAGE_PREFIX + "transactions");
+    const txs = localStorage.getItem(STORAGE_PREFIX + "transactions");
     const b = localStorage.getItem(STORAGE_PREFIX + "budgets");
+    const g = localStorage.getItem(STORAGE_PREFIX + "goals");
+    const a = localStorage.getItem(STORAGE_PREFIX + "allowance");
+    const p = localStorage.getItem(STORAGE_PREFIX + "pending");
     state.categories = c ? JSON.parse(c) : [];
-    state.transactions = t ? JSON.parse(t) : [];
+    state.transactions = txs ? JSON.parse(txs) : [];
     state.budgets = b ? JSON.parse(b) : [];
+    state.goals = g ? JSON.parse(g) : [];
+    state.allowance = a ? Object.assign({ amount: 20000, enabled: true, lastClaim: "" }, JSON.parse(a)) : { amount: 20000, enabled: true, lastClaim: "" };
+    state.pending = p ? JSON.parse(p) : [];
     seedIfEmpty();
   } catch (err) {
     seedIfEmpty();
@@ -1682,6 +1788,9 @@ function saveLocal() {
     localStorage.setItem(STORAGE_PREFIX + "categories", JSON.stringify(state.categories));
     localStorage.setItem(STORAGE_PREFIX + "transactions", JSON.stringify(state.transactions));
     localStorage.setItem(STORAGE_PREFIX + "budgets", JSON.stringify(state.budgets));
+    localStorage.setItem(STORAGE_PREFIX + "goals", JSON.stringify(state.goals));
+    localStorage.setItem(STORAGE_PREFIX + "allowance", JSON.stringify(state.allowance));
+    localStorage.setItem(STORAGE_PREFIX + "pending", JSON.stringify(state.pending));
   } catch (err) {}
 }
 
@@ -1719,11 +1828,9 @@ async function initBackend() {
     return;
   }
   state.mode = "cloud";
-  renderAuth();
-
   try {
     state.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true },
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "duitku.auth" },
     });
     const { data: { session } } = await state.sb.auth.getSession();
     if (session?.user) {
@@ -1733,15 +1840,31 @@ async function initBackend() {
       renderAuth();
     }
     state.sb.auth.onAuthStateChange(async (event, sess) => {
-      if (sess?.user) {
-        state.user = sess.user;
-        await bootCloud();
-      } else {
+      if (event === "SIGNED_OUT") {
         state.user = null;
         teardownRealtime();
         renderAuth();
+        return;
+      }
+      if (sess?.user) {
+        state.user = sess.user;
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "USER_UPDATED") {
+          await bootCloud();
+        }
       }
     });
+    // keep session alive: nudge token refresh even when tab is idle in background
+    setInterval(async () => {
+      if (!state.user || !state.sb) return;
+      try {
+        const { data } = await state.sb.auth.getSession();
+        if (!data.session && state.user) {
+          state.user = null;
+          teardownRealtime();
+          renderAuth();
+        }
+      } catch {}
+    }, 5 * 60 * 1000);
   } catch (err) {
     enterLocal(t("banner_cloud_fail"));
   }
@@ -1813,16 +1936,28 @@ async function pageAll(table, select = "*", orderCol = "created_at", ascending =
 
 async function loadAllCloud() {
   try {
-    const [cats, txs, buds] = await Promise.all([
+    const [cats, txs, buds, goals, settingsRows] = await Promise.all([
       pageAll("categories", "*", "sort_order", true),
       pageAll("transactions", "*", "date", false),
       pageAll("budgets", "*", "month", true),
+      pageAll("goals", "*", "created_at", false),
+      state.sb.from("app_settings").select("*").eq("user_id", state.user.id).maybeSingle(),
     ]);
     state.categories = cats;
     state.transactions = txs;
     state.budgets = buds;
+    state.goals = goals;
+    if (settingsRows && !settingsRows.error && settingsRows.data && settingsRows.data.data) {
+      const d = settingsRows.data.data || {};
+      state.allowance = {
+        amount: Number(d.daily_allowance_amount) || 20000,
+        enabled: d.daily_allowance_enabled !== false,
+        lastClaim: d.last_claim_date || "",
+      };
+    }
     if (!cats.length) await pushSeedCategories();
     saveLocal();
+    flushQueue();
   } catch (err) {
     toast("Gagal memuat dari cloud: " + (err.message || err));
   }
@@ -1855,12 +1990,12 @@ async function uploadAllLocal() {
   setSync(t("sync_saving"), "saving");
   try {
     const c = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "categories") || "[]");
-    const t = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "transactions") || "[]");
+    const localTxs = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "transactions") || "[]");
     const b = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "budgets") || "[]");
     if (c.length) {
       await state.sb.from("categories").upsert(c.map(x => ({ ...x, user_id: state.user.id })), { onConflict: "id" });
     }
-    if (t.length) await insertChunked("transactions", t.map(x => ({ ...x, user_id: state.user.id })));
+    if (localTxs.length) await insertChunked("transactions", localTxs.map(x => ({ ...x, user_id: state.user.id })));
     if (b.length) {
       await state.sb.from("budgets").upsert(b.map(x => ({ ...x, user_id: state.user.id })), { onConflict: "user_id,month,category_id" });
     }
@@ -1891,6 +2026,8 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, p => applyChange("transactions", p))
     .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, p => applyChange("categories", p))
     .on("postgres_changes", { event: "*", schema: "public", table: "budgets" }, p => applyChange("budgets", p))
+    .on("postgres_changes", { event: "*", schema: "public", table: "goals" }, p => applyChange("goals", p))
+    .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, p => applyChange("app_settings", p))
     .subscribe();
 }
 
@@ -1903,6 +2040,19 @@ function teardownRealtime() {
 
 function applyChange(table, payload) {
   const { eventType, new: n, old: o } = payload;
+
+  if (table === "app_settings") {
+    const d = (n && n.data) || {};
+    state.allowance = {
+      amount: Number(d.daily_allowance_amount) || 20000,
+      enabled: d.daily_allowance_enabled !== false,
+      lastClaim: d.last_claim_date || "",
+    };
+    saveLocal();
+    render();
+    return;
+  }
+
   const target = state[table];
   if (!target) return;
   const key = rowKey(table, n || o);
@@ -1934,7 +2084,7 @@ function sameRow(table, a, b) {
   return a.id === b.id;
 }
 
-async function cloudWrite(table, op, row, match) {
+async function cloudWrite(table, op, row /* was t */, match) {
   if (state.mode !== "cloud") return;
   const key = rowKey(table, row || match);
   state.writing.add(key);
@@ -1942,20 +2092,22 @@ async function cloudWrite(table, op, row, match) {
   try {
     if (!state.online) {
       state.pending.push({ table, op, row, match });
+      saveLocal();
       setSync(t("sync_offline"), "offline");
       return;
     }
-    const t = state.sb.from(table);
+    const q = state.sb.from(table);
     let res;
-    if (op === "insert") res = await t.insert({ ...strip(row), user_id: state.user.id });
-    else if (op === "update") res = await t.update(strip(row)).match(match);
-    else if (op === "upsert") res = await t.upsert({ ...strip(row), user_id: state.user.id });
-    else if (op === "delete") res = await t.delete().match(match);
+    if (op === "insert") res = await q.insert({ ...strip(row), user_id: state.user.id });
+    else if (op === "update") res = await q.update(strip(row)).match(match);
+    else if (op === "upsert") res = await q.upsert({ ...strip(row), user_id: state.user.id });
+    else if (op === "delete") res = await q.delete().match(match);
     if (res?.error) throw res.error;
     setSync(t("sync_online"), "online");
   } catch (err) {
     setSync(t("sync_offline"), "offline");
     state.pending.push({ table, op, row, match });
+    saveLocal();
     throw err;
   } finally {
     setTimeout(() => state.writing.delete(key), 800);
@@ -1988,11 +2140,13 @@ async function flushQueue() {
   setSync(t("sync_saving"), "saving");
   const q = [...state.pending];
   state.pending = [];
+  saveLocal();
   for (const item of q) {
     try {
       await cloudWrite(item.table, item.op, item.row, item.match);
     } catch {
       state.pending.push(item);
+      saveLocal();
       break;
     }
   }
@@ -2018,6 +2172,26 @@ function budgetsFor(key) {
   return state.budgets.filter(b => b.month === key);
 }
 
+/* ---------- balance-based model ---------- */
+function totalIncome() {
+  return state.transactions.filter(t => t.type === "income").reduce((s, t) => s + Number(t.amount || 0), 0);
+}
+function totalExpense() {
+  return state.transactions.filter(t => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
+}
+function balance() {
+  return totalIncome() - totalExpense();
+}
+function allowanceClaimedToday() {
+  return state.allowance.lastClaim === localDate();
+}
+function activeGoals(kind) {
+  return state.goals.filter(g => g.kind === kind && g.status === "active");
+}
+function doneGoals(kind) {
+  return state.goals.filter(g => g.kind === kind && g.status === "done");
+}
+
 /* ---------- navigation & rendering ---------- */
 function render() {
   main.classList.remove("auth-mode");
@@ -2037,7 +2211,7 @@ function render() {
   }
   if (state.screen === "dashboard") renderDashboard();
   else if (state.screen === "transaksi") renderTransaksi();
-  else if (state.screen === "budget") renderBudget();
+  else if (state.screen === "goals") renderGoals();
   else renderSettings();
 
   const syncEl = $("#syncStatus");
@@ -2070,15 +2244,117 @@ function monthNavEl(key) {
 }
 
 /* ---------- dashboard ---------- */
+async function claimAllowance() {
+  if (!state.allowance.enabled) return toast(t("allowance_off"));
+  if (allowanceClaimedToday()) return toast(t("allowance_claimed"));
+  const amount = Number(state.allowance.amount) || 0;
+  if (amount <= 0) return;
+  let cat = state.categories.find(c => c.type === "income" && !c.archived && (c.name === "Uang Saku" || c.name === "Allowance"));
+  if (!cat) {
+    cat = { id: uid(), name: "Uang Saku", type: "income", archived: false, sort_order: state.categories.length };
+    state.categories.push(cat);
+    try { await cloudWrite("categories", "insert", cat); } catch {}
+  }
+  const row = { id: uid(), date: localDate(), type: "income", amount, category_id: cat.id, note: t("allowance_title"), source: "allowance", created_at: nowIso(), updated_at: nowIso() };
+  state.transactions.push(row);
+  state.allowance.lastClaim = localDate();
+  saveLocal();
+  render();
+  try { await cloudWrite("transactions", "insert", row); } catch {}
+  await saveAllowanceSetting();
+  toast(t("toast_tx_logged", { name: catNameById(cat.id), amount: rp(amount) }));
+}
+
+async function saveAllowanceSetting() {
+  if (state.mode !== "cloud" || !state.user || !state.sb) return;
+  const data = { daily_allowance_amount: state.allowance.amount, daily_allowance_enabled: state.allowance.enabled, last_claim_date: state.allowance.lastClaim };
+  try { await state.sb.from("app_settings").upsert({ user_id: state.user.id, data }); } catch {}
+}
+
+function goalExpenseCat() {
+  let cat = state.categories.find(c => c.type === "expense" && !c.archived && c.name === "Lainnya");
+  if (!cat) cat = state.categories.find(c => c.type === "expense" && !c.archived);
+  if (!cat) {
+    cat = { id: uid(), name: "Lainnya", type: "expense", archived: false, sort_order: state.categories.length };
+    state.categories.push(cat);
+  }
+  return cat;
+}
+
+function openGoalForm(kind, existing) {
+  openModal(existing ? (state.lang === "en" ? "Edit Goal" : "Ubah Target") : t("goal_add_title"), (body, close) => {
+    const name = el("input", { type: "text", value: existing?.name || "", placeholder: t("goal_name_ph"), maxlength: "80", required: "true" });
+    const amount = el("input", { type: "text", inputmode: "numeric", value: existing?.amount ? formatThousands(String(existing.amount)) : "", placeholder: t("goal_amount_ph") });
+    amount.addEventListener("input", () => { amount.value = formatThousands(amount.value.replace(/\D/g, "")); });
+    const due = el("input", { type: "date", value: existing?.due || "" });
+    const note = el("input", { type: "text", value: existing?.note || "", placeholder: t("goal_note_ph"), maxlength: "200" });
+    body.append(
+      field(t("goal_add_name"), name),
+      field(t("goal_add_amount"), amount),
+      field(t("goal_due"), due),
+      field(t("goal_note_ph"), note),
+      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: t("goal_add_btn"), onclick: async () => {
+        const val = Number(String(amount.value).replace(/\D/g, ""));
+        if (!name.value.trim()) return toast(state.lang === "en" ? "Name is required." : "Nama wajib diisi.");
+        if (!val || val <= 0) return toast(state.lang === "en" ? "Amount must be greater than 0." : "Jumlah harus lebih dari 0.");
+        if (existing) {
+          existing.name = name.value.trim();
+          existing.amount = val;
+          existing.due = due.value || null;
+          existing.note = note.value.trim();
+          existing.updated_at = nowIso();
+          saveLocal(); close(); render();
+          try { await cloudWrite("goals", "update", { name: existing.name, amount: existing.amount, due: existing.due, note: existing.note }, { id: existing.id }); } catch (e) { toast("Gagal memperbarui target: " + (e.message || e)); }
+        } else {
+          const row = { id: uid(), name: name.value.trim(), amount: val, kind, status: "active", paid: 0, due: due.value || null, note: note.value.trim(), created_at: nowIso(), updated_at: nowIso() };
+          state.goals.push(row);
+          saveLocal(); close(); render();
+          try { await cloudWrite("goals", "insert", row); } catch (e) { rollbackGoal(row.id); toast("Gagal menyimpan target: " + (e.message || e)); }
+        }
+      }})
+    );
+    setTimeout(() => name.focus(), 60);
+  });
+}
+function rollbackGoal(id) {
+  const i = state.goals.findIndex(g => g.id === id);
+  if (i >= 0) state.goals.splice(i, 1);
+  saveLocal(); render();
+}
+async function approveGoal(g) {
+  const isEn = state.lang === "en";
+  if (balance() < g.amount) return toast(isEn ? "Balance is not enough yet." : "Saldo belum cukup.");
+  if (!confirm(t("goal_confirm_approve", { name: g.name, amount: rp(g.amount) }))) return;
+  const cat = goalExpenseCat();
+  const row = { id: uid(), date: localDate(), type: "expense", amount: Number(g.amount), category_id: cat.id, note: g.name, source: "goal", created_at: nowIso(), updated_at: nowIso() };
+  state.transactions.push(row);
+  g.status = "done";
+  g.paid = Number(g.amount);
+  g.tx_id = row.id;
+  g.updated_at = nowIso();
+  saveLocal();
+  render();
+  try {
+    await cloudWrite("transactions", "insert", row);
+    await cloudWrite("goals", "update", { status: "done", paid: g.paid, tx_id: g.tx_id }, { id: g.id });
+    toast(isEn ? "Goal realized!" : "Target terealisasi!");
+  } catch (e) { toast("Gagal sinkron target: " + (e.message || e)); }
+}
+async function deleteGoal(g) {
+  const i = state.goals.findIndex(x => x.id === g.id);
+  if (i >= 0) state.goals.splice(i, 1);
+  saveLocal(); render();
+  try { await cloudWrite("goals", "delete", null, { id: g.id }); } catch {}
+}
+
 function renderDashboard() {
   const key = state.month;
   const list = txInMonth(key);
   const income = sumType(list, "income");
   const expense = sumType(list, "expense");
-  const budgets = budgetsFor(key);
-  const budgetTotal = budgets.reduce((s, b) => s + Number(b.amount), 0);
+  const bal = balance();
   const spentMap = spentByCat(key);
-  const remain = budgets.length ? budgetTotal - expense : null;
+  const activeCount = activeGoals("wish").length + activeGoals("debt").length;
 
   main.append(monthNavEl(key));
 
@@ -2086,48 +2362,41 @@ function renderDashboard() {
   const colLeft = el("div", { class: "dash-col" });
   const colRight = el("div", { class: "dash-col" });
 
-  if (budgets.length && remain != null) {
-    const left = daysLeftInMonth(key);
-    const over = remain < 0;
-    const hero = el("div", { class: "hero-card" + (over ? " over-budget" : "") });
-    const top = el("div", { class: "hero-top" });
-    top.append(
-      el("div", { class: "hero-badge" }, [
-        icon(over ? "arrowUpRight" : "wallet", 14),
-        el("span", { text: over ? t("hero_over_budget") : t("hero_budget_left") })
-      ]),
-      left > 0 ? el("span", { class: "hero-days", text: t("hero_days_left", { days: left }) }) : null
-    );
-    hero.append(top);
-    hero.append(el("div", { class: "hero-amount", text: (over ? "-" : "") + rp(Math.abs(remain)) }));
-    let pillText = "";
-    if (over) {
-      pillText = t("hero_over_pill", { amount: rp(Math.abs(remain)) });
-    } else if (left > 0) {
-      pillText = t("hero_daily_pill", { amount: rp(Math.floor(remain / left)) });
+  const hero = el("div", { class: "hero-card" });
+  const htop = el("div", { class: "hero-top" });
+  htop.append(el("div", { class: "hero-badge" }, [icon("wallet", 14), el("span", { text: t("saldo_hero") })]));
+  hero.append(htop);
+  hero.append(el("div", { class: "hero-amount", text: rp(bal) }));
+  hero.append(el("div", { class: "hero-pill" }, [icon("lightning", 14), el("span", { text: t("saldo") + " = " + t("kpi_income") + " − " + t("kpi_expense") })]));
+  colLeft.append(hero);
+
+  const allowCard = el("div", { class: "card" });
+  allowCard.append(el("h2", { class: "card-title", text: t("allowance_title") }));
+  if (state.allowance.enabled) {
+    allowCard.append(el("p", { class: "muted small", style: "margin-bottom:12px;", text: t("allowance_desc", { amount: rp(state.allowance.amount) }) }));
+    if (allowanceClaimedToday()) {
+      allowCard.append(el("span", { class: "tag ok", text: t("allowance_claimed") }));
     } else {
-      pillText = t("hero_remain_pill", { amount: rp(remain) });
+      allowCard.append(el("button", { type: "button", class: "btn btn-primary full-width", onclick: claimAllowance }, [icon("plus", 14), el("span", { text: t("allowance_claim") })]));
     }
-    hero.append(el("div", { class: "hero-pill" }, [
-      icon(over ? "bulb" : "lightning", 14),
-      el("span", { text: pillText })
-    ]));
-    colLeft.append(hero);
+  } else {
+    allowCard.append(el("p", { class: "muted small", text: t("allowance_off") }));
   }
+  colLeft.append(allowCard);
 
   const stats = el("div", { class: "stats-grid" });
   const cards = [
     { label: t("kpi_income"), val: rp(income), icon: "arrowDownLeft", cls: "income" },
     { label: t("kpi_expense"), val: rp(expense), icon: "arrowUpRight", cls: "expense" },
-    { label: t("kpi_balance"), val: (income - expense >= 0 ? "+" : "-") + rp(Math.abs(income - expense)), icon: "scale", cls: "balance" },
-    { label: t("kpi_budget_remain"), val: budgets.length ? (budgetTotal - expense >= 0 ? "" : "-") + rp(Math.abs(budgetTotal - expense)) : t("not_set"), icon: "target", cls: "budget" }
+    { label: t("saldo"), val: rp(bal), icon: "wallet", cls: "balance" },
+    { label: t("nav_goals"), val: activeCount + " " + (state.lang === "en" ? "active" : "aktif"), icon: "target", cls: "budget" }
   ];
   for (const c of cards) {
     const card = el("div", { class: "stat-card" });
-    const top = el("div", { class: "stat-top" });
-    top.append(el("span", { class: "stat-label", text: c.label }));
-    top.append(el("span", { class: "stat-icon " + c.cls }, [icon(c.icon, 16)]));
-    card.append(top);
+    const stop = el("div", { class: "stat-top" });
+    stop.append(el("span", { class: "stat-label", text: c.label }));
+    stop.append(el("span", { class: "stat-icon " + c.cls }, [icon(c.icon, 16)]));
+    card.append(stop);
     card.append(el("div", { class: "stat-val " + (c.cls === "income" || c.cls === "expense" ? c.cls : ""), text: c.val }));
     stats.append(card);
   }
@@ -2148,11 +2417,11 @@ function renderDashboard() {
     for (const c of byCat) {
       const pct = expense ? Math.round(c.amount / expense * 100) : 0;
       const row = el("div", { class: "cat-bar-item" });
-      const top = el("div", { class: "cat-bar-header" });
+      const chead = el("div", { class: "cat-bar-header" });
       const nameWrap = el("div", { class: "cat-bar-name" });
       nameWrap.append(el("span", { text: c.name }), el("span", { class: "cat-bar-badge", text: pct + "%" }));
-      top.append(nameWrap, el("span", { class: "cat-bar-amount", text: rp(c.amount) }));
-      row.append(top);
+      chead.append(nameWrap, el("span", { class: "cat-bar-amount", text: rp(c.amount) }));
+      row.append(chead);
       const track = el("div", { class: "bar-track" });
       track.append(el("div", { class: "bar-fill", style: "width:" + Math.max(2, pct) + "%;background:var(--accent)" }));
       row.append(track);
@@ -2160,7 +2429,27 @@ function renderDashboard() {
     }
   }
   colRight.append(catCard);
-  colRight.append(insightsCard(key, income, expense, budgets, spentMap, remain));
+
+  const recent = [...state.transactions].sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.created_at || "").localeCompare(a.created_at || "")).slice(0, 5);
+  const recentCard = el("div", { class: "card" });
+  recentCard.append(el("h2", { class: "card-title", text: t("title_transaksi") }));
+  if (!recent.length) {
+    recentCard.append(el("p", { class: "muted small", text: t("empty_tx_empty") }));
+  } else {
+    for (const trow of recent) {
+      const row = el("div", { style: "display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);" });
+      const left = el("div", { style: "display:flex;align-items:center;gap:10px;min-width:0;" }, [
+        el("span", { class: "stat-icon " + (trow.type === "income" ? "income" : "expense"), style: "flex-shrink:0;" }, [icon(trow.type === "income" ? "arrowDownLeft" : "arrowUpRight", 16)]),
+        el("div", { style: "min-width:0;" }, [
+          el("div", { style: "font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;", text: catNameById(trow.category_id) }),
+          el("div", { class: "small muted", style: "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;", text: (trow.note || trow.date || "") })
+        ])
+      ]);
+      row.append(left, el("span", { class: "stat-val " + (trow.type === "income" ? "income" : "expense"), text: (trow.type === "income" ? "+" : "−") + rp(trow.amount) }));
+      recentCard.append(row);
+    }
+  }
+  colRight.append(recentCard);
 
   layout.append(colLeft, colRight);
   main.append(layout);
@@ -2644,113 +2933,82 @@ function field(label, control) {
   return el("label", { class: "field" }, [el("span", { text: label }), control]);
 }
 
-/* ---------- budget ---------- */
-function renderBudget() {
-  const key = state.month;
-  main.append(monthNavEl(key));
+/* ---------- goals (wishlist & debt) ---------- */
+function goalCard(g) {
+  const card = el("div", { class: "card goal-card" });
+  const head = el("div", { style: "display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;" });
+  head.append(
+    el("strong", { style: "font-weight:700;", text: g.name }),
+    el("span", { class: "tag " + (g.kind === "debt" ? "over" : "ok"), text: g.kind === "debt" ? t("goal_debt_badge") : t("goal_wish_badge") })
+  );
+  card.append(head);
 
-  const prev = budgetsFor(addMonths(key, -1));
-  if (!budgetsFor(key).length && prev.length) {
-    main.append(el("div", { class: "card budget-copy-card" }, [
-      el("div", { style: "display:flex;align-items:center;gap:10px;margin-bottom:8px;" }, [
-        icon("calendar", 18, "accent"),
-        el("strong", { text: t("budget_no_budget_title") })
-      ]),
-      el("p", { class: "muted small", style: "margin-bottom:12px;", text: t("budget_no_budget_sub") }),
-      el("button", { type: "button", class: "btn btn-primary", onclick: () => copyBudgets(key) }, [
-        icon("check", 14),
-        el("span", { text: t("btn_copy_budget") })
-      ]),
-    ]));
+  const bal = balance();
+  const target = Number(g.amount);
+  const progress = Math.max(0, Math.min(bal, target));
+  const pct = target > 0 ? Math.min(100, Math.round(bal / target * 100)) : 0;
+  const reached = bal >= target;
+
+  if (g.due) card.append(el("div", { class: "small muted", text: (state.lang === "en" ? "Due " : "Tenggat ") + g.due }));
+  card.append(el("div", { class: "muted small", style: "margin-bottom:8px;", text: t("goal_progress", { progress: rp(progress), target: rp(target) }) }));
+  const track = el("div", { class: "bar-track", style: "margin-bottom:10px;" });
+  track.append(el("div", { class: "bar-fill " + (g.status === "done" ? "ok" : reached ? "ok" : g.kind === "debt" ? "over" : "warn"), style: "width:" + Math.max(2, pct) + "%" }));
+  card.append(track);
+
+  if (g.status === "done") {
+    card.append(el("span", { class: "tag ok", text: t("goal_done") }));
+  } else {
+    const btnRow = el("div", { style: "display:flex;gap:8px;flex-wrap:wrap;" });
+    btnRow.append(
+      el("button", { type: "button", class: "btn btn-primary btn-sm", text: g.kind === "debt" ? t("goal_approve_debt") : t("goal_approve_wish"), onclick: () => approveGoal(g) }),
+      el("button", { type: "button", class: "btn btn-sm", "aria-label": state.lang === "en" ? "Edit" : "Ubah", onclick: () => openGoalForm(g.kind, g) }, [icon("edit", 14)]),
+      el("button", { type: "button", class: "btn btn-danger btn-sm", "aria-label": t("goal_delete"), onclick: () => deleteGoal(g) }, [icon("trash", 14)])
+    );
+    card.append(btnRow);
+    if (reached) card.append(el("div", { class: "small", style: "margin-top:8px;color:var(--ok);font-weight:600;", text: t("goal_reached") }));
   }
-  const spent = spentByCat(key);
-  const cats = activeCats("expense");
-  if (!cats.length) {
-    main.append(el("div", { class: "card empty-state" }, [
-      el("div", { class: "empty-icon", text: "🎯" }),
-      el("p", { class: "empty-title", text: t("empty_budget_title") }),
-      el("button", { type: "button", class: "btn btn-primary", text: t("btn_add_category"), onclick: () => editCategory(null) })
-    ]));
-    return;
-  }
-  for (const c of cats) {
-    const b = state.budgets.find(x => x.month === key && x.category_id === c.id);
-    const used = spent.get(c.id) || 0;
-    const card = el("div", { class: "card budget-item-card" });
-    const topRow = el("div", { class: "budget-top-row" });
-    topRow.append(el("strong", { class: "budget-cat-name", text: catName(c.name) }));
-
-    if (!b) {
-      topRow.append(el("span", { class: "tag muted-tag", text: t("tag_not_set") }));
-      card.append(topRow);
-      card.append(el("div", { class: "small muted", style: "margin:6px 0 10px;", text: t("meta_spent", { amount: rp(used) }) }));
-      const inputWrap = el("div", { style: "display:flex;gap:8px;" });
-      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Budget " + catName(c.name), placeholder: t("set_budget_ph") });
-      input.addEventListener("input", () => { input.value = formatThousands(input.value.replace(/\D/g, "")); });
-      const saveBtn = el("button", { type: "button", class: "btn btn-primary btn-sm", text: t("btn_save"), onclick: () => saveBudget(key, c.id, input.value) });
-      inputWrap.append(input, saveBtn);
-      card.append(inputWrap);
-    } else {
-      const remain = Number(b.amount) - used;
-      const ratio = b.amount > 0 ? used / b.amount : (used > 0 ? 2 : 0);
-      const cls = ratio > 1 ? "over" : ratio >= 0.8 ? "warn" : "ok";
-      const label = ratio > 1 ? t("tag_over") : ratio >= 0.8 ? t("tag_warn") : t("tag_ok");
-      topRow.append(el("span", { class: "tag " + cls, text: label }));
-      card.append(topRow);
-
-      const meta = el("div", { class: "budget-meta" }, [
-        el("span", { text: t("meta_budget", { amount: rp(b.amount) }) }),
-        el("span", { text: t("meta_spent", { amount: rp(used) }) }),
-        el("span", { class: "budget-remain " + cls, text: t("meta_remain", { amount: (remain < 0 ? "-" : "") + rp(Math.abs(remain)) }) })
-      ]);
-      const track = el("div", { class: "bar-track", style: "margin:10px 0" });
-      track.append(el("div", { class: "bar-fill " + cls, style: "width:" + Math.min(100, ratio * 100) + "%" }));
-      card.append(meta, track);
-
-      const editWrap = el("div", { class: "budget-inline-edit" });
-      const input = el("input", { type: "text", inputmode: "numeric", "aria-label": "Ubah budget " + catName(c.name), value: formatThousands(String(b.amount)) });
-      input.addEventListener("input", () => { input.value = formatThousands(input.value.replace(/\D/g, "")); });
-      input.addEventListener("change", () => saveBudget(key, c.id, input.value));
-      editWrap.append(el("span", { class: "small muted", text: t("edit_limit") }), input);
-      card.append(editWrap);
-    }
-    main.append(card);
-  }
+  return card;
 }
 
-async function saveBudget(month, category_id, raw) {
-  const amount = Number(String(raw).replace(/\D/g, ""));
-  if (!Number.isFinite(amount) || amount < 0) return toast("Jumlah budget tidak valid.");
-  const prev = state.budgets.find(b => b.month === month && b.category_id === category_id);
-  const row = { user_id: state.user?.id, month, category_id, amount };
-  if (prev) Object.assign(prev, row);
-  else state.budgets.push(row);
-  saveLocal();
-  render();
-  try { await cloudWrite("budgets", "upsert", row); }
-  catch (err) {
-    if (prev) Object.assign(state.budgets.find(b => b.month === month && b.category_id === category_id) || {}, prev);
-    toast("Gagal menyimpan budget: " + (err.message || err));
-    render();
+function renderGoals() {
+  const wishes = activeGoals("wish");
+  const debts = activeGoals("debt");
+  const doneW = doneGoals("wish");
+  const doneD = doneGoals("debt");
+
+  main.append(el("h1", { style: "font-size:1.35rem;font-weight:800;margin:0 0 4px;", text: t("title_goals") }));
+
+  const snap = el("div", { class: "card", style: "display:flex;justify-content:space-between;align-items:center;margin-top:8px;" }, [
+    el("div", [el("div", { class: "small muted", text: t("saldo") }), el("div", { style: "font-size:1.4rem;font-weight:800;", text: rp(balance()) })]),
+    el("span", { class: "stat-icon balance" }, [icon("wallet", 20)])
+  ]);
+  main.append(snap);
+
+  const wishCard = el("div", { class: "card" });
+  const wishHead = el("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;" });
+  wishHead.append(el("h2", { class: "card-title", style: "margin:0;", text: t("goal_wish") }));
+  wishHead.append(el("button", { type: "button", class: "btn btn-primary btn-sm", onclick: () => openGoalForm("wish") }, [icon("plus", 14), el("span", { text: t("goal_add_wish") })]));
+  wishCard.append(wishHead);
+  if (!wishes.length && !doneW.length) {
+    wishCard.append(el("p", { class: "muted small", text: t("goal_empty_wish") }));
+  } else {
+    for (const g of wishes) wishCard.append(goalCard(g));
+    for (const g of doneW) wishCard.append(goalCard(g));
   }
-}
-async function copyBudgets(key) {
-  const prevKey = addMonths(key, -1);
-  const prev = budgetsFor(prevKey);
-  for (const b of prev) {
-    if (!state.budgets.some(x => x.month === key && x.category_id === b.category_id)) {
-      state.budgets.push({ month: key, category_id: b.category_id, amount: b.amount });
-    }
+  main.append(wishCard);
+
+  const debtCard = el("div", { class: "card" });
+  const debtHead = el("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;" });
+  debtHead.append(el("h2", { class: "card-title", style: "margin:0;", text: t("goal_debt") }));
+  debtHead.append(el("button", { type: "button", class: "btn btn-primary btn-sm", onclick: () => openGoalForm("debt") }, [icon("plus", 14), el("span", { text: t("goal_add_debt") })]));
+  debtCard.append(debtHead);
+  if (!debts.length && !doneD.length) {
+    debtCard.append(el("p", { class: "muted small", text: t("goal_empty_debt") }));
+  } else {
+    for (const g of debts) debtCard.append(goalCard(g));
+    for (const g of doneD) debtCard.append(goalCard(g));
   }
-  saveLocal();
-  render();
-  try {
-    if (state.mode === "cloud") {
-      const { error } = await state.sb.from("budgets").upsert(budgetsFor(key).map(b => ({ month: b.month, category_id: b.category_id, amount: b.amount })));
-      if (error) throw error;
-    }
-    toast("Budget disalin dari bulan lalu.");
-  } catch (err) { toast("Gagal menyalin: " + (err.message || err)); }
+  main.append(debtCard);
 }
 
 /* ---------- settings ---------- */
@@ -2779,6 +3037,31 @@ function renderSettings() {
   }
   cardTheme.append(segTheme);
   main.append(cardTheme);
+
+  const allow = el("div", { class: "card" });
+  allow.append(el("h2", { class: "card-title", text: t("allowance_setting") }));
+  const allowToggle = el("label", { style: "display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;font-weight:600;" });
+  const cb = el("input", { type: "checkbox" });
+  cb.checked = !!state.allowance.enabled;
+  cb.addEventListener("change", () => { state.allowance.enabled = cb.checked; saveLocal(); saveAllowanceSetting(); render(); });
+  allowToggle.append(cb, el("span", { text: t("allowance_enabled") }));
+  allow.append(allowToggle);
+  const amtRow = el("div", { style: "display:flex;gap:8px;align-items:center;" });
+  const amtInput = el("input", { type: "text", inputmode: "numeric", value: formatThousands(String(state.allowance.amount)), placeholder: t("allowance_amount") });
+  amtInput.addEventListener("input", () => { amtInput.value = formatThousands(amtInput.value.replace(/\D/g, "")); });
+  amtInput.addEventListener("change", () => {
+    const v = Number(String(amtInput.value).replace(/\D/g, ""));
+    if (v > 0) { state.allowance.amount = v; saveLocal(); saveAllowanceSetting(); }
+  });
+  amtRow.append(amtInput, el("span", { class: "small muted", text: "/ " + (state.lang === "en" ? "day" : "hari") }));
+  allow.append(field(t("allowance_amount"), amtRow));
+  main.append(allow);
+
+  const pwa = el("div", { class: "card" });
+  pwa.append(el("h2", { class: "card-title", text: t("pwa_install") }));
+  pwa.append(el("p", { class: "muted small", style: "margin-bottom:12px;", text: t("pwa_hint") }));
+  pwa.append(el("button", { type: "button", class: "btn btn-primary full-width", text: t("pwa_install"), onclick: () => { if (state.deferredPrompt) { state.deferredPrompt.prompt(); state.deferredPrompt.userChoice.then(() => { state.deferredPrompt = null; }); } else if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) { toast(t("pwa_installed")); } else { toast(t("pwa_not_supported")); } } }));
+  main.append(pwa);
 
   const acc = el("div", { class: "card" });
   acc.append(el("h2", { class: "card-title", text: t("settings_account") }));
@@ -3354,6 +3637,8 @@ async function wipeAll() {
   state.transactions = [];
   state.budgets = [];
   state.categories = [];
+  state.goals = [];
+  state.allowance = { amount: 20000, enabled: true, lastClaim: "" };
   saveLocal();
   if (state.mode === "cloud") {
     try { await wipeAllCloud(); } catch (e) { toast((isEn ? "Failed to delete cloud data: " : "Gagal hapus data cloud: ") + e.message); }
@@ -3367,6 +3652,8 @@ async function wipeAllCloud() {
   await state.sb.from("transactions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await state.sb.from("budgets").delete().neq("month", "");
   await state.sb.from("categories").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await state.sb.from("goals").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await state.sb.from("app_settings").delete().neq("user_id", "00000000-0000-0000-0000-000000000000");
 }
 
 /* ---------- auth screen ---------- */
@@ -3503,10 +3790,27 @@ function boot() {
   $("#desktopCatatBtn")?.addEventListener("click", () => openTxForm());
   $("#navIcon-dashboard")?.append(icon("dashboard", 20));
   $("#navIcon-transaksi")?.append(icon("transaksi", 20));
-  $("#navIcon-budget")?.append(icon("budget", 20));
+  $("#navIcon-goals")?.append(icon("target", 20));
   $("#navIcon-lainnya")?.append(icon("lainnya", 20));
 
+  initPwa();
   initBackend();
+}
+
+function initPwa() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    state.deferredPrompt = e;
+  });
+  window.addEventListener("appinstalled", () => {
+    state.deferredPrompt = null;
+    toast(t("pwa_installed"));
+  });
 }
 
 if (document.readyState === "loading") {
