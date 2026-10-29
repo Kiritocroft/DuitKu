@@ -1355,6 +1355,89 @@ input:focus, select:focus, textarea:focus {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* Friendly, readable refinements */
+:root { --radius: 20px; --radius-sm: 14px; }
+html { scroll-behavior: smooth; }
+body { font-size: 16px; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
+.card, .stat-card, .hero-card, .month-nav { transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.card:hover, .stat-card:hover { box-shadow: var(--shadow); }
+.btn:active, .chip:active, .nav button:active { transform: scale(.98); }
+.nav-arrow { width: 44px; height: 44px; }
+.lang-pill { min-width: 44px; min-height: 44px; padding-inline: 8px; }
+.chip { min-height: 44px; }
+.amount-chip, .student-preset-chip { min-height: 44px; padding-inline: 13px; }
+.btn-sm { min-height: 44px; }
+.btn-xs { min-height: 40px; padding-inline: 12px; }
+.btn-icon-subtle { width: 44px; height: 44px; }
+.seg button { min-height: 44px; }
+.nav button { min-height: 56px; }
+@media (min-width: 900px) {
+  .app { max-width: 1440px; grid-template-columns: 248px minmax(0, 1fr); gap: 28px; padding: 28px clamp(28px, 4vw, 64px); }
+  .nav { top: 24px; align-self: start; }
+  .nav button { min-height: 52px; }
+  .card { padding: 20px; }
+}
+@media (max-width: 600px) {
+  :root { --nav-h: 72px; }
+  .app { padding: 10px 14px calc(var(--nav-h) + 30px + env(safe-area-inset-bottom, 0px)); }
+  header.top { padding: 8px 0 14px; }
+  .brand-title { font-size: 1.2rem; }
+  .card { padding: 16px; border-radius: 18px; }
+  .hero-card { padding: 18px; }
+  .hero-amount { font-size: clamp(1.5rem, 7vw, 1.9rem); overflow-wrap: anywhere; }
+  .stats-grid { gap: 10px; }
+  .stat-card { padding: 13px; }
+  .stat-val { font-size: clamp(.95rem, 4vw, 1.15rem); }
+  .modal-back { padding-top: 24px; }
+  .sheet { max-height: calc(94dvh - env(safe-area-inset-top, 0px)); padding-inline: 18px; }
+}
+/* Intentional entrance and feedback motion */
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(10px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes iconPop {
+  0% { transform: scale(.88); }
+  65% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+@keyframes emptyFloat {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-4px) rotate(-3deg); }
+}
+main > .card,
+main > .hero-card,
+main > .month-nav,
+main > .dash-layout > .dash-col > .card,
+main > .dash-layout > .dash-col > .hero-card,
+main > .dash-layout > .dash-col > .month-nav {
+  animation: cardEnter .36s cubic-bezier(.2,.7,.25,1) both;
+}
+main > .dash-layout > .dash-col > :nth-child(2) { animation-delay: 45ms; }
+main > .dash-layout > .dash-col > :nth-child(3) { animation-delay: 90ms; }
+main > .dash-layout > .dash-col > :nth-child(4) { animation-delay: 135ms; }
+.modal-back { animation: fadeIn .2s ease-out both; }
+.sheet { animation: slideUp .32s cubic-bezier(.2,.8,.2,1) both; }
+.empty-icon { display: inline-block; animation: emptyFloat 3.2s ease-in-out infinite; }
+.nav button { transition: color .2s ease, background-color .2s ease; }
+.nav button svg { transition: transform .22s cubic-bezier(.2,.8,.2,1), filter .22s ease; }
+.nav button:hover svg { transform: translateY(-2px); }
+.btn, .chip, .nav-arrow, .btn-icon-subtle, .fab {
+  transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease, background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+.btn:hover, .chip:hover, .nav-arrow:hover, .btn-icon-subtle:hover { transform: translateY(-1px); }
+.btn:active, .chip:active, .nav-arrow:active, .btn-icon-subtle:active, .nav button:active { transform: scale(.97); }
+.btn-primary:hover { box-shadow: var(--shadow); }
+.btn:focus-visible, .chip:focus-visible, .nav button:focus-visible, .nav-arrow:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
 </style>
 </head>
 <body>
@@ -1965,9 +2048,14 @@ function setSoundEnabled(val) {
   } catch {}
 }
 
+let audioContext = null;
+let lastClickSoundAt = 0;
 function playChime(kind = "pop") {
   try {
     if (!isSoundEnabled()) return;
+    const stamp = performance.now();
+    if (stamp - lastClickSoundAt < 110) return;
+    lastClickSoundAt = stamp;
     if (navigator.vibrate) {
       try {
         if (kind === "coin") navigator.vibrate([25, 40, 25]);
@@ -1976,10 +2064,8 @@ function playChime(kind = "pop") {
     }
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    if (ctx.state === "suspended") {
-      ctx.resume().catch(() => {});
-    }
+    const ctx = audioContext || (audioContext = new AudioCtx());
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -2002,9 +2088,21 @@ function playChime(kind = "pop") {
       osc.start(now);
       osc.stop(now + 0.07);
     }
-    setTimeout(() => { try { ctx.close(); } catch {} }, 450);
   } catch {}
 }
+
+// One delegated feedback handler covers dynamically-rendered controls without bubbling duplicates.
+document.addEventListener("click", event => {
+  if (!(event instanceof MouseEvent) || !event.isTrusted) return;
+  const target = event.target instanceof Element ? event.target : null;
+  const control = target?.closest('button:not(:disabled), a[href], [role="button"]:not([aria-disabled="true"]), input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled), select:not(:disabled), summary');
+  if (!control || control.hasAttribute("data-sound-action") || control.closest("[aria-hidden='true']")) return;
+  // Let control handlers play any deliberate coin/pop cue first; add generic feedback only if none did.
+  const cueAtClick = lastClickSoundAt;
+  queueMicrotask(() => {
+    if (lastClickSoundAt === cueAtClick) playChime("pop");
+  });
+}, true);
 
 function handleUrlActions() {
   try {
@@ -2645,7 +2743,6 @@ async function claimAllowance() {
   render();
   try { await cloudWrite("transactions", "insert", row); } catch {}
   await saveAllowanceSetting();
-  playChime("coin");
   toast(t("toast_tx_logged", { name: catNameById(cat.id), amount: rp(amount) }));
 }
 
@@ -3161,7 +3258,7 @@ function renderTransaksi() {
     for (const t of combos) {
       const name = catNameById(t.category_id);
       box.append(el("button", {
-        type: "button", class: "chip",
+        type: "button", class: "chip", "data-sound-action": "true",
         onclick: () => quickAdd(t),
       }, [
         icon("lightning", 14),
@@ -3408,7 +3505,7 @@ function openTxForm(existing) {
       field(t("field_category"), cat),
       field(t("field_date"), date),
       field(t("field_note"), note),
-      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: t("btn_save_tx"), onclick: async () => {
+      el("button", { type: "button", class: "btn btn-primary full-width", style: "margin-top:10px;", text: t("btn_save_tx"), "data-sound-action": "true", onclick: async () => {
         const digits = amount.value.replace(/\D/g, "");
         const value = Number(digits);
         if (!date.value) return toast(state.lang === "en" ? "Date is required." : "Tanggal wajib diisi.");
