@@ -1384,6 +1384,7 @@ button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
   main > .month-nav { margin-bottom: 8px; }
   .catat-dash-btn { min-height: 40px; margin-bottom: 8px; }
   .dash-layout { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 12px; }
+  .trend-card { grid-column: 1 / -1; }
   .dash-col { gap: 8px; }
   .hero-card { padding: 12px 14px; margin-bottom: 6px; }
   .hero-amount { font-size: 1.45rem; margin-bottom: 5px; }
@@ -1407,7 +1408,7 @@ button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
   .runway-card { display: none; }
   .cat-bar-item { margin-bottom: 6px; }
   .cat-bar-header { margin-bottom: 3px; }
-  .dash-col > .card > svg { max-height: 105px; }
+  .trend-card > svg { height: 240px; max-height: none; }
   .stats-grid .stat-card { min-height: 54px; }
   .stats-grid .stat-top { margin-bottom: 3px; }
   .stats-grid .stat-icon { width: 26px; height: 26px; }
@@ -1420,6 +1421,7 @@ button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
   header.top { padding: 8px 0 14px; }
   .brand-title { font-size: 1.2rem; }
   .card { padding: 16px; border-radius: 18px; }
+  .trend-card > svg { height: 210px; }
   .hero-card { padding: 18px; }
   .hero-amount { font-size: clamp(1.5rem, 7vw, 1.9rem); overflow-wrap: anywhere; }
   .stats-grid { gap: 10px; }
@@ -3055,7 +3057,6 @@ function renderDashboard() {
     stats.append(card);
   }
   colLeft.append(stats);
-  colLeft.append(trendCard(key));
 
   const byCat = [...spentMap.entries()].map(([id, amount]) => ({ id, amount, name: catNameById(id) }))
     .sort((a, b) => b.amount - a.amount);
@@ -3106,6 +3107,9 @@ function renderDashboard() {
   colRight.append(recentCard);
 
   layout.append(colLeft, colRight);
+  const trend = trendCard(key);
+  trend.classList.add("trend-card");
+  layout.append(trend);
   main.append(layout);
 }
 
@@ -3131,12 +3135,13 @@ function trendCard(key) {
   head.append(legend);
   card.append(head);
 
-  const W = 360, H = 160, pad = 36;
+  const W = 360, H = 190, pad = 36;
   const gw = (W - pad) / series.length;
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("viewBox", "0 0 " + W + " " + (H + 30));
   svg.setAttribute("width", "100%");
+  svg.setAttribute("preserveAspectRatio", "none");
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", "Grafik pemasukan dan pengeluaran 6 bulan");
 
