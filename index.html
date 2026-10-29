@@ -1375,10 +1375,44 @@ button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
 .seg button { min-height: 44px; }
 .nav button { min-height: 56px; }
 @media (min-width: 900px) {
-  .app { max-width: 1440px; grid-template-columns: 248px minmax(0, 1fr); gap: 28px; padding: 28px clamp(28px, 4vw, 64px); }
-  .nav { top: 24px; align-self: start; }
-  .nav button { min-height: 52px; }
-  .card { padding: 20px; }
+  .app { max-width: 1440px; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; padding: 2px clamp(18px, 2.5vw, 36px); }
+  header.top { padding: 2px 0 4px; margin-bottom: 4px; }
+  .nav { top: 10px; align-self: start; }
+  .nav button { min-height: 46px; }
+  .card { padding: 14px; margin-bottom: 8px; }
+  .card-title { margin-bottom: 10px; }
+  main > .month-nav { margin-bottom: 8px; }
+  .catat-dash-btn { min-height: 40px; margin-bottom: 8px; }
+  .dash-layout { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 12px; }
+  .dash-col { gap: 8px; }
+  .hero-card { padding: 12px 14px; margin-bottom: 6px; }
+  .hero-amount { font-size: 1.45rem; margin-bottom: 5px; }
+  .hero-pill { padding: 4px 10px; font-size: .78rem; }
+  .stats-grid { gap: 7px; margin-bottom: 6px; }
+  .stat-card { padding: 8px 10px; min-height: 64px; }
+  .stat-val { font-size: 1rem; }
+  .stat-top { margin-bottom: 6px; }
+  .daily-limit-card { padding: 10px 12px; }
+  .daily-limit-card .card-title { margin-bottom: 7px; }
+  .daily-limit-card input { padding: 7px 10px; margin-bottom: 6px !important; }
+  .daily-limit-card .btn { min-height: 34px; }
+  .allowance-card { padding: 10px 12px; }
+  .allowance-card .card-title { margin-bottom: 6px; }
+  .allowance-card p { margin-bottom: 6px !important; }
+  .allowance-card .btn { min-height: 34px; }
+  .stat-icon { width: 30px; height: 30px; }
+  .daily-limit-card .daily-limit-meta { margin: 6px 0; }
+  .daily-limit-remaining { margin: 0 0 8px; font-weight: 700; }
+  .daily-limit-remaining.over { color: var(--over); }
+  .runway-card { display: none; }
+  .cat-bar-item { margin-bottom: 6px; }
+  .cat-bar-header { margin-bottom: 3px; }
+  .dash-col > .card > svg { max-height: 105px; }
+  .stats-grid .stat-card { min-height: 54px; }
+  .stats-grid .stat-top { margin-bottom: 3px; }
+  .stats-grid .stat-icon { width: 26px; height: 26px; }
+  .stats-grid .stat-val { font-size: .92rem; }
+  .recent-card-row { padding: 6px 0 !important; }
 }
 @media (max-width: 600px) {
   :root { --nav-h: 72px; }
@@ -1558,6 +1592,7 @@ const state = {
   budgets: [],
   goals: [],
   allowance: { amount: 20000, enabled: true, lastClaim: "" },
+  dailySpendLimit: 50000,
   screen: "dashboard",
   lang: (function() { try { return localStorage.getItem("duitku.lang") || "id"; } catch { return "id"; } })(),
   month: monthKey(new Date()),
@@ -1670,6 +1705,14 @@ const I18N = {
     kpi_budget_remain: "Sisa Budget Total",
     not_set: "Belum diatur",
     card_spending_by_cat: "Pengeluaran per Kategori",
+    daily_limit_title: "Batas Belanja Hari Ini",
+    daily_limit_input: "Batas harian (Rp)",
+    daily_limit_invalid: "Masukkan nominal positif, angka saja.",
+    daily_limit_save_error: "Batas tersimpan di perangkat, tapi gagal sinkron ke cloud.",
+    daily_limit_remaining: "Sisa hari ini: {amount}",
+    daily_limit_over: "Lewat batas: {amount}",
+    daily_limit_spent: "Terpakai hari ini: {amount}",
+    btn_save_limit: "Simpan batas",
     empty_cat_title: "Masih bersih! Belum ada pengeluaran bulan ini.",
     btn_add_expense: "+ Catat Pengeluaran",
     card_trend_6m: "Tren 6 Bulan Terakhir",
@@ -1832,6 +1875,14 @@ const I18N = {
     kpi_budget_remain: "Total Remaining Budget",
     not_set: "Not set",
     card_spending_by_cat: "Spending by Category",
+    daily_limit_title: "Today's Spending Limit",
+    daily_limit_input: "Daily limit (Rp)",
+    daily_limit_invalid: "Enter a positive amount using digits only.",
+    daily_limit_save_error: "Limit saved on this device, but cloud sync failed.",
+    daily_limit_remaining: "Left today: {amount}",
+    daily_limit_over: "Over limit: {amount}",
+    daily_limit_spent: "Spent today: {amount}",
+    btn_save_limit: "Save limit",
     empty_cat_title: "Clean slate! No spending this month.",
     btn_add_expense: "+ Log Expense",
     card_trend_6m: "6-Month Trend",
@@ -2214,12 +2265,14 @@ function loadLocal() {
     const b = localStorage.getItem(STORAGE_PREFIX + "budgets");
     const g = localStorage.getItem(STORAGE_PREFIX + "goals");
     const a = localStorage.getItem(STORAGE_PREFIX + "allowance");
+    const dsl = localStorage.getItem(STORAGE_PREFIX + "dailySpendLimit");
     const p = localStorage.getItem(STORAGE_PREFIX + "pending");
     state.categories = c ? JSON.parse(c) : [];
     state.transactions = txs ? JSON.parse(txs) : [];
     state.budgets = b ? JSON.parse(b) : [];
     state.goals = g ? JSON.parse(g) : [];
     state.allowance = a ? Object.assign({ amount: 20000, enabled: true, lastClaim: "" }, JSON.parse(a)) : { amount: 20000, enabled: true, lastClaim: "" };
+    state.dailySpendLimit = dsl ? Math.max(0, Number(dsl) || 0) : 50000;
     state.pending = p ? JSON.parse(p) : [];
     seedIfEmpty();
   } catch (err) {
@@ -2233,6 +2286,7 @@ function saveLocal() {
     localStorage.setItem(STORAGE_PREFIX + "budgets", JSON.stringify(state.budgets));
     localStorage.setItem(STORAGE_PREFIX + "goals", JSON.stringify(state.goals));
     localStorage.setItem(STORAGE_PREFIX + "allowance", JSON.stringify(state.allowance));
+    localStorage.setItem(STORAGE_PREFIX + "dailySpendLimit", String(state.dailySpendLimit));
     localStorage.setItem(STORAGE_PREFIX + "pending", JSON.stringify(state.pending));
   } catch (err) {}
 }
@@ -2435,6 +2489,7 @@ async function loadAllCloud() {
         enabled: d.daily_allowance_enabled !== false,
         lastClaim: d.last_claim_date || "",
       };
+      state.dailySpendLimit = Math.max(0, Number(d.daily_spend_limit) || 50000);
     }
     if (!cats.length) await pushSeedCategories();
     saveLocal();
@@ -2529,6 +2584,7 @@ function applyChange(table, payload) {
       enabled: d.daily_allowance_enabled !== false,
       lastClaim: d.last_claim_date || "",
     };
+    state.dailySpendLimit = Math.max(0, Number(d.daily_spend_limit) || 50000);
     saveLocal();
     render();
     return;
@@ -2747,9 +2803,16 @@ async function claimAllowance() {
 }
 
 async function saveAllowanceSetting() {
-  if (state.mode !== "cloud" || !state.user || !state.sb) return;
-  const data = { daily_allowance_amount: state.allowance.amount, daily_allowance_enabled: state.allowance.enabled, last_claim_date: state.allowance.lastClaim };
-  try { await state.sb.from("app_settings").upsert({ user_id: state.user.id, data }); } catch {}
+  if (state.mode !== "cloud" || !state.user || !state.sb) return true;
+  const data = { daily_allowance_amount: state.allowance.amount, daily_allowance_enabled: state.allowance.enabled, last_claim_date: state.allowance.lastClaim, daily_spend_limit: state.dailySpendLimit };
+  try {
+    const { error } = await state.sb.from("app_settings").upsert({ user_id: state.user.id, data });
+    if (error) { console.error("Failed to sync app settings:", error.message); return false; }
+    return true;
+  } catch (error) {
+    console.error("Failed to sync app settings:", error?.message || error);
+    return false;
+  }
 }
 
 function goalExpenseCat() {
@@ -2937,7 +3000,7 @@ function renderDashboard() {
   colLeft.append(hero);
   colLeft.append(studentRunwayWidget());
 
-  const allowCard = el("div", { class: "card" });
+  const allowCard = el("div", { class: "card allowance-card" });
   allowCard.append(el("h2", { class: "card-title", text: t("allowance_title") }));
   if (state.allowance.enabled) {
     allowCard.append(el("p", { class: "muted small", style: "margin-bottom:12px;", text: t("allowance_desc", { amount: rp(state.allowance.amount) }) }));
@@ -2950,6 +3013,30 @@ function renderDashboard() {
     allowCard.append(el("p", { class: "muted small", text: t("allowance_off") }));
   }
   colLeft.append(allowCard);
+
+  const todaySpend = state.transactions.filter(tx => tx.type === "expense" && tx.date === localDate()).reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+  const limit = Math.max(0, Number(state.dailySpendLimit) || 0);
+  const leftToday = limit - todaySpend;
+  const limitCard = el("div", { class: "card daily-limit-card" });
+  limitCard.append(el("h2", { class: "card-title", text: t("daily_limit_title") }));
+  const limitInput = el("input", { type: "text", inputmode: "numeric", value: formatThousands(String(limit)), placeholder: t("daily_limit_input"), "aria-label": t("daily_limit_input") });
+  limitInput.style.cssText = "width:100%;min-width:0;margin-bottom:10px;";
+  const saveLimit = el("button", { type: "button", class: "btn btn-sm", text: t("btn_save_limit"), onclick: async () => {
+    const raw = limitInput.value.trim();
+    if (!/^(?:[0-9]+|[0-9]{1,3}(?:[., ][0-9]{3})+)$/.test(raw)) return toast(t("daily_limit_invalid"));
+    const parsed = Number(raw.replace(/[^0-9]/g, ""));
+    if (!Number.isSafeInteger(parsed) || parsed <= 0) return toast(t("daily_limit_invalid"));
+    state.dailySpendLimit = parsed;
+    saveLocal();
+    const synced = await saveAllowanceSetting();
+    render();
+    if (!synced) toast(state.lang === "en" ? I18N.en.daily_limit_save_error : I18N.id.daily_limit_save_error);
+  } });
+  const limitPct = limit ? Math.min(100, Math.round(todaySpend / limit * 100)) : 0;
+  limitCard.append(limitInput, el("div", { class: "bar-track", role: "progressbar", "aria-label": t("daily_limit_title"), "aria-valuenow": String(Math.min(100, limitPct)), "aria-valuemin": "0", "aria-valuemax": "100" }, [el("div", { class: "bar-fill", style: `width:${limitPct}%;background:${leftToday < 0 ? "var(--over)" : "var(--accent)"}` })]));
+  limitCard.append(el("p", { class: "muted small daily-limit-meta", text: t("daily_limit_spent", { amount: rp(todaySpend) }) }));
+  limitCard.append(el("p", { class: "daily-limit-remaining" + (leftToday < 0 ? " over" : ""), text: leftToday < 0 ? t("daily_limit_over", { amount: rp(Math.abs(leftToday)) }) : t("daily_limit_remaining", { amount: rp(leftToday) }) }), saveLimit);
+  colRight.append(limitCard);
 
   const stats = el("div", { class: "stats-grid" });
   const cards = [
