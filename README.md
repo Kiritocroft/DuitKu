@@ -7,14 +7,17 @@ A static, zero-build personal finance tracker designed for college students. Tra
 ## Key Features
 
 - **Balance-First Model**: The dashboard shows your total cash balance (`saldo = pemasukan − pengeluaran`), not a monthly budget. Log income once (e.g. 131k) and it becomes your balance; each expense reduces it.
-- **Daily Allowance**: Set a daily amount (default Rp 20.000). One tap on **"Klaim Uang Saku Hari Ini"** adds it to your balance — perfect for students who get a fixed allowance each campus day.
-- **Wishlist & Debt Goals**: Add a target (e.g. "Baju Jersey — 175k"). A progress bar shows how close your balance is. When your saldo reaches the target, tap **"Realisasikan"** (or **"Bayar Utang"**) to pay it — your balance drops accordingly and the goal is marked done.
-- **Dual Mode (Local & Cloud)**: Automatically stores data in `localStorage` when unconfigured or offline; seamlessly upgrades to cloud storage when Supabase credentials are provided in `config.js`.
+- **Daily Allowance (+Rp 20.000)**: Set a daily amount (default Rp 20.000). One tap on **"Klaim Uang Saku Hari Ini"** adds it to your balance — perfect for students who get a fixed allowance each campus day.
+- **Cash Runway Insight**: Smart college burn rate analyzer on your dashboard showing average daily spend, health badge (Sangat Sehat / Cukup Aman / Waspada), and days of runway left with or without daily allowance.
+- **Quick Logging with Student Presets**: Quick amount chips (`+5rb`, `+10rb`, `+20rb`, `+50rb`, `+100rb`, `C`) and 1-tap student presets (`🍜 Makan 15rb`, `☕ Kopi 20rb`, `⛽ Bensin 20rb`, `🖨️ Print 5rb`, `🛒 Jajan 10rb`).
+- **Tactile Audio & Haptics Engine**: Native Web Audio API sound synthesizer (coin chimes, soft pops) paired with `navigator.vibrate` haptic feedback, fully toggleable in settings.
+- **Wishlist & Debt Goals with ETA**: Add a target (e.g. "Baju Jersey — 175k"). A progress bar shows how close your balance is, along with an automatic day-count ETA based on your active daily allowance. When your saldo reaches the target, tap **"Realisasikan"** (or **"Bayar Utang"**) to pay it — your balance drops accordingly and the goal is marked done.
+- **PWA Quick Action Shortcuts**: Homescreen shortcuts for "Catat Transaksi" (`/?action=newtx`) and "Klaim Uang Saku" (`/?action=claim`) for immediate 1-tap actions.
+- **Dual Mode (Local & Cloud)**: Automatically stores data in `localStorage` when unconfigured or offline; seamlessly upgrades to cloud storage when Supabase credentials are provided in `config.js`. Retains local-preferred session memory.
 - **Reliable Local-First Sync**: Every edit is written locally first and queued to Supabase in the background — no manual refresh, no lost data, works offline and catches up on reconnect.
 - **Bilingual Interface**: Seamless toggle between **Bahasa Indonesia** and **English**.
-- **Quick Logging**: Fast "+ Catat" modal with automatic thousand separators, numeric keypad focus, and quick-repeat chips.
-- **CSV & JSON Import/Export**: RFC 4180 compliant CSV parser with delimiter auto-detection, column mapping, duplicate detection, and full JSON backup/restore.
-- **PWA + Offline**: Installable to the home screen (service worker + manifest + icons); the app shell is cached and loads offline.
+- **CSV & V2 JSON Import/Export**: RFC 4180 compliant CSV parser with delimiter auto-detection, column mapping, duplicate detection, and full v2 JSON backup/restore (including goals & allowance settings).
+- **PWA + Offline**: Installable to the home screen with luxury emerald maskable icons & native splash loader. App shell cached via Service Worker v7 (network-first for HTML).
 
 ---
 

@@ -21,6 +21,12 @@
       "short_name": "Catat",
       "url": "/?action=newtx",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Klaim Uang Saku",
+      "short_name": "Klaim",
+      "url": "/?action=claim",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

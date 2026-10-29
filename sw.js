@@ -1,8 +1,8 @@
-// Duitku Service Worker v6
+// Duitku Service Worker v7
 // HTML: network-first (always fresh, offline fallback).
 // Assets (config/icons/manifest): cache-first (rarely change).
 
-const CACHE_NAME = 'duitku-v6';
+const CACHE_NAME = 'duitku-v7';
 const APP_SHELL = [
   '/',
   '/index.html',

@@ -959,6 +959,119 @@ input:focus, select:focus, textarea:focus {
   color: var(--text);
 }
 
+.amount-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -8px;
+  margin-bottom: 14px;
+  justify-content: center;
+}
+.amount-chip {
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  background: var(--card-hover);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.amount-chip:hover, .amount-chip:active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.student-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.student-preset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.student-preset-chip:hover, .student-preset-chip:active {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* Student Cash Runway Card */
+.runway-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.runway-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.runway-body {
+  flex: 1;
+  min-width: 0;
+}
+.runway-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.runway-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.runway-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+.runway-badge.ok {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--ok);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.runway-badge.warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warn);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.runway-badge.over {
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--over);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+.runway-desc {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.35;
+}
+
 /* Auth View */
 .auth-wrap {
   min-height: calc(100dvh - 140px);
@@ -1594,7 +1707,19 @@ const I18N = {
     title_dashboard: "Dashboard",
     title_transaksi: "Transaksi",
     title_goals: "Target & Utang",
-    title_settings: "Pengaturan"
+    title_settings: "Pengaturan",
+    quick_amounts_title: "Nominal Cepat",
+    student_presets_title: "Pilihan Cepat Mahasiswa",
+    preset_lunch: "🍜 Makan (15rb)",
+    preset_coffee: "☕ Kopi (20rb)",
+    preset_gas: "⛽ Bensin (20rb)",
+    preset_print: "🖨️ Print (5rb)",
+    preset_snack: "🛒 Jajan (10rb)",
+    runway_title: "Ketahanan Kas Mahasiswa",
+    sound_setting: "Efek Suara & Getar",
+    sound_toggle: "Aktifkan efek audio dan respon sentuh",
+    sound_test: "Tes Suara 🔊",
+    goal_est_days: "⏳ Estimasi ~{days} hari lagi dari uang saku harian"
   },
   en: {
     nav_dashboard: "Dashboard",
@@ -1744,7 +1869,19 @@ const I18N = {
     title_dashboard: "Dashboard",
     title_transaksi: "Transactions",
     title_goals: "Goals & Debts",
-    title_settings: "Settings"
+    title_settings: "Settings",
+    quick_amounts_title: "Quick Amounts",
+    student_presets_title: "Student Quick Presets",
+    preset_lunch: "🍜 Lunch (15k)",
+    preset_coffee: "☕ Coffee (20k)",
+    preset_gas: "⛽ Gas (20k)",
+    preset_print: "🖨️ Print (5k)",
+    preset_snack: "🛒 Snack (10k)",
+    runway_title: "Cash Runway Insight",
+    sound_setting: "Sound & Haptics",
+    sound_toggle: "Enable audio effects and tactile haptics",
+    sound_test: "Test Sound 🔊",
+    goal_est_days: "⏳ ~{days} days away with daily allowance"
   }
 };
 
@@ -1814,6 +1951,79 @@ function monthLabel(key) {
   const [y, m] = key.split("-").map(Number);
   const arr = state.lang === "en" ? MONTH_NAMES_EN : MONTH_NAMES_ID;
   return `${arr[m - 1]} ${y}`;
+}
+
+function isSoundEnabled() {
+  try {
+    const s = localStorage.getItem("duitku.sound");
+    return s === null ? true : s === "true";
+  } catch { return true; }
+}
+function setSoundEnabled(val) {
+  try {
+    localStorage.setItem("duitku.sound", val ? "true" : "false");
+  } catch {}
+}
+
+function playChime(kind = "pop") {
+  try {
+    if (!isSoundEnabled()) return;
+    if (navigator.vibrate) {
+      try {
+        if (kind === "coin") navigator.vibrate([25, 40, 25]);
+        else navigator.vibrate(18);
+      } catch {}
+    }
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (kind === "coin") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(987.77, now);
+      osc.frequency.setValueAtTime(1318.51, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } else {
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(160, now + 0.06);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      osc.start(now);
+      osc.stop(now + 0.07);
+    }
+    setTimeout(() => { try { ctx.close(); } catch {} }, 450);
+  } catch {}
+}
+
+function handleUrlActions() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get("action");
+    if (!action) return;
+    window.history.replaceState({}, document.title, window.location.pathname);
+    if (action === "newtx") {
+      setTimeout(() => openTxForm(), 350);
+    } else if (action === "claim") {
+      setTimeout(() => {
+        if (!allowanceClaimedToday() && state.allowance?.enabled) {
+          claimAllowance();
+        } else {
+          toast(state.lang === "en" ? "Allowance already claimed today!" : "Uang saku hari ini sudah diklaim!");
+        }
+      }, 350);
+    }
+  } catch {}
 }
 
 function el(tag, attrs = {}, children = []) {
@@ -1972,6 +2182,7 @@ async function bootCloud() {
   if (state.screen === "auth") state.screen = "dashboard";
   render();
   hideSplash();
+  handleUrlActions();
 
   // 2. Background sync with cloud (deduplicated)
   if (isBootingCloud) return;
@@ -2006,8 +2217,11 @@ async function initBackend() {
     });
     const { data: { session } } = await state.sb.auth.getSession();
     if (session?.user) {
+      try { localStorage.removeItem("duitku_local_preferred"); } catch {}
       state.user = session.user;
       bootCloud();
+    } else if (localStorage.getItem("duitku_local_preferred") === "1") {
+      enterLocal();
     } else {
       renderAuth();
       hideSplash();
@@ -2047,6 +2261,7 @@ async function initBackend() {
 }
 
 function enterLocal(msg) {
+  try { localStorage.setItem("duitku_local_preferred", "1"); } catch {}
   state.mode = "local";
   state.user = null;
   state.screen = "dashboard";
@@ -2056,6 +2271,7 @@ function enterLocal(msg) {
   $("#mainNav").style.display = "";
   hideSplash();
   render();
+  handleUrlActions();
 }
 
 function showBanner(text, action) {
@@ -2429,6 +2645,7 @@ async function claimAllowance() {
   render();
   try { await cloudWrite("transactions", "insert", row); } catch {}
   await saveAllowanceSetting();
+  playChime("coin");
   toast(t("toast_tx_logged", { name: catNameById(cat.id), amount: rp(amount) }));
 }
 
@@ -2500,6 +2717,7 @@ async function approveGoal(g) {
   g.tx_id = row.id;
   g.updated_at = nowIso();
   saveLocal();
+  playChime("coin");
   render();
   try {
     await cloudWrite("transactions", "insert", row);
@@ -2512,6 +2730,82 @@ async function deleteGoal(g) {
   if (i >= 0) state.goals.splice(i, 1);
   saveLocal(); render();
   try { await cloudWrite("goals", "delete", null, { id: g.id }); } catch {}
+}
+
+function studentRunwayWidget() {
+  const bal = balance();
+  const now = new Date();
+  const dayOfMonth = Math.max(1, now.getDate());
+  const list = txInMonth(state.month);
+  const monthExpense = list.filter(t => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
+  const isEn = state.lang === "en";
+  const dailyBurn = monthExpense > 0 ? Math.round(monthExpense / dayOfMonth) : 0;
+
+  const card = el("div", { class: "runway-card" });
+  let iconEmoji = "🛡️";
+  let statusBadge = isEn ? "Safe" : "Kas Aman";
+  let badgeCls = "ok";
+  let desc = "";
+
+  if (bal <= 0) {
+    iconEmoji = "🚨";
+    statusBadge = isEn ? "Empty" : "Saldo Habis";
+    badgeCls = "over";
+    desc = isEn
+      ? "Your balance is 0. Log income or claim your daily allowance."
+      : "Saldo kamu habis. Catat pemasukan atau klaim uang saku harian.";
+  } else if (dailyBurn === 0) {
+    iconEmoji = "🌱";
+    statusBadge = isEn ? "Fresh" : "Terkendali";
+    badgeCls = "ok";
+    desc = isEn
+      ? "No big expenses recorded yet this month. Keep it up!"
+      : "Belum ada pengeluaran besar bulan ini. Pertahankan gaya hematmu!";
+  } else {
+    const rawDays = Math.floor(bal / dailyBurn);
+    const allowAmt = state.allowance?.enabled ? Number(state.allowance.amount || 0) : 0;
+
+    if (rawDays >= 20) {
+      iconEmoji = "🌟";
+      statusBadge = isEn ? "Very Safe" : "Sangat Sehat";
+      badgeCls = "ok";
+    } else if (rawDays >= 7) {
+      iconEmoji = "⚡";
+      statusBadge = isEn ? "Moderate" : "Cukup Aman";
+      badgeCls = "warn";
+    } else {
+      iconEmoji = "⚠️";
+      statusBadge = isEn ? "Critical" : "Waspada Kritis";
+      badgeCls = "over";
+    }
+
+    if (allowAmt > 0 && dailyBurn > allowAmt) {
+      const netBurn = dailyBurn - allowAmt;
+      const daysWithAllow = Math.floor(bal / netBurn);
+      desc = isEn
+        ? `Burn rate ~${rp(dailyBurn)}/day. With allowance (+${rp(allowAmt)}/day), cash lasts ~${daysWithAllow} days.`
+        : `Jajan rata-rata ~${rp(dailyBurn)}/hari. Dengan uang saku (+${rp(allowAmt)}/hari), kas bertahan ~${daysWithAllow} hari.`;
+    } else if (allowAmt >= dailyBurn) {
+      desc = isEn
+        ? `Burn rate ~${rp(dailyBurn)}/day is fully covered by your daily allowance (+${rp(allowAmt)}/day)!`
+        : `Pengeluaran ~${rp(dailyBurn)}/hari tertutup penuh oleh uang saku harian (+${rp(allowAmt)}/hari)!`;
+    } else {
+      desc = isEn
+        ? `At current pace (~${rp(dailyBurn)}/day), cash can last approx. ${rawDays} more days.`
+        : `Dengan kecepatan jajan sekarang (~${rp(dailyBurn)}/hari), saldo bertahan ~${rawDays} hari lagi.`;
+    }
+  }
+
+  const iconEl = el("div", { class: "runway-icon", text: iconEmoji });
+  const bodyEl = el("div", { class: "runway-body" });
+  const titleRow = el("div", { class: "runway-title-row" });
+  titleRow.append(
+    el("span", { class: "runway-title", text: isEn ? "Cash Runway Insight" : "Ketahanan Kas Mahasiswa" }),
+    el("span", { class: "runway-badge " + badgeCls, text: statusBadge })
+  );
+  bodyEl.append(titleRow, el("div", { class: "runway-desc", text: desc }));
+  card.append(iconEl, bodyEl);
+  return card;
 }
 
 function renderDashboard() {
@@ -2544,6 +2838,7 @@ function renderDashboard() {
   hero.append(el("div", { class: "hero-amount", text: rp(bal) }));
   hero.append(el("div", { class: "hero-pill" }, [icon("lightning", 14), el("span", { text: t("saldo") + " = " + t("kpi_income") + " − " + t("kpi_expense") })]));
   colLeft.append(hero);
+  colLeft.append(studentRunwayWidget());
 
   const allowCard = el("div", { class: "card" });
   allowCard.append(el("h2", { class: "card-title", text: t("allowance_title") }));
@@ -2951,6 +3246,7 @@ async function quickAdd(src) {
   };
   state.transactions.push(row);
   saveLocal();
+  playChime(src.type === "income" ? "coin" : "pop");
   render();
   try {
     await cloudWrite("transactions", "insert", row);
@@ -3051,9 +3347,64 @@ function openTxForm(existing) {
       amount.value = formatThousands(digits);
     });
 
+    const amountPresets = el("div", { class: "amount-presets" });
+    const quickChips = [
+      { label: "+5rb", val: 5000 },
+      { label: "+10rb", val: 10000 },
+      { label: "+20rb", val: 20000 },
+      { label: "+50rb", val: 50000 },
+      { label: "+100rb", val: 100000 },
+      { label: "C", val: 0 },
+    ];
+    for (const p of quickChips) {
+      amountPresets.append(el("button", {
+        type: "button",
+        class: "amount-chip",
+        text: p.label,
+        onclick: () => {
+          const cur = Number(amount.value.replace(/\D/g, "")) || 0;
+          const next = p.val === 0 ? 0 : cur + p.val;
+          amount.value = next > 0 ? formatThousands(String(next)) : "";
+          playChime("pop");
+        }
+      }));
+    }
+
+    const studentPresets = el("div", { class: "student-presets" });
+    if (!isEdit) {
+      const sps = [
+        { label: t("preset_lunch"), amt: 15000, note: state.lang === "en" ? "Lunch" : "Makan siang", kw: "makan" },
+        { label: t("preset_coffee"), amt: 20000, note: state.lang === "en" ? "Coffee" : "Kopi nongkrong", kw: "makan" },
+        { label: t("preset_gas"), amt: 20000, note: state.lang === "en" ? "Gasoline" : "Bensin motor", kw: "trans" },
+        { label: t("preset_print"), amt: 5000, note: state.lang === "en" ? "Print assignment" : "Fotokopi / print tugas", kw: "lain" },
+        { label: t("preset_snack"), amt: 10000, note: state.lang === "en" ? "Snack" : "Jajan", kw: "jajan" },
+      ];
+      for (const sp of sps) {
+        studentPresets.append(el("button", {
+          type: "button",
+          class: "student-preset-chip",
+          text: sp.label,
+          onclick: () => {
+            draft.type = "expense";
+            btnExp.setAttribute("aria-pressed", "true");
+            btnInc.setAttribute("aria-pressed", "false");
+            amount.value = formatThousands(String(sp.amt));
+            refillCats();
+            const matched = state.categories.find(c => c.type === "expense" && !c.archived && c.name.toLowerCase().includes(sp.kw))
+              || state.categories.find(c => c.type === "expense" && !c.archived);
+            if (matched) cat.value = matched.id;
+            note.value = sp.note;
+            playChime("pop");
+          }
+        }));
+      }
+    }
+
     body.append(
       typeSeg,
       amountWrap,
+      amountPresets,
+      !isEdit ? studentPresets : el("div"),
       field(t("field_category"), cat),
       field(t("field_date"), date),
       field(t("field_note"), note),
@@ -3079,6 +3430,7 @@ function openTxForm(existing) {
           if (i >= 0) state.transactions[i] = row;
         } else state.transactions.push(row);
         saveLocal();
+        playChime(draft.type === "income" ? "coin" : "pop");
         close();
         render();
         try {
@@ -3140,7 +3492,15 @@ function goalCard(g) {
       el("button", { type: "button", class: "btn btn-danger btn-sm", "aria-label": t("goal_delete"), onclick: () => deleteGoal(g) }, [icon("trash", 14)])
     );
     card.append(btnRow);
-    if (reached) card.append(el("div", { class: "small", style: "margin-top:8px;color:var(--ok);font-weight:600;", text: t("goal_reached") }));
+    if (reached) {
+      card.append(el("div", { class: "small", style: "margin-top:8px;color:var(--ok);font-weight:600;", text: t("goal_reached") }));
+    } else if (state.allowance?.enabled && Number(state.allowance.amount) > 0) {
+      const remain = target - Math.max(0, bal);
+      const days = Math.ceil(remain / Number(state.allowance.amount));
+      if (days > 0 && days < 999) {
+        card.append(el("div", { class: "small muted", style: "margin-top:8px;", text: t("goal_est_days", { days: String(days) }) }));
+      }
+    }
   }
   return card;
 }
@@ -3238,6 +3598,26 @@ function renderSettings() {
   pwa.append(el("button", { type: "button", class: "btn btn-primary full-width", text: t("pwa_install"), onclick: () => { if (state.deferredPrompt) { state.deferredPrompt.prompt(); state.deferredPrompt.userChoice.then(() => { state.deferredPrompt = null; }); } else if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) { toast(t("pwa_installed")); } else { toast(t("pwa_not_supported")); } } }));
   main.append(pwa);
 
+  const soundCard = el("div", { class: "card" });
+  soundCard.append(el("h2", { class: "card-title", text: t("sound_setting") }));
+  const soundToggle = el("label", { style: "display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;font-weight:600;" });
+  const soundCb = el("input", { type: "checkbox" });
+  soundCb.checked = isSoundEnabled();
+  soundCb.addEventListener("change", () => {
+    setSoundEnabled(soundCb.checked);
+    if (soundCb.checked) playChime("coin");
+  });
+  soundToggle.append(soundCb, el("span", { text: t("sound_toggle") }));
+  soundCard.append(soundToggle);
+  const testBtn = el("button", {
+    type: "button",
+    class: "btn btn-sm",
+    text: t("sound_test"),
+    onclick: () => playChime("coin")
+  });
+  soundCard.append(testBtn);
+  main.append(soundCard);
+
   const acc = el("div", { class: "card" });
   acc.append(el("h2", { class: "card-title", text: t("settings_account") }));
   if (state.mode === "cloud" && state.user) {
@@ -3247,11 +3627,25 @@ function renderSettings() {
         el("span", { style: "font-weight:600;", text: state.user.email || "" })
       ]),
       el("button", { type: "button", class: "btn btn-ghost danger", text: t("btn_sign_out"), onclick: async () => {
+        try { localStorage.removeItem("duitku_local_preferred"); } catch {}
         try { await state.sb.auth.signOut(); } catch (e) { toast(authMsg(e)); }
       }})
     );
   } else {
-    acc.append(el("p", { class: "muted small", text: t("settings_local_info") }));
+    acc.append(
+      el("p", { class: "muted small", text: t("settings_local_info") }),
+      el("button", {
+        type: "button",
+        class: "btn btn-outline btn-sm",
+        style: "margin-top:8px;",
+        text: state.lang === "en" ? "Login or Sync to Cloud" : "Masuk / Sinkron ke Cloud",
+        onclick: () => {
+          try { localStorage.removeItem("duitku_local_preferred"); } catch {}
+          state.screen = "auth";
+          render();
+        }
+      })
+    );
   }
   main.append(acc);
 
@@ -3689,11 +4083,13 @@ function resolveCat(name, type, unknownMap, createdCats) {
 /* ---------- JSON backup & restore ---------- */
 function exportJson() {
   const payload = {
-    version: 1,
+    version: 2,
     exported_at: nowIso(),
     categories: state.categories,
     transactions: state.transactions,
-    budgets: state.budgets,
+    goals: state.goals || [],
+    allowance: state.allowance || { amount: 20000, enabled: true, lastClaim: "" },
+    budgets: state.budgets || [],
   };
   download(JSON.stringify(payload, null, 2), `duitku-backup-${localDate()}.json`, "application/json");
 }
@@ -3702,23 +4098,31 @@ function startJsonRestore(file) {
   reader.onload = async () => {
     try {
       const data = JSON.parse(String(reader.result));
-      if (!Array.isArray(data.categories) || !Array.isArray(data.transactions) || !Array.isArray(data.budgets)) {
-        return toast("Format file JSON cadangan tidak valid.");
+      if (!Array.isArray(data.categories) || !Array.isArray(data.transactions)) {
+        return toast(state.lang === "en" ? "Invalid JSON backup format." : "Format file JSON cadangan tidak valid.");
       }
-      if (!confirm(`Pulihkan cadangan ini? (${data.transactions.length} transaksi). Data sekarang akan ditimpa.`)) return;
+      const isEn = state.lang === "en";
+      const goalCount = Array.isArray(data.goals) ? data.goals.length : 0;
+      if (!confirm(isEn
+        ? `Restore this backup? (${data.transactions.length} transactions, ${goalCount} goals). Current data will be replaced.`
+        : `Pulihkan cadangan ini? (${data.transactions.length} transaksi, ${goalCount} target). Data sekarang akan ditimpa.`)) return;
       state.categories = data.categories;
       state.transactions = data.transactions;
-      state.budgets = data.budgets;
+      if (Array.isArray(data.goals)) state.goals = data.goals;
+      if (Array.isArray(data.budgets)) state.budgets = data.budgets;
+      if (data.allowance && typeof data.allowance === "object") state.allowance = data.allowance;
       saveLocal();
       render();
-      if (state.mode === "cloud") {
+      if (state.mode === "cloud" && state.user && state.sb) {
         await wipeAllCloud();
         await state.sb.from("categories").insert(state.categories.map(c => ({ ...c, user_id: state.user.id })));
         await insertChunked("transactions", state.transactions.map(t => ({ ...t, user_id: state.user.id })));
-        await state.sb.from("budgets").insert(state.budgets.map(b => ({ ...b, user_id: state.user.id })));
+        if (state.goals && state.goals.length) await state.sb.from("goals").insert(state.goals.map(g => ({ ...g, user_id: state.user.id })));
+        if (state.allowance) await saveAllowanceSetting();
       }
-      toast("Data berhasil dipulihkan dari JSON.");
-    } catch (err) { toast("Gagal memulihkan: " + err.message); }
+      playChime("coin");
+      toast(isEn ? "Data restored successfully from JSON." : "Data berhasil dipulihkan dari JSON.");
+    } catch (err) { toast("Gagal memulihkan: " + (err.message || err)); }
   };
   reader.readAsText(file, "utf-8");
 }
