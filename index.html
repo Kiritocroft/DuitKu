@@ -320,26 +320,49 @@ body {
   border-radius: 50%;
   background: currentColor;
 }
+.sync:empty,
+.sync:empty::before {
+  display: none !important;
+}
 
 #headerExtra {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.lang-btn {
+.lang-btn,
+.lang-pill {
   border: 1px solid var(--border);
   background: var(--card);
-  color: var(--text);
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  font-size: 0.78rem;
+  color: var(--text-muted);
+  border-radius: 999px;
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-shadow: var(--shadow-sm);
   transition: all 0.15s ease;
+  touch-action: manipulation;
 }
-.lang-btn:hover {
+.lang-btn:hover,
+.lang-pill:hover {
   background: var(--card-hover);
-  border-color: var(--text-muted);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.lang-pill .lang-active {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.85;
 }
 
 /* Banner */
@@ -971,6 +994,8 @@ body {
   color: var(--text);
 }
 input[type="text"],
+input[type="email"],
+input[type="password"],
 input[type="number"],
 input[type="date"],
 input[type="search"],
@@ -985,11 +1010,13 @@ textarea {
   color: var(--text);
   font-family: inherit;
   font-size: 0.9rem;
-  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 input:focus, select:focus, textarea:focus {
-  outline: 2px solid var(--accent);
+  outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(27, 122, 78, 0.15);
 }
 .input-group {
   display: flex;
@@ -1190,6 +1217,39 @@ input:focus, select:focus, textarea:focus {
 .btn-primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
+}
+.btn-secondary {
+  background: var(--card-elevated);
+  border-color: var(--border);
+  color: var(--text);
+}
+.btn-secondary:hover {
+  background: var(--card-hover);
+  border-color: var(--border-strong);
+}
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+}
+.btn-link:hover {
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.btn-link.small {
+  font-size: 0.82rem;
 }
 .btn-danger {
   background: var(--expense);
@@ -1692,6 +1752,271 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
+/* ---------- Auth Screen (Modern Ledger Auth Card) ---------- */
+body.is-auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+body.is-auth .app,
+.app:has(.auth-wrap) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 32px 16px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box;
+  position: relative;
+}
+body.is-auth .top,
+.app:has(.auth-wrap) .top {
+  position: absolute;
+  top: max(env(safe-area-inset-top, 0px) + 16px, 16px);
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  pointer-events: none;
+  z-index: 20;
+}
+body.is-auth .top .brand,
+.app:has(.auth-wrap) .top .brand {
+  display: none !important;
+}
+body.is-auth .top #headerExtra,
+.app:has(.auth-wrap) .top #headerExtra {
+  margin-left: auto;
+  pointer-events: auto;
+  display: flex;
+  gap: 8px;
+}
+body.is-auth main,
+.app:has(.auth-wrap) main {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+}
+.auth-wrap {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.auth-card {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 36px 30px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+@media (max-width: 480px) {
+  body.is-auth .app,
+  .app:has(.auth-wrap) {
+    padding: max(env(safe-area-inset-top, 0px) + 64px, 64px) 16px 32px 16px !important;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  body.is-auth .top,
+  .app:has(.auth-wrap) .top {
+    top: max(env(safe-area-inset-top, 0px) + 16px, 16px);
+    left: 16px;
+    right: 16px;
+  }
+  .auth-card {
+    padding: 28px 20px;
+    border-radius: var(--radius);
+  }
+}
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 22px;
+}
+.auth-brand-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--card-elevated);
+  border: 1px solid var(--border-strong);
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+  display: block;
+}
+.auth-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.auth-sub {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  text-align: center;
+  max-width: 320px;
+}
+.auth-card .seg {
+  margin-bottom: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  display: flex;
+}
+.auth-card .seg button {
+  flex: 1;
+  height: 38px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: calc(var(--radius-sm) - 2px);
+  border: 1px solid transparent;
+  background: transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.auth-card .seg button[aria-pressed="false"]:hover {
+  color: var(--text);
+}
+.auth-card .seg button[aria-pressed="true"] {
+  background: var(--card);
+  color: var(--text);
+  font-weight: 700;
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+.auth-form .field {
+  margin-bottom: 14px;
+}
+.auth-form .field span {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  display: block;
+}
+.pass-field-wrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.pass-field-wrap input {
+  padding-right: 42px !important;
+  width: 100%;
+}
+.pass-toggle-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+}
+.pass-toggle-btn:hover {
+  color: var(--text);
+}
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+  background: var(--bg);
+}
+.auth-form input[type="email"]:focus,
+.auth-form input[type="password"]:focus {
+  background: var(--card);
+}
+.auth-submit-btn {
+  margin-top: 8px;
+  min-height: 46px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0 16px 0;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+}
+.auth-divider span {
+  padding: 0 12px;
+}
+.auth-local-btn {
+  width: 100%;
+  min-height: 42px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.auth-local-btn:hover {
+  background: var(--card-hover);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -1768,6 +2093,11 @@ input:focus, select:focus, textarea:focus {
 "use strict";
 
 const ICONS = {
+  database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  eye: '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>',
   dashboard: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
   transaksi: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8H8"/><path d="M16 12H8"/><path d="M12 16H8"/>',
   budget: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
@@ -2215,7 +2545,7 @@ const I18N = {
     auth_pass_placeholder: "Minimal 6 karakter",
     btn_auth_submit_in: "Masuk ke Duitku",
     btn_auth_submit_up: "Buat Akun Baru",
-    btn_auth_try_local: "Atau coba Mode Lokal (tanpa login)",
+    btn_auth_try_local: "Coba Mode Lokal (tanpa login)",
     insight_over: "{name} {pct}% di atas budget ({spent} dari {budget}).",
     insight_lower: "Pengeluaran bulan ini {pct}% lebih rendah dari bulan lalu ({curr} vs {prev}). Bagus!",
     insight_higher: "Pengeluaran bulan ini {pct}% lebih tinggi dari bulan lalu ({curr} vs {prev}). Perhatikan jajan ya!",
@@ -2385,7 +2715,7 @@ const I18N = {
     auth_pass_placeholder: "At least 6 characters",
     btn_auth_submit_in: "Sign In to Duitku",
     btn_auth_submit_up: "Create New Account",
-    btn_auth_try_local: "Or try Local Mode (without login)",
+    btn_auth_try_local: "Try Local Mode (without login)",
     insight_over: "{name} is {pct}% over budget ({spent} of {budget}).",
     insight_lower: "Spending this month is {pct}% lower than last month ({curr} vs {prev}). Great job!",
     insight_higher: "Spending this month is {pct}% higher than last month ({curr} vs {prev}). Watch your spending!",
@@ -2482,7 +2812,7 @@ function updateHeaderExtra() {
   if (!host) return;
   clear(host);
   const isEn = state.lang === "en";
-  const btn = el("button", {
+  const langBtn = el("button", {
     type: "button",
     class: "lang-pill",
     "aria-label": isEn ? "Ganti ke Bahasa Indonesia" : "Switch to English",
@@ -2492,7 +2822,25 @@ function updateHeaderExtra() {
     el("span", { style: "opacity:0.35;margin:0 2px;", text: "/" }),
     el("span", { class: isEn ? "lang-active" : "", text: "EN" })
   ]);
-  host.append(btn);
+
+  let currentTheme = "auto";
+  try { currentTheme = localStorage.getItem("duitku.theme") || "auto"; } catch {}
+  const isDark = currentTheme === "dark" || (currentTheme === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const themeBtn = el("button", {
+    type: "button",
+    class: "lang-pill",
+    "aria-label": isDark ? (isEn ? "Switch to light theme" : "Ganti ke tema terang") : (isEn ? "Switch to dark theme" : "Ganti ke tema gelap"),
+    style: "width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;",
+    onclick: () => {
+      const nextTheme = isDark ? "light" : "dark";
+      applyTheme(nextTheme);
+      updateHeaderExtra();
+    }
+  }, [
+    icon(isDark ? "sun" : "moon", 16)
+  ]);
+
+  host.append(langBtn, themeBtn);
 }
 
 function updateNavLabels() {
@@ -3334,6 +3682,7 @@ function doneGoals(kind) {
 /* ---------- navigation & rendering ---------- */
 function render() {
   main.classList.remove("auth-mode");
+  document.body.classList.remove("is-auth");
   updateHeaderExtra();
   updateNavLabels();
   document.querySelectorAll(".nav button").forEach(b => {
@@ -5220,6 +5569,7 @@ async function wipeAllCloud() {
 function renderAuth() {
   clear(main);
   main.classList.add("auth-mode");
+  document.body.classList.add("is-auth");
   updateHeaderExtra();
   $("#fabCatat").hidden = true;
   $("#mainNav").style.display = "none";
@@ -5233,9 +5583,9 @@ function renderAuth() {
   const brandImg = el("img", {
     src: "icon.svg",
     alt: "Duitku",
-    width: "64",
-    height: "64",
-    style: "border-radius:18px;box-shadow:0 10px 28px -4px rgba(16,185,129,0.45);margin-bottom:12px;display:inline-block;"
+    width: "56",
+    height: "56",
+    class: "auth-brand-icon"
   });
   const brand = el("div", { class: "auth-brand" }, [
     brandImg,
@@ -5244,7 +5594,7 @@ function renderAuth() {
   ]);
   card.append(brand);
 
-  const tabs = el("div", { class: "seg full-width", style: "margin-bottom:18px;" });
+  const tabs = el("div", { class: "seg full-width" });
   const btnMasuk = el("button", { type: "button", text: t("auth_tab_in"), "aria-pressed": "true" });
   const btnDaftar = el("button", { type: "button", text: t("auth_tab_up"), "aria-pressed": "false" });
   tabs.append(btnMasuk, btnDaftar);
@@ -5259,10 +5609,26 @@ function renderAuth() {
     btnDaftar.setAttribute("aria-pressed", tab === "daftar" ? "true" : "false");
 
     const email = el("input", { type: "email", autocomplete: "username", placeholder: "nama@kampus.ac.id", required: "true" });
+
+    let showPass = false;
+    const passWrap = el("div", { class: "pass-field-wrap" });
     const pass = el("input", { type: "password", autocomplete: tab === "masuk" ? "current-password" : "new-password", placeholder: t("auth_pass_placeholder"), required: "true", minlength: "6" });
+    const togglePassBtn = el("button", {
+      type: "button",
+      class: "pass-toggle-btn",
+      "aria-label": state.lang === "en" ? "Show password" : "Lihat kata sandi",
+      onclick: () => {
+        showPass = !showPass;
+        pass.type = showPass ? "text" : "password";
+        clear(togglePassBtn);
+        togglePassBtn.append(icon(showPass ? "eyeOff" : "eye", 16));
+        togglePassBtn.setAttribute("aria-label", showPass ? (state.lang === "en" ? "Hide password" : "Sembunyikan kata sandi") : (state.lang === "en" ? "Show password" : "Lihat kata sandi"));
+      }
+    }, [icon("eye", 16)]);
+    passWrap.append(pass, togglePassBtn);
 
     const submitBtn = el("button", {
-      type: "button", class: "btn btn-primary full-width", style: "margin-top:12px;min-height:48px;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:8px;",
+      type: "button", class: "btn btn-primary full-width auth-submit-btn",
       text: tab === "masuk" ? t("btn_auth_submit_in") : t("btn_auth_submit_up"),
       onclick: async () => {
         if (!email.value.includes("@")) return toast(state.lang === "en" ? "Enter a valid email." : "Isi email yang valid.");
@@ -5299,20 +5665,52 @@ function renderAuth() {
       }
     });
 
+    const divider = el("div", { class: "auth-divider" }, [
+      el("span", { text: state.lang === "en" ? "or" : "atau" })
+    ]);
+    const localBtn = el("button", {
+      type: "button", class: "auth-local-btn",
+      onclick: () => {
+        enterLocal();
+        $("#mainNav").style.display = "";
+        render();
+      }
+    }, [
+      icon("database", 16),
+      el("span", { text: t("btn_auth_try_local") })
+    ]);
+
+    const forgotWrap = el("div", { style: "display:flex;justify-content:flex-end;margin:-4px 0 12px 0;" });
+    if (tab === "masuk") {
+      const forgotBtn = el("button", {
+        type: "button",
+        class: "btn-link text-xs",
+        style: "font-size:0.8rem;color:var(--text-muted);background:none;border:none;padding:4px 0;cursor:pointer;",
+        text: state.lang === "en" ? "Forgot password?" : "Lupa kata sandi?",
+        onclick: async () => {
+          const emailVal = email.value.trim();
+          if (!emailVal || !emailVal.includes("@")) {
+            return toast(state.lang === "en" ? "Enter your email first." : "Isi email Anda terlebih dahulu.");
+          }
+          try {
+            const { error } = await state.sb.auth.resetPasswordForEmail(emailVal);
+            if (error) throw error;
+            toast(state.lang === "en" ? "Password reset link sent to your email!" : "Tautan reset kata sandi dikirim ke email Anda!");
+          } catch (err) {
+            toast(authMsg(err));
+          }
+        }
+      });
+      forgotWrap.append(forgotBtn);
+    }
+
     formBox.append(
       field(t("field_email"), email),
-      field(t("field_password"), pass),
+      field(t("field_password"), passWrap),
+      tab === "masuk" ? forgotWrap : el("div", { style: "height:4px;" }),
       submitBtn,
-      el("div", { style: "text-align:center;margin-top:16px;" }, [
-        el("button", {
-          type: "button", class: "btn-link small", text: t("btn_auth_try_local"),
-          onclick: () => {
-            enterLocal();
-            $("#mainNav").style.display = "";
-            render();
-          }
-        })
-      ])
+      divider,
+      localBtn
     );
   }
 

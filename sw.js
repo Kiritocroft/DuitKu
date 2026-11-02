@@ -1,8 +1,8 @@
-// Duitku Service Worker v12
+// Duitku Service Worker v14
 // HTML & config: network-first (always fresh, offline fallback).
 // Assets & fonts: cache-first (offline-ready).
 
-const CACHE_NAME = 'duitku-v12';
+const CACHE_NAME = 'duitku-v14';
 const APP_SHELL = [
   '/',
   '/index.html',
