@@ -1,13 +1,29 @@
-// Duitku Service Worker v7
-// HTML: network-first (always fresh, offline fallback).
-// Assets (config/icons/manifest): cache-first (rarely change).
+// Duitku Service Worker v11
+// HTML & config: network-first (always fresh, offline fallback).
+// Assets & fonts: cache-first (offline-ready).
 
-const CACHE_NAME = 'duitku-v9';
+const CACHE_NAME = 'duitku-v11';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/config.js',
   '/wallet.js',
+  '/vendor/supabase.min.js',
+  '/fonts/fonts.css',
+  '/fonts/JetBrainsMono-500-latin.woff2',
+  '/fonts/JetBrainsMono-500-latin-ext.woff2',
+  '/fonts/JetBrainsMono-600-latin.woff2',
+  '/fonts/JetBrainsMono-600-latin-ext.woff2',
+  '/fonts/JetBrainsMono-700-latin.woff2',
+  '/fonts/JetBrainsMono-700-latin-ext.woff2',
+  '/fonts/PlusJakartaSans-400-latin.woff2',
+  '/fonts/PlusJakartaSans-400-latin-ext.woff2',
+  '/fonts/PlusJakartaSans-500-latin.woff2',
+  '/fonts/PlusJakartaSans-500-latin-ext.woff2',
+  '/fonts/PlusJakartaSans-600-latin.woff2',
+  '/fonts/PlusJakartaSans-600-latin-ext.woff2',
+  '/fonts/PlusJakartaSans-700-latin.woff2',
+  '/fonts/PlusJakartaSans-700-latin-ext.woff2',
   '/manifest.webmanifest',
   '/icon.svg',
   '/icon-192.png',
@@ -46,14 +62,14 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // HTML: network-first so updates always propagate (offline fallback to cache)
-  if (url.pathname === '/' || url.pathname === '/index.html') {
+  // HTML & config: network-first so updates propagate immediately (offline fallback to cache)
+  if (url.pathname === '/' || url.pathname === '/index.html' || url.pathname === '/config.js') {
     e.respondWith(networkFirst(e.request));
     return;
   }
 
-  // Local assets: cache-first (rarely change)
-  if (isAppShell(url)) {
+  // Local assets & fonts: cache-first
+  if (isAppShell(url) || url.pathname.startsWith('/fonts/') || url.pathname.startsWith('/vendor/')) {
     e.respondWith(cacheFirst(e.request));
     return;
   }

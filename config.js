@@ -1,5 +1,6 @@
 // Konfigurasi Supabase untuk Duitku
 // Nilai otomatis dikonfigurasi via Supabase Management API
+// Hanya berisi URL project dan anon key publik. Akses data dikunci RLS di database.
 
 window.APP_CONFIG = {
   SUPABASE_URL: "https://ejtdkjkktpgbshsmmfwf.supabase.co",
