@@ -2261,16 +2261,27 @@ function setSync(type) {
 
 /* ---------- persistence ---------- */
 const STORAGE_PREFIX = "duitku.";
+// Every mode gets its own namespace. Local mode keeps the historic "duitku." keys,
+// each cloud account gets "duitku.u.<uuid>.", so one account can never read or
+// overwrite another account's cache (or the local sandbox) on the same device.
+function scopePrefix() {
+  return state.mode === "cloud" && state.user && state.user.id
+    ? STORAGE_PREFIX + "u." + state.user.id + "."
+    : STORAGE_PREFIX;
+}
+function scopeGet(key) {
+  try { return localStorage.getItem(scopePrefix() + key); } catch { return null; }
+}
 function loadLocal() {
   try {
-    const c = localStorage.getItem(STORAGE_PREFIX + "categories");
-    const txs = localStorage.getItem(STORAGE_PREFIX + "transactions");
-    const b = localStorage.getItem(STORAGE_PREFIX + "budgets");
-    const g = localStorage.getItem(STORAGE_PREFIX + "goals");
-    const a = localStorage.getItem(STORAGE_PREFIX + "allowance");
-    const dsl = localStorage.getItem(STORAGE_PREFIX + "dailySpendLimit");
-    const p = localStorage.getItem(STORAGE_PREFIX + "pending");
-    const le = localStorage.getItem(STORAGE_PREFIX + "ledgerEvents");
+    const c = scopeGet("categories");
+    const txs = scopeGet("transactions");
+    const b = scopeGet("budgets");
+    const g = scopeGet("goals");
+    const a = scopeGet("allowance");
+    const dsl = scopeGet("dailySpendLimit");
+    const p = scopeGet("pending");
+    const le = scopeGet("ledgerEvents");
     state.ledgerEvents = le ? JSON.parse(le) : [];
     state.categories = c ? JSON.parse(c) : [];
     state.transactions = txs ? JSON.parse(txs) : [];
@@ -2281,20 +2292,60 @@ function loadLocal() {
     state.pending = p ? JSON.parse(p) : [];
     seedIfEmpty();
   } catch (err) {
+    state.ledgerEvents = [];
+    state.categories = [];
+    state.transactions = [];
+    state.budgets = [];
+    state.goals = [];
+    state.pending = [];
     seedIfEmpty();
   }
 }
 function saveLocal() {
   try {
-    localStorage.setItem(STORAGE_PREFIX + "categories", JSON.stringify(state.categories));
-    localStorage.setItem(STORAGE_PREFIX + "transactions", JSON.stringify(state.transactions));
-    localStorage.setItem(STORAGE_PREFIX + "budgets", JSON.stringify(state.budgets));
-    localStorage.setItem(STORAGE_PREFIX + "goals", JSON.stringify(state.goals));
-    localStorage.setItem(STORAGE_PREFIX + "allowance", JSON.stringify(state.allowance));
-    localStorage.setItem(STORAGE_PREFIX + "dailySpendLimit", String(state.dailySpendLimit));
-    localStorage.setItem(STORAGE_PREFIX + "pending", JSON.stringify(state.pending));
-    localStorage.setItem(STORAGE_PREFIX + "ledgerEvents", JSON.stringify(state.ledgerEvents));
+    const P = scopePrefix();
+    localStorage.setItem(P + "categories", JSON.stringify(state.categories));
+    localStorage.setItem(P + "transactions", JSON.stringify(state.transactions));
+    localStorage.setItem(P + "budgets", JSON.stringify(state.budgets));
+    localStorage.setItem(P + "goals", JSON.stringify(state.goals));
+    localStorage.setItem(P + "allowance", JSON.stringify(state.allowance));
+    localStorage.setItem(P + "dailySpendLimit", String(state.dailySpendLimit));
+    localStorage.setItem(P + "pending", JSON.stringify(state.pending));
+    localStorage.setItem(P + "ledgerEvents", JSON.stringify(state.ledgerEvents));
   } catch (err) {}
+}
+function clearScope(prefix) {
+  try {
+    const P = prefix || scopePrefix();
+    const GLOBAL_KEYS = new Set(["lang", "theme", "sound", "auth"]);
+    Object.keys(localStorage)
+      .filter(k => k.startsWith(P))
+      .filter(k => {
+        if (P !== STORAGE_PREFIX) return true; // a cloud scope owns everything under it
+        const rest = k.slice(P.length);
+        // "duitku." is a prefix of "duitku.u.<id>." and "duitku.auth"; wiping the
+        // local sandbox must never touch cloud account caches, the session or prefs.
+        if (rest.startsWith("u.")) return false;
+        if (rest.startsWith("uploaded.")) return false;
+        return !GLOBAL_KEYS.has(rest);
+      })
+      .forEach(k => localStorage.removeItem(k));
+  } catch {}
+}
+function clearLocalData() {
+  clearScope(STORAGE_PREFIX);
+  state.categories = [];
+  state.transactions = [];
+  state.budgets = [];
+  state.goals = [];
+  state.ledgerEvents = [];
+  state.pending = [];
+  state.allowance = { amount: 20000, enabled: true, lastClaim: "" };
+  state.dailySpendLimit = 50000;
+  loadLocal();
+  saveLocal();
+  render();
+  toast(state.lang === "en" ? "Local data cleared." : "Data mode lokal sudah dihapus.");
 }
 
 function catById(id) {
@@ -2335,6 +2386,14 @@ function hideSplash() {
 let isBootingCloud = false;
 async function bootCloud() {
   // 1. Instant render from local cache (0ms perceived wait)
+  state.mode = "cloud";
+  // Never carry another scope's rows into this account's first paint.
+  state.categories = [];
+  state.transactions = [];
+  state.budgets = [];
+  state.goals = [];
+  state.ledgerEvents = [];
+  state.pending = [];
   loadLocal();
   $("#mainNav").style.display = "";
   if (state.screen === "auth") state.screen = "dashboard";
@@ -2374,12 +2433,14 @@ async function initBackend() {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "duitku.auth" },
     });
     const { data: { session } } = await state.sb.auth.getSession();
-    if (session?.user) {
-      try { localStorage.removeItem("duitku_local_preferred"); } catch {}
+    const localPreferred = localStorage.getItem("duitku_local_preferred") === "1";
+    if (localPreferred) {
+      // An existing cloud session must never pull the app out of the local sandbox.
+      // Only an explicit "Masuk / Sinkron ke Cloud" tap may switch modes.
+      enterLocal();
+    } else if (session?.user) {
       state.user = session.user;
       bootCloud();
-    } else if (localStorage.getItem("duitku_local_preferred") === "1") {
-      enterLocal();
     } else {
       renderAuth();
       hideSplash();
@@ -2387,7 +2448,14 @@ async function initBackend() {
     state.sb.auth.onAuthStateChange(async (event, sess) => {
       if (event === "SIGNED_OUT") {
         state.user = null;
-        teardownRealtime();
+        state.mode = "cloud";
+        state.screen = "auth";
+        state.channel && teardownRealtime();
+        state.categories = [];
+        state.transactions = [];
+        state.budgets = [];
+        state.goals = [];
+        state.ledgerEvents = [];
         renderAuth();
         hideSplash();
         return;
@@ -2430,6 +2498,25 @@ function enterLocal(msg) {
   hideSplash();
   render();
   handleUrlActions();
+}
+
+function openCloudAuth() {
+  if (!state.sb || !cfg().SUPABASE_URL) {
+    toast(state.lang === "en" ? "Cloud sync is not configured." : "Sinkronisasi cloud belum dikonfigurasi.");
+    return;
+  }
+  try { localStorage.removeItem("duitku_local_preferred"); } catch {}
+  teardownRealtime();
+  state.mode = "cloud";
+  state.user = null;
+  state.screen = "auth";
+  // Keep the local sandbox intact on disk; only the active view switches.
+  state.categories = [];
+  state.transactions = [];
+  state.budgets = [];
+  state.goals = [];
+  state.ledgerEvents = [];
+  render();
 }
 
 function showBanner(text, action) {
@@ -2522,17 +2609,47 @@ async function pushSeedCategories() {
 }
 
 async function offerUpload() {
+  if (!state.user) return;
+  const flag = STORAGE_PREFIX + "uploaded." + state.user.id;
   let localTxs = [];
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + "transactions");
     localTxs = raw ? JSON.parse(raw) : [];
   } catch {}
-  if (localTxs.length && !state.transactions.length) {
-    showBanner("Ada data lokal di perangkat ini. Upload ke akun cloud?", {
-      label: t("btn_upload_local"),
-      fn: () => uploadAllLocal(),
-    });
-  }
+  if (!localTxs.length || state.transactions.length || localStorage.getItem(flag)) return;
+  showBanner(
+    state.lang === "en"
+      ? "Local-mode data exists on this device (separate from cloud accounts)."
+      : "Ada data Mode Lokal di perangkat ini (terpisah dari akun cloud).",
+    {
+      label: state.lang === "en" ? "Review & upload" : "Tinjau & upload",
+      fn: () => reviewLocalUpload(localTxs.length),
+    }
+  );
+}
+
+function reviewLocalUpload(txCount) {
+  const isEn = state.lang === "en";
+  openModal(isEn ? "Upload local data?" : "Upload data Mode Lokal?", (body, close) => {
+    body.append(
+      el("p", {
+        class: "muted small",
+        text: isEn
+          ? `${txCount} transactions from Local Mode will be copied into ${state.user.email || "this account"}. Local Mode keeps its own copy.`
+          : `${txCount} transaksi dari Mode Lokal akan disalin ke ${state.user.email || "akun ini"}. Mode Lokal tetap punya salinannya sendiri.`
+      }),
+      el("div", { style: "display:flex;gap:8px;margin-top:14px;" }, [
+        el("button", { type: "button", class: "btn btn-ghost", text: isEn ? "Cancel" : "Batal", onclick: close }),
+        el("button", {
+          type: "button",
+          class: "btn btn-primary",
+          style: "flex:1;",
+          text: isEn ? "Upload" : "Upload",
+          onclick: async () => { close(); await uploadAllLocal(); }
+        })
+      ])
+    );
+  });
 }
 
 async function uploadAllLocal() {
@@ -2544,10 +2661,12 @@ async function uploadAllLocal() {
     if (c.length) {
       await state.sb.from("categories").upsert(c.map(x => ({ ...x, user_id: state.user.id })), { onConflict: "id" });
     }
-    if (localTxs.length) await insertChunked("transactions", localTxs.map(x => ({ ...x, user_id: state.user.id })));
+    if (localTxs.length) await state.sb.from("transactions").upsert(localTxs.map(x => ({ ...x, user_id: state.user.id })), { onConflict: "id" });
     if (b.length) {
       await state.sb.from("budgets").upsert(b.map(x => ({ ...x, user_id: state.user.id })), { onConflict: "user_id,month,category_id" });
     }
+    try { localStorage.setItem(STORAGE_PREFIX + "uploaded." + state.user.id, "1"); } catch {}
+    showBanner("");
     toast("Data lokal berhasil di-upload.");
     await loadAllCloud();
     render();
@@ -2667,7 +2786,6 @@ async function cloudWrite(table, op, row /* was t */, match) {
 function strip(r) {
   const o = { ...r };
   delete o.user_id;
-  if (r && r.type && r.category_id) delete o.wallet;
   return o;
 }
 
@@ -3905,19 +4023,46 @@ function renderSettings() {
       }})
     );
   } else {
+    const clearBtn = el("button", {
+      type: "button",
+      class: "btn btn-ghost danger btn-sm",
+      style: "margin-top:8px;",
+      text: state.lang === "en" ? "Clear local data" : "Hapus data mode lokal",
+    });
+    let armed = false;
+    let timer = 0;
+    clearBtn.onclick = () => {
+      if (!armed) {
+        armed = true;
+        clearBtn.textContent = state.lang === "en" ? "Tap again to confirm" : "Ketuk lagi untuk yakin";
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          armed = false;
+          clearBtn.textContent = state.lang === "en" ? "Clear local data" : "Hapus data mode lokal";
+        }, 5000);
+        return;
+      }
+      clearTimeout(timer);
+      armed = false;
+      clearLocalData();
+    };
     acc.append(
       el("p", { class: "muted small", text: t("settings_local_info") }),
+      el("p", {
+        class: "muted small",
+        style: "margin-top:6px;",
+        text: state.lang === "en"
+          ? "Local mode has its own storage. Cloud account data never appears here."
+          : "Mode lokal punya penyimpanan sendiri. Data akun cloud tidak akan muncul di sini."
+      }),
       el("button", {
         type: "button",
         class: "btn btn-outline btn-sm",
         style: "margin-top:8px;",
         text: state.lang === "en" ? "Login or Sync to Cloud" : "Masuk / Sinkron ke Cloud",
-        onclick: () => {
-          try { localStorage.removeItem("duitku_local_preferred"); } catch {}
-          state.screen = "auth";
-          render();
-        }
-      })
+        onclick: openCloudAuth
+      }),
+      clearBtn
     );
   }
   main.append(acc);

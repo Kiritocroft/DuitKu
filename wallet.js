@@ -11,10 +11,18 @@
     else if (e.kind === 'expense') next[e.wallet] -= amount;
     return next;
   }
+  function isWallet(w) { return w === 'cash' || w === 'DANA'; }
   function balances(transactions = [], events = []) {
     let b = { ...OPENING, receivable: 0 };
     const linked = new Set(events.filter(e => e.tx_id).map(e => e.tx_id));
-    for (const tx of transactions) if (!linked.has(tx.id)) b = applyEvent(b, { kind: tx.type, wallet: 'cash', amount: tx.amount });
+    for (const tx of transactions) {
+      // Rows without a wallet predate the ledger: their net effect is already
+      // baked into the confirmed opening snapshot, so counting them again
+      // inflates cash (189k report + 189k legacy = 378k wallets).
+      if (!isWallet(tx.wallet)) continue;
+      if (linked.has(tx.id)) continue;
+      b = applyEvent(b, { kind: tx.type, wallet: tx.wallet, amount: tx.amount });
+    }
     const orderedEvents = [...events].sort((a, c) => (a.date || '').localeCompare(c.date || '') || (a.created_at || '').localeCompare(c.created_at || ''));
     for (const e of orderedEvents) b = applyEvent(b, e);
     return { ...b, total: b.cash + b.DANA };

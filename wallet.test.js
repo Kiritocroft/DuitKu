@@ -14,13 +14,22 @@ test('wallet events reconcile transfer, loan, repayment and adjustment', () => {
   ];
   assert.deepEqual(balances([], events), { cash: 59000, DANA: 126000, receivable: 3000, total: 185000 });
 });
-test('legacy transactions and new regular transactions affect cash/DANA once', () => {
+test('legacy wallet-less transactions stay inside the opening snapshot, not on top of it', () => {
   const transactions = [
-    { id: 'legacy', type: 'income', amount: 1000 },
-    { id: 'new', type: 'expense', amount: 300 },
+    { id: 'legacy-in', type: 'income', amount: 200000 },
+    { id: 'legacy-out', type: 'expense', amount: 11000 },
+    { id: 'new-dana', type: 'expense', amount: 300, wallet: 'DANA' },
   ];
-  const events = [eventForTransaction(transactions[1], 'DANA')];
-  assert.deepEqual(balances(transactions, events), { cash: 76000, DANA: 113700, receivable: 0, total: 189700 });
+  assert.deepEqual(balances(transactions, []), { cash: 75000, DANA: 113700, receivable: 0, total: 188700 });
+});
+test('new regular transactions dated in the past still adjust their wallet', () => {
+  const transactions = [{ id: 'old-but-wallet', type: 'income', amount: 4000, wallet: 'cash', date: '2020-01-01' }];
+  assert.deepEqual(balances(transactions, []), { cash: 79000, DANA: 114000, receivable: 0, total: 193000 });
+});
+test('a transaction linked to a ledger event is never counted twice', () => {
+  const tx = { id: 'dup', type: 'expense', amount: 500, wallet: 'cash' };
+  const events = [eventForTransaction(tx, 'cash')];
+  assert.deepEqual(balances([tx], events), { cash: 74500, DANA: 114000, receivable: 0, total: 188500 });
 });
 test('reconciliation deltas allow upward and downward corrections', () => {
   const events = [
