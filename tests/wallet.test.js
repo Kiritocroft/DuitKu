@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { balances, applyEvent, eventForTransaction } = require('./wallet.js');
+const { balances, applyEvent, eventForTransaction } = require('../wallet.js');
 
 test('starts with confirmed cash and DANA opening balances', () => {
   assert.deepEqual(balances([], []), { cash: 75000, DANA: 114000, receivable: 0, total: 189000 });

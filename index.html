@@ -2575,7 +2575,7 @@ async function loadAllCloud() {
     try {
       walletRows = await pageAll("ledger_events", "*", "date", false);
     } catch (err) {
-      console.warn("Wallet ledger not loaded (run migration_v5.sql):", err.message || err);
+      console.warn("Wallet ledger not loaded (run supabase/migrations/05_ledger_events.sql):", err.message || err);
     }
     state.categories = cats;
     state.transactions = txs;

@@ -1,132 +1,113 @@
-# Duitku — Student Cash Balance & Finance Tracker
+# Duitku
 
-A static, zero-build personal finance tracker designed for college students. Track your **cash balance (saldo)**, claim a **daily allowance**, save toward a **wishlist**, and manage **debts** — all synced in real time between your phone and laptop via Supabase.
+Aplikasi web pencatat keuangan harian untuk mahasiswa. Dibuat ringan tanpa build step atau framework besar (hanya vanilla HTML, CSS, dan JavaScript). Bisa dipakai langsung di browser HP maupun laptop, mendukung mode offline (PWA), dan data tersinkron antar perangkat via Supabase.
 
----
-
-## Key Features
-
-- **Wallet Split (Cash + DANA)**: Opening balances default to **Rp 75.000 cash + Rp 114.000 DANA = Rp 189.000**. Regular income/expense picks a wallet, manual transfer moves money between wallets, lending cash creates a receivable, repayment credits the chosen wallet without adding report income, and reconciliation corrects a wallet to the real balance. Legacy transactions without a wallet are counted as cash and stay income/expense only.
-- **Balance-First Model**: The dashboard shows your total cash balance (`saldo = pemasukan − pengeluaran`), not a monthly budget. Log income once (e.g. 131k) and it becomes your balance; each expense reduces it.
-- **Daily Allowance (+Rp 20.000)**: Set a daily amount (default Rp 20.000). One tap on **"Klaim Uang Saku Hari Ini"** adds it to your balance — perfect for students who get a fixed allowance each campus day.
-- **Cash Runway Insight**: Smart college burn rate analyzer on your dashboard showing average daily spend, health badge (Sangat Sehat / Cukup Aman / Waspada), and days of runway left with or without daily allowance.
-- **Quick Logging with Student Presets**: Quick amount chips (`+5rb`, `+10rb`, `+20rb`, `+50rb`, `+100rb`, `C`) and 1-tap student presets (`🍜 Makan 15rb`, `☕ Kopi 20rb`, `⛽ Bensin 20rb`, `🖨️ Print 5rb`, `🛒 Jajan 10rb`).
-- **Tactile Audio & Haptics Engine**: Native Web Audio API sound synthesizer (coin chimes, soft pops) paired with `navigator.vibrate` haptic feedback, fully toggleable in settings.
-- **Wishlist & Debt Goals with ETA**: Add a target (e.g. "Baju Jersey — 175k"). A progress bar shows how close your balance is, along with an automatic day-count ETA based on your active daily allowance. When your saldo reaches the target, tap **"Realisasikan"** (or **"Bayar Utang"**) to pay it — your balance drops accordingly and the goal is marked done.
-- **PWA Quick Action Shortcuts**: Homescreen shortcuts for "Catat Transaksi" (`/?action=newtx`) and "Klaim Uang Saku" (`/?action=claim`) for immediate 1-tap actions.
-- **Dual Mode (Local & Cloud)**: Automatically stores data in `localStorage` when unconfigured or offline; seamlessly upgrades to cloud storage when Supabase credentials are provided in `config.js`. Retains local-preferred session memory.
-- **Reliable Local-First Sync**: Every edit is written locally first and queued to Supabase in the background — no manual refresh, no lost data, works offline and catches up on reconnect.
-- **Bilingual Interface**: Seamless toggle between **Bahasa Indonesia** and **English**.
-- **CSV & V2 JSON Import/Export**: RFC 4180 compliant CSV parser with delimiter auto-detection, column mapping, duplicate detection, and full v2 JSON backup/restore (including goals & allowance settings).
-- **PWA + Offline**: Installable to the home screen with luxury emerald maskable icons & native splash loader. App shell cached via Service Worker v8 (network-first for HTML).
+Aplikasi aktif: [duitku-orpin.vercel.app](https://duitku-orpin.vercel.app)
 
 ---
 
-## Setup Guide
+## Masalah yang Diselesaikan
 
-### 1. Create a Supabase Project
-1. Go to [supabase.com](https://supabase.com) and create a free account.
-2. Click **New Project**, name it (e.g., `duitku`), choose a region close to you (e.g., `Singapore / ap-southeast-1`), set a strong database password, and click **Create new project**.
+Kebanyakan aplikasi keuangan hanya menghitung satu angka total bulanan. Dalam kehidupan mahasiswa sehari-hari, polanya berbeda:
+- Uang terbagi di dua tempat utama: uang fisik (Tunai) dan saldo digital (DANA).
+- Sering ada transaksi pinjam-meminjam dengan teman. Uang yang dipinjamkan bukan pengeluaran biasa, melainkan piutang yang harus tercatat dan tidak mengurangi total kekayaan.
+- Uang saku sering diterima harian atau mingguan.
+- Ada target barang yang ingin dibeli (wishlist) atau utang yang perlu dicicil pelunasannya.
 
-### 2. Execute Database Schema (`schema.sql`, `migration_v4.sql`, then `migration_v5.sql`)
-1. In the Supabase dashboard sidebar, navigate to **SQL Editor**.
-2. Click **New query**, then copy the entire content of `schema.sql`.
-3. Paste into the editor and click **Run**. This creates the core tables (`categories`, `transactions`, `budgets`), timestamp triggers, indexes, Row Level Security (RLS) policies, and enables the Realtime publication.
-4. Run `migration_v4.sql` the same way. This adds the balance-based tables:
-   - `goals` — wishlist & debts (`kind`: `wish`/`debt`, `status`: `active`/`done`, `amount`, `paid`, `due`, `tx_id`).
-   - `app_settings` — per-user daily allowance config (amount, enabled, last claim date).
-   - `transactions.source` — marker column (`''`, `allowance`, or `goal`).
-5. Run `migration_v5.sql` for the wallet ledger:
-   - `ledger_events` — wallet events (`kind`: `income`/`expense`/`transfer`/`lend`/`repayment`/`reconcile`, `wallet`, `to_wallet`, `amount`, `tx_id`) with RLS and Realtime enabled.
-   - Wallet opening balances stay client-side defaults, so existing income/expense rows are unchanged and treated as cash.
+Duitku dirancang khusus untuk alur tersebut.
 
-### 3. Configure Authentication
-1. Go to **Authentication** > **Providers** > **Email**.
-2. For convenient personal use, turn off **"Confirm email"** so you can sign in immediately after registration without email verification links.
-3. Click **Save**.
+---
 
-### 4. Configure `config.js`
-1. Go to **Project Settings** (gear icon in bottom-left) > **API**.
-2. Copy the following values:
-   - **Project URL**
-   - **anon / public key** (under *Project API keys*)
-3. Open `config.js` and paste your credentials:
+## Fitur Utama
+
+- **Pemisahan Saldo Tunai & DANA**: Catat pengeluaran langsung dari dompet yang sesuai, transfer saldo antar dompet, dan rekonsiliasi manual jika ada selisih uang fisik.
+- **Pencatatan Piutang**: Meminjamkan uang ke teman memotong saldo kas dan menambah saldo piutang. Ketika teman membayar kembali ke DANA atau tunai, saldo piutang berkurang tanpa tercatat sebagai pemasukan ganda pada laporan.
+- **Klaim Uang Saku Harian**: Tombol klaim satu ketukan untuk mencatat jatah harian (default Rp 20.000) agar tidak perlu input manual tiap pagi.
+- **Target Wishlist & Utang**: Atur target pembelian atau batas bayar utang lengkap dengan estimasi hari tercapai berdasarkan sisa uang saku harian.
+- **Mode Lokal & Cloud**: Bisa langsung dipakai tanpa login (data tersimpan di localStorage perangkat). Jika ingin data tersinkron antara HP dan laptop, cukup login akun Supabase. Cache tiap akun dan mode lokal terisolasi secara terpisah.
+- **PWA & Offline**: Mendukung pemasangan ke layar utama (Add to Home screen) di Android atau desktop, tetap bisa dibuka saat jaringan internet mati.
+- **Ekspor & Impor**: Dukungan ekspor/impor file CSV dan backup lengkap JSON.
+
+---
+
+## Struktur Folder
+
+```text
+.
+├── index.html              # Antarmuka, layout responsif, dan logika UI
+├── wallet.js               # Modul logika perhitungan saldo dompet dan piutang
+├── sw.js                   # Service worker untuk caching dan mode offline
+├── config.js               # Konfigurasi koneksi Supabase (URL & Anon Key)
+├── vercel.json             # Pengaturan security headers (CSP, frame-ancestors, dll)
+├── package.json            # Konfigurasi npm scripts untuk pengujian
+├── manifest.webmanifest    # Metadata PWA (ikon, nama aplikasi, shortcuts)
+│
+├── supabase/
+│   ├── schema.sql          # Skema database lengkap siap pakai (idempotent)
+│   └── migrations/         # Riwayat migrasi bertahap (01 s/d 06)
+│
+└── tests/
+    ├── wallet.test.js      # Unit test perhitungan saldo, transfer, dan piutang
+    └── storage-scope.test.js # Unit test isolasi data lokal vs akun cloud
+```
+
+---
+
+## Menjalankan di Komputer Lokal
+
+Karena tidak memerlukan proses build (*no build step*), aplikasi bisa langsung dijalankan dengan server statis apa saja:
+
+```bash
+# Menggunakan Python
+python -m http.server 8000
+
+# Atau menggunakan Node.js
+npx serve .
+```
+
+Buka peramban di `http://localhost:8000`.
+
+### Menjalankan Unit Test
+
+Pengujian menggunakan Node.js test runner bawaan:
+
+```bash
+npm test
+```
+
+---
+
+## Setup Supabase (Mode Sinkronisasi Cloud)
+
+Jika ingin mengaktifkan sinkronisasi otomatis antar perangkat:
+
+1. Buat proyek baru di [supabase.com](https://supabase.com).
+2. Buka menu **SQL Editor**, salin isi file `supabase/schema.sql`, lalu jalankan. Skrip ini akan membuat tabel (`categories`, `transactions`, `budgets`, `goals`, `app_settings`, `ledger_events`), mengatur trigger, mengaktifkan Row Level Security (RLS), dan mendaftarkan publication Realtime.
+3. Buka **Project Settings** > **API**, salin **Project URL** dan **anon public key**.
+4. Buka file `config.js` dan masukkan kedua nilai tersebut:
    ```javascript
    window.APP_CONFIG = {
-     SUPABASE_URL: "https://your-project-id.supabase.co",
+     SUPABASE_URL: "https://id-proyek-kamu.supabase.co",
      SUPABASE_ANON_KEY: "eyJhbGciOi..."
    };
    ```
-4. **Security Note**:
-   - The `anon` key is **safe to expose in frontend code** because database access is governed by PostgreSQL **Row Level Security (RLS)** — users can only view and mutate their own rows (`auth.uid() = user_id`).
-   - **NEVER** expose the `service_role` key in frontend code, as it bypasses all RLS checks.
+5. Di dashboard Supabase, buka menu **Authentication** > **URL Configuration**, lalu tambahkan URL domain aplikasi kamu pada kolom **Site URL** dan **Redirect URLs**.
 
-### 5. Push to GitHub
-Open your terminal in the project directory:
-```bash
-git add .
-git commit -m "feat: setup Duitku personal budget tracker"
-git branch -M main
-git remote add origin https://github.com/USERNAME/REPO_NAME.git
-git push -u origin main
-```
-
-### 6. Deploy on Vercel
-1. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
-2. Click **Add New...** > **Project**.
-3. Import your `DuitKu` repository.
-4. In the project configuration:
-   - **Framework Preset**: select **Other**.
-   - **Build and Output Settings**: leave blank (no build command, output directory root).
-5. Click **Deploy**. Your app will be live at `https://your-app.vercel.app` in seconds.
-
-### 7. Add Vercel URL to Supabase Auth
-1. In Supabase Dashboard, go to **Authentication** > **URL Configuration**.
-2. Under **Site URL**, enter your production Vercel domain (e.g., `https://your-app.vercel.app`).
-3. Under **Redirect URLs**, add `https://your-app.vercel.app/**`.
-4. Click **Save**.
-
-### 8. Install on Android (PWA / Add to Home screen)
-1. Open **Google Chrome** on your Android smartphone.
-2. Navigate to your Vercel URL.
-3. Log in with the same credentials used on your desktop.
-4. Tap the three dots menu in the top-right corner of Chrome > select **"Add to Home screen"** or **"Install app"**.
-5. The **Duitku** app icon will appear on your home screen and launch in standalone full-screen mode.
+*Catatan keamanan: Anon key aman diletakkan di frontend karena seluruh data dilindungi oleh aturan PostgreSQL Row Level Security (RLS) di mana setiap pengguna hanya dapat membaca dan mengubah baris datanya sendiri.*
 
 ---
 
-## Troubleshooting
+## Memasang di Android (PWA)
 
-1. **Data does not sync between mobile and laptop**:
-   - Ensure both devices are signed in to the **same email account**.
-   - Check the header sync indicator: it should display **"Synced"** / **"Tersinkron"**. If it shows "Offline", check your internet connection.
-   - Verify `schema.sql` and `migration_v5.sql` were executed completely and Realtime is enabled for `categories`, `transactions`, `budgets`, and `ledger_events`.
-   - If `migration_v5.sql` has not been run, wallet actions still work locally but `ledger_events` cloud writes fail silently (console: "Wallet cloud sync pending migration/config"). Run the migration to enable cross-device wallet sync.
-   - Switching tabs triggers a `visibilitychange` background sync to pull latest remote changes.
+1. Buka Chrome di HP Android dan akses alamat aplikasi.
+2. Ketuk ikon titik tiga di pojok kanan atas Chrome.
+3. Pilih **Tambahkan ke Layar Utama** (*Add to Home screen*) atau **Instal aplikasi**.
+4. Ikon Duitku akan muncul di menu HP dan berjalan dalam mode layar penuh seperti aplikasi native.
 
-2. **Login or Registration Fails**:
-   - Inspect the browser console (F12 on desktop).
-   - Ensure `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `config.js` have no trailing slashes or typo whitespaces.
-   - Verify that your Vercel URL is listed in Supabase **Site URL** and **Redirect URLs**.
-
-3. **Shortcut Icon does not appear on Xiaomi / Poco / Redmi (MIUI / HyperOS)**:
-   - MIUI / HyperOS blocks home screen shortcut creation by default.
-   - Go to phone **Settings** > **Apps** > **Manage Apps**.
-   - Select **Chrome**.
-   - Tap **Other permissions**.
-   - Enable **"Home screen shortcuts"** (green checkmark / *Allow*).
-   - Return to Chrome and tap **Add to Home screen** again.
+*(Untuk pengguna Xiaomi/Redmi/Poco dengan MIUI atau HyperOS: pastikan izin "Pintasan layar utama" untuk Google Chrome sudah diaktifkan di Pengaturan Aplikasi HP).*
 
 ---
 
-## Tests
+## Lisensi
 
-Wallet accounting math is covered by Node's built-in test runner:
-
-```bash
-node --test wallet.test.js
-```
-
-## License
-
-MIT License — Free to use, adapt, and build upon.
+[MIT License](LICENSE) — Bebas digunakan dan dikembangkan untuk kebutuhan pribadi maupun tugas.
