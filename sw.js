@@ -2,11 +2,12 @@
 // HTML: network-first (always fresh, offline fallback).
 // Assets (config/icons/manifest): cache-first (rarely change).
 
-const CACHE_NAME = 'duitku-v7';
+const CACHE_NAME = 'duitku-v8';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/config.js',
+  '/wallet.js',
   '/manifest.webmanifest',
   '/icon.svg',
   '/icon-192.png',

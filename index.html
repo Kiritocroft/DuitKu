@@ -18,6 +18,7 @@
 <meta name="apple-mobile-web-app-title" content="Duitku">
 <meta name="color-scheme" content="light dark">
 <script src="config.js"></script>
+<script src="wallet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" integrity="sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug" crossorigin="anonymous"></script>
 <style>
 :root {
@@ -1592,6 +1593,7 @@ const state = {
   transactions: [],
   budgets: [],
   goals: [],
+  ledgerEvents: [],
   allowance: { amount: 20000, enabled: true, lastClaim: "" },
   dailySpendLimit: 50000,
   screen: "dashboard",
@@ -1791,7 +1793,7 @@ const I18N = {
     insight_clean: "Belum ada cukup data pengeluaran untuk insight bulan ini.",
     nav_goals: "Target",
     saldo: "Saldo",
-    saldo_hero: "Saldo Tunai Kamu",
+    saldo_hero: "Saldo Laporan",
     saldo_empty: "Belum ada saldo. Catat pemasukan dulu (mis. uang saku / saldo awal).",
     kpi_allowance: "Uang Saku",
     allowance_title: "Uang Saku Harian",
@@ -1961,7 +1963,7 @@ const I18N = {
     insight_clean: "Not enough spending data for insights this month.",
     nav_goals: "Goals",
     saldo: "Balance",
-    saldo_hero: "Your Cash Balance",
+    saldo_hero: "Report Balance",
     saldo_empty: "No balance yet. Log some income first (e.g. allowance / starting balance).",
     kpi_allowance: "Allowance",
     allowance_title: "Daily Allowance",
@@ -2268,6 +2270,8 @@ function loadLocal() {
     const a = localStorage.getItem(STORAGE_PREFIX + "allowance");
     const dsl = localStorage.getItem(STORAGE_PREFIX + "dailySpendLimit");
     const p = localStorage.getItem(STORAGE_PREFIX + "pending");
+    const le = localStorage.getItem(STORAGE_PREFIX + "ledgerEvents");
+    state.ledgerEvents = le ? JSON.parse(le) : [];
     state.categories = c ? JSON.parse(c) : [];
     state.transactions = txs ? JSON.parse(txs) : [];
     state.budgets = b ? JSON.parse(b) : [];
@@ -2289,6 +2293,7 @@ function saveLocal() {
     localStorage.setItem(STORAGE_PREFIX + "allowance", JSON.stringify(state.allowance));
     localStorage.setItem(STORAGE_PREFIX + "dailySpendLimit", String(state.dailySpendLimit));
     localStorage.setItem(STORAGE_PREFIX + "pending", JSON.stringify(state.pending));
+    localStorage.setItem(STORAGE_PREFIX + "ledgerEvents", JSON.stringify(state.ledgerEvents));
   } catch (err) {}
 }
 
@@ -2479,10 +2484,17 @@ async function loadAllCloud() {
       pageAll("goals", "*", "created_at", false),
       state.sb.from("app_settings").select("*").eq("user_id", state.user.id).maybeSingle(),
     ]);
+    let walletRows = null;
+    try {
+      walletRows = await pageAll("ledger_events", "*", "date", false);
+    } catch (err) {
+      console.warn("Wallet ledger not loaded (run migration_v5.sql):", err.message || err);
+    }
     state.categories = cats;
     state.transactions = txs;
     state.budgets = buds;
     state.goals = goals;
+    if (walletRows) state.ledgerEvents = walletRows;
     if (settingsRows && !settingsRows.error && settingsRows.data && settingsRows.data.data) {
       const d = settingsRows.data.data || {};
       state.allowance = {
@@ -2565,6 +2577,7 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "budgets" }, p => applyChange("budgets", p))
     .on("postgres_changes", { event: "*", schema: "public", table: "goals" }, p => applyChange("goals", p))
     .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, p => applyChange("app_settings", p))
+    .on("postgres_changes", { event: "*", schema: "public", table: "ledger_events" }, p => applyChange("ledgerEvents", p))
     .subscribe();
 }
 
@@ -2654,6 +2667,7 @@ async function cloudWrite(table, op, row /* was t */, match) {
 function strip(r) {
   const o = { ...r };
   delete o.user_id;
+  if (r && r.type && r.category_id) delete o.wallet;
   return o;
 }
 
@@ -2719,6 +2733,16 @@ function totalExpense() {
 }
 function balance() {
   return totalIncome() - totalExpense();
+}
+function walletBalances() {
+  return window.DuitKuWallet.balances(state.transactions, state.ledgerEvents);
+}
+async function syncWalletEvent(event) {
+  if (state.mode !== "cloud" || !state.user || !state.sb) return;
+  try {
+    const { error } = await state.sb.from("ledger_events").upsert({ ...event, user_id: state.user.id });
+    if (error) throw error;
+  } catch (err) { console.error("Wallet cloud sync pending migration/config:", err.message || err); }
 }
 function allowanceClaimedToday() {
   return state.allowance.lastClaim === localDate();
@@ -2999,6 +3023,21 @@ function renderDashboard() {
   hero.append(el("div", { class: "hero-amount", text: rp(bal) }));
   hero.append(el("div", { class: "hero-pill" }, [icon("lightning", 14), el("span", { text: t("saldo") + " = " + t("kpi_income") + " − " + t("kpi_expense") })]));
   colLeft.append(hero);
+  const wallets = walletBalances();
+  const walletCard = el("div", { class: "card wallet-card" });
+  walletCard.append(el("h2", { class: "card-title", text: state.lang === "en" ? "Wallets" : "Dompet" }));
+  const walletGrid = el("div", { class: "wallet-grid" });
+  for (const [key, title] of [["cash", state.lang === "en" ? "Cash" : "Tunai"], ["DANA", "DANA"], ["total", state.lang === "en" ? "Available" : "Total tersedia"], ["receivable", state.lang === "en" ? "Receivable" : "Piutang"]]) {
+    walletGrid.append(el("div", { class: "wallet-balance" }, [el("span", { class: "muted small", text: title }), el("strong", { text: rp(wallets[key]) })]));
+  }
+  walletCard.append(walletGrid);
+  const walletActions = el("div", { class: "wallet-actions" });
+  for (const [kind, label] of [["transfer", state.lang === "en" ? "Transfer" : "Transfer"], ["lend", state.lang === "en" ? "Lend cash" : "Pinjamkan tunai"], ["repayment", state.lang === "en" ? "Repayment" : "Terima cicilan"], ["reconcile", state.lang === "en" ? "Reconcile" : "Rekonsiliasi"]]) walletActions.append(el("button", { type: "button", class: "btn btn-sm", text: label, onclick: () => openWalletAction(kind) }));
+  walletCard.append(walletActions);
+  walletCard.style.cssText = "display:flex;flex-direction:column;gap:12px;";
+  walletGrid.style.cssText = "display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;";
+  walletActions.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;";
+  colLeft.append(walletCard);
   colLeft.append(studentRunwayWidget());
 
   const allowCard = el("div", { class: "card allowance-card" });
@@ -3448,8 +3487,11 @@ function deleteTx(tRow) {
   const idx = state.transactions.findIndex(x => x.id === tRow.id);
   if (idx < 0) return;
   const copy = state.transactions[idx];
+  const walletEntry = state.ledgerEvents.find(e => e.tx_id === copy.id);
   state.transactions.splice(idx, 1);
+  state.ledgerEvents = state.ledgerEvents.filter(e => e.tx_id !== copy.id);
   saveLocal();
+  if (walletEntry && state.mode === "cloud" && state.sb) state.sb.from("ledger_events").delete().eq("id", walletEntry.id).then(({ error }) => { if (error) console.error("Wallet event delete sync failed:", error.message); });
   render();
   let undone = false;
   toast(t("toast_tx_deleted"), {
@@ -3475,6 +3517,34 @@ function rollbackTx(id) {
   render();
 }
 
+function openWalletAction(kind) {
+  const en = state.lang === "en";
+  const labels = { transfer: en ? "Transfer" : "Transfer", lend: en ? "Lend cash" : "Pinjamkan tunai", repayment: en ? "Repayment" : "Terima cicilan", reconcile: en ? "Reconcile wallet" : "Rekonsiliasi dompet" };
+  openModal(labels[kind], (body, close) => {
+    const wallet = el("select", { "aria-label": en ? "Wallet" : "Dompet" }, [el("option", { value: "cash", text: en ? "Cash" : "Tunai" }), el("option", { value: "DANA", text: "DANA" })]);
+    const target = el("select", { "aria-label": en ? "Destination wallet" : "Dompet tujuan" }, [el("option", { value: "DANA", text: "DANA" }), el("option", { value: "cash", text: en ? "Cash" : "Tunai" })]);
+    const amount = el("input", { type: "text", inputmode: "numeric", placeholder: en ? "Amount" : "Jumlah" });
+    amount.addEventListener("input", () => { amount.value = formatThousands(amount.value.replace(/\D/g, "")); });
+    const note = el("input", { type: "text", maxlength: "200", placeholder: en ? "Note (optional)" : "Catatan (opsional)" });
+    const reconcile = kind === "reconcile";
+    body.append(field(en ? "Wallet" : "Dompet", wallet));
+    if (kind === "transfer") body.append(field(en ? "To" : "Ke", target));
+    body.append(field(reconcile ? (en ? "Actual balance" : "Saldo aktual") : (en ? "Amount" : "Jumlah"), amount), field(en ? "Note" : "Catatan", note));
+    body.append(el("button", { type: "button", class: "btn btn-primary full-width", text: en ? "Save" : "Simpan", onclick: async () => {
+      const value = Number(amount.value.replace(/\D/g, ""));
+      if (!Number.isSafeInteger(value) || (reconcile ? value < 0 : value <= 0)) return toast(en ? "Enter a valid amount." : "Masukkan jumlah yang valid.");
+      const before = walletBalances();
+      const delta = reconcile ? value - before[wallet.value] : value;
+      if (kind === "transfer" && wallet.value === target.value) return toast(en ? "Choose a different destination wallet." : "Pilih dompet tujuan yang berbeda.");
+      if ((kind === "transfer" && before[wallet.value] < value) || (kind === "lend" && before.cash < value) || (kind === "repayment" && before.receivable < value)) return toast(en ? "Insufficient balance." : "Saldo/piutang tidak cukup.");
+      if (reconcile && delta === 0) return toast(en ? "Balance already matches." : "Saldo sudah sesuai.");
+      const entry = { id: uid(), date: localDate(), created_at: nowIso(), kind, wallet: kind === "lend" ? "cash" : wallet.value, amount: delta, note: note.value.trim() };
+      if (kind === "transfer") entry.to_wallet = target.value;
+      state.ledgerEvents.push(entry); saveLocal(); close(); render(); syncWalletEvent(entry);
+    }}));
+  });
+}
+
 function openTxForm(existing) {
   const isEdit = !!(existing && existing.id);
   const draft = {
@@ -3483,6 +3553,7 @@ function openTxForm(existing) {
     amount: existing?.amount ? String(existing.amount) : "",
     category_id: existing?.category_id || "",
     note: existing?.note || "",
+    wallet: existing?.wallet || (state.ledgerEvents.find(e => e.tx_id === existing?.id) || {}).wallet || "cash",
   };
   openModal(isEdit ? t("modal_edit_tx") : t("modal_new_tx"), (body, close) => {
     const typeSeg = el("div", { class: "seg full-width", style: "margin-bottom:16px;" });
@@ -3500,7 +3571,13 @@ function openTxForm(existing) {
     amountWrap.append(rpSpan, amount);
 
     const date = el("input", { type: "date", value: draft.date, required: "true" });
+    const wallet = el("select", { "aria-label": state.lang === "en" ? "Wallet" : "Dompet" }, [
+      el("option", { value: "cash", text: state.lang === "en" ? "Cash" : "Tunai" }),
+      el("option", { value: "DANA", text: "DANA" }),
+    ]);
+    wallet.value = draft.wallet;
     const cat = el("select", { "aria-label": "Pilih kategori" });
+
     const note = el("input", { type: "text", placeholder: t("field_note_placeholder"), value: draft.note, maxlength: "200" });
 
     function refillCats() {
@@ -3592,6 +3669,7 @@ function openTxForm(existing) {
       amountWrap,
       amountPresets,
       !isEdit ? studentPresets : el("div"),
+      field(state.lang === "en" ? "Wallet" : "Dompet", wallet),
       field(t("field_category"), cat),
       field(t("field_date"), date),
       field(t("field_note"), note),
@@ -3608,15 +3686,23 @@ function openTxForm(existing) {
           amount: value,
           category_id: cat.value,
           note: note.value.trim(),
+          wallet: wallet.value,
           created_at: existing?.created_at || nowIso(),
           updated_at: nowIso(),
         };
         const prev = existing ? { ...existing } : null;
+        let existingWalletEntry = null;
         if (isEdit) {
           const i = state.transactions.findIndex(t => t.id === row.id);
           if (i >= 0) state.transactions[i] = row;
+          existingWalletEntry = state.ledgerEvents.find(e => e.tx_id === row.id) || null;
+          state.ledgerEvents = state.ledgerEvents.filter(e => e.tx_id !== row.id);
         } else state.transactions.push(row);
+        const walletEntry = window.DuitKuWallet.eventForTransaction(row, row.wallet);
+        if (existingWalletEntry) walletEntry.id = existingWalletEntry.id;
+        state.ledgerEvents.push(walletEntry);
         saveLocal();
+        syncWalletEvent(walletEntry);
         playChime(draft.type === "income" ? "coin" : "pop");
         close();
         render();

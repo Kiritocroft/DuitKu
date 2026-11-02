@@ -6,6 +6,7 @@ A static, zero-build personal finance tracker designed for college students. Tra
 
 ## Key Features
 
+- **Wallet Split (Cash + DANA)**: Opening balances default to **Rp 75.000 cash + Rp 114.000 DANA = Rp 189.000**. Regular income/expense picks a wallet, manual transfer moves money between wallets, lending cash creates a receivable, repayment credits the chosen wallet without adding report income, and reconciliation corrects a wallet to the real balance. Legacy transactions without a wallet are counted as cash and stay income/expense only.
 - **Balance-First Model**: The dashboard shows your total cash balance (`saldo = pemasukan − pengeluaran`), not a monthly budget. Log income once (e.g. 131k) and it becomes your balance; each expense reduces it.
 - **Daily Allowance (+Rp 20.000)**: Set a daily amount (default Rp 20.000). One tap on **"Klaim Uang Saku Hari Ini"** adds it to your balance — perfect for students who get a fixed allowance each campus day.
 - **Cash Runway Insight**: Smart college burn rate analyzer on your dashboard showing average daily spend, health badge (Sangat Sehat / Cukup Aman / Waspada), and days of runway left with or without daily allowance.
@@ -17,7 +18,7 @@ A static, zero-build personal finance tracker designed for college students. Tra
 - **Reliable Local-First Sync**: Every edit is written locally first and queued to Supabase in the background — no manual refresh, no lost data, works offline and catches up on reconnect.
 - **Bilingual Interface**: Seamless toggle between **Bahasa Indonesia** and **English**.
 - **CSV & V2 JSON Import/Export**: RFC 4180 compliant CSV parser with delimiter auto-detection, column mapping, duplicate detection, and full v2 JSON backup/restore (including goals & allowance settings).
-- **PWA + Offline**: Installable to the home screen with luxury emerald maskable icons & native splash loader. App shell cached via Service Worker v7 (network-first for HTML).
+- **PWA + Offline**: Installable to the home screen with luxury emerald maskable icons & native splash loader. App shell cached via Service Worker v8 (network-first for HTML).
 
 ---
 
@@ -27,7 +28,7 @@ A static, zero-build personal finance tracker designed for college students. Tra
 1. Go to [supabase.com](https://supabase.com) and create a free account.
 2. Click **New Project**, name it (e.g., `duitku`), choose a region close to you (e.g., `Singapore / ap-southeast-1`), set a strong database password, and click **Create new project**.
 
-### 2. Execute Database Schema (`schema.sql` then `migration_v4.sql`)
+### 2. Execute Database Schema (`schema.sql`, `migration_v4.sql`, then `migration_v5.sql`)
 1. In the Supabase dashboard sidebar, navigate to **SQL Editor**.
 2. Click **New query**, then copy the entire content of `schema.sql`.
 3. Paste into the editor and click **Run**. This creates the core tables (`categories`, `transactions`, `budgets`), timestamp triggers, indexes, Row Level Security (RLS) policies, and enables the Realtime publication.
@@ -35,6 +36,9 @@ A static, zero-build personal finance tracker designed for college students. Tra
    - `goals` — wishlist & debts (`kind`: `wish`/`debt`, `status`: `active`/`done`, `amount`, `paid`, `due`, `tx_id`).
    - `app_settings` — per-user daily allowance config (amount, enabled, last claim date).
    - `transactions.source` — marker column (`''`, `allowance`, or `goal`).
+5. Run `migration_v5.sql` for the wallet ledger:
+   - `ledger_events` — wallet events (`kind`: `income`/`expense`/`transfer`/`lend`/`repayment`/`reconcile`, `wallet`, `to_wallet`, `amount`, `tx_id`) with RLS and Realtime enabled.
+   - Wallet opening balances stay client-side defaults, so existing income/expense rows are unchanged and treated as cash.
 
 ### 3. Configure Authentication
 1. Go to **Authentication** > **Providers** > **Email**.
@@ -96,7 +100,8 @@ git push -u origin main
 1. **Data does not sync between mobile and laptop**:
    - Ensure both devices are signed in to the **same email account**.
    - Check the header sync indicator: it should display **"Synced"** / **"Tersinkron"**. If it shows "Offline", check your internet connection.
-   - Verify `schema.sql` was executed completely and Realtime is enabled for `categories`, `transactions`, and `budgets`.
+   - Verify `schema.sql` and `migration_v5.sql` were executed completely and Realtime is enabled for `categories`, `transactions`, `budgets`, and `ledger_events`.
+   - If `migration_v5.sql` has not been run, wallet actions still work locally but `ledger_events` cloud writes fail silently (console: "Wallet cloud sync pending migration/config"). Run the migration to enable cross-device wallet sync.
    - Switching tabs triggers a `visibilitychange` background sync to pull latest remote changes.
 
 2. **Login or Registration Fails**:
@@ -113,6 +118,14 @@ git push -u origin main
    - Return to Chrome and tap **Add to Home screen** again.
 
 ---
+
+## Tests
+
+Wallet accounting math is covered by Node's built-in test runner:
+
+```bash
+node --test wallet.test.js
+```
 
 ## License
 
