@@ -5788,15 +5788,23 @@ function boot() {
 
 function initPwa() {
   if ("serviceWorker" in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("sw.js").then(reg => {
+        reg.update();
         reg.addEventListener("updatefound", () => {
           const nw = reg.installing;
           if (!nw) return;
           nw.addEventListener("statechange", () => {
-            // New version installed & activated — reload once so the user sees updates.
-            if (nw.state === "activated" && navigator.serviceWorker.controller && !sessionStorage.getItem("duitku.sw-reloaded")) {
-              sessionStorage.setItem("duitku.sw-reloaded", "1");
+            if (nw.state === "activated" && navigator.serviceWorker.controller) {
+              if (refreshing) return;
+              refreshing = true;
               window.location.reload();
             }
           });
