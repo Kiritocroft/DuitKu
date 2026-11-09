@@ -2,7 +2,7 @@
 // HTML & config: network-first (always fresh, offline fallback).
 // Assets & fonts: cache-first (offline-ready).
 
-const CACHE_NAME = 'duitku-v15';
+const CACHE_NAME = 'duitku-v16';
 const APP_SHELL = [
   '/',
   '/index.html',

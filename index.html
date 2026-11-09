@@ -2610,7 +2610,11 @@ const I18N = {
     sound_setting: "Efek Suara & Getar",
     sound_toggle: "Aktifkan efek audio dan respon sentuh",
     sound_test: "Tes Suara 🔊",
-    goal_est_days: "⏳ Estimasi ~{days} hari lagi dari uang saku harian"
+    goal_est_days: "⏳ Estimasi ~{days} hari lagi dari uang saku harian",
+    wallet_action_transfer: "Transfer antar dompet",
+    wallet_action_lend: "Pinjamkan tunai",
+    wallet_action_repay: "Terima cicilan / bayar",
+    wallet_action_adjust: "Rekonsiliasi saldo"
   },
   en: {
     nav_dashboard: "Dashboard",
@@ -2780,7 +2784,11 @@ const I18N = {
     sound_setting: "Sound & Haptics",
     sound_toggle: "Enable audio effects and tactile haptics",
     sound_test: "Test Sound 🔊",
-    goal_est_days: "⏳ ~{days} days away with daily allowance"
+    goal_est_days: "⏳ ~{days} days away with daily allowance",
+    wallet_action_transfer: "Transfer between wallets",
+    wallet_action_lend: "Lend cash",
+    wallet_action_repay: "Receive repayment",
+    wallet_action_adjust: "Reconcile balance"
   }
 };
 
@@ -3750,12 +3758,15 @@ async function claimAllowance() {
     state.categories.push(cat);
     try { await cloudWrite("categories", "insert", cat); } catch {}
   }
-  const row = { id: uid(), date: localDate(), type: "income", amount, category_id: cat.id, note: t("allowance_title"), source: "allowance", created_at: nowIso(), updated_at: nowIso() };
+  const row = { id: uid(), date: localDate(), type: "income", amount, category_id: cat.id, note: t("allowance_title"), source: "allowance", wallet: "cash", created_at: nowIso(), updated_at: nowIso() };
   state.transactions.push(row);
+  const walletEntry = window.DuitKuWallet.eventForTransaction(row, "cash");
+  state.ledgerEvents.push(walletEntry);
   state.allowance.lastClaim = localDate();
   saveLocal();
   render();
   try { await cloudWrite("transactions", "insert", row); } catch {}
+  syncWalletEvent(walletEntry);
   await saveAllowanceSetting();
   toast(t("toast_tx_logged", { name: catNameById(cat.id), amount: rp(amount) }));
 }
@@ -4529,14 +4540,14 @@ function rollbackTx(id) {
 
 function openWalletAction(kind) {
   const en = state.lang === "en";
-  const labels = { transfer: en ? "Transfer" : "Transfer", lend: en ? "Lend cash" : "Pinjamkan tunai", repayment: en ? "Repayment" : "Terima cicilan", reconcile: en ? "Reconcile wallet" : "Rekonsiliasi dompet" };
+  const labels = { transfer: en ? "Transfer" : "Transfer", lend: en ? "Lend cash" : "Pinjamkan tunai", repay: en ? "Repayment" : "Terima cicilan", adjust: en ? "Reconcile wallet" : "Rekonsiliasi dompet" };
   openModal(labels[kind], (body, close) => {
     const wallet = el("select", { "aria-label": en ? "Wallet" : "Dompet" }, [el("option", { value: "cash", text: en ? "Cash" : "Tunai" }), el("option", { value: "DANA", text: "DANA" })]);
     const target = el("select", { "aria-label": en ? "Destination wallet" : "Dompet tujuan" }, [el("option", { value: "DANA", text: "DANA" }), el("option", { value: "cash", text: en ? "Cash" : "Tunai" })]);
     const amount = el("input", { type: "text", inputmode: "numeric", placeholder: en ? "Amount" : "Jumlah" });
     amount.addEventListener("input", () => { amount.value = formatThousands(amount.value.replace(/\D/g, "")); });
     const note = el("input", { type: "text", maxlength: "200", placeholder: en ? "Note (optional)" : "Catatan (opsional)" });
-    const reconcile = kind === "reconcile";
+    const reconcile = kind === "adjust";
     body.append(field(en ? "Wallet" : "Dompet", wallet));
     if (kind === "transfer") body.append(field(en ? "To" : "Ke", target));
     body.append(field(reconcile ? (en ? "Actual balance" : "Saldo aktual") : (en ? "Amount" : "Jumlah"), amount), field(en ? "Note" : "Catatan", note));
@@ -4546,11 +4557,13 @@ function openWalletAction(kind) {
       const before = walletBalances();
       const delta = reconcile ? value - before[wallet.value] : value;
       if (kind === "transfer" && wallet.value === target.value) return toast(en ? "Choose a different destination wallet." : "Pilih dompet tujuan yang berbeda.");
-      if ((kind === "transfer" && before[wallet.value] < value) || (kind === "lend" && before.cash < value) || (kind === "repayment" && before.receivable < value)) return toast(en ? "Insufficient balance." : "Saldo/piutang tidak cukup.");
+      if ((kind === "transfer" && before[wallet.value] < value) || (kind === "lend" && before.cash < value) || (kind === "repay" && before.receivable < value)) return toast(en ? "Insufficient balance." : "Saldo/piutang tidak cukup.");
       if (reconcile && delta === 0) return toast(en ? "Balance already matches." : "Saldo sudah sesuai.");
-      const entry = { id: uid(), date: localDate(), created_at: nowIso(), kind, wallet: kind === "lend" ? "cash" : wallet.value, amount: delta, note: note.value.trim() };
+      const entryKind = kind === "adjust" ? "reconcile" : kind;
+      const entry = { id: uid(), date: localDate(), created_at: nowIso(), kind: entryKind, wallet: kind === "lend" ? "cash" : wallet.value, amount: delta, note: note.value.trim() };
       if (kind === "transfer") entry.to_wallet = target.value;
       state.ledgerEvents.push(entry); saveLocal(); close(); render(); syncWalletEvent(entry);
+      toast(en ? "Wallet updated!" : "Dompet diperbarui!");
     }}));
   });
 }
