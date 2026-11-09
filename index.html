@@ -3088,6 +3088,34 @@ function loadLocal() {
     state.pending = [];
     seedIfEmpty();
   }
+  migrateOrphanAllowanceTx();
+}
+/* Backfill ledger events for allowance transactions created before the fix.
+   Those transactions have source="allowance" but no matching ledger event
+   (identified by tx_id). Without the event, walletBalances() never credits
+   the cash wallet. Runs once per scope — idempotent because it checks the
+   linked set before creating. */
+function migrateOrphanAllowanceTx() {
+  const linked = new Set(state.ledgerEvents.filter(e => e.tx_id).map(e => e.tx_id));
+  let patched = 0;
+  const newEntries = [];
+  for (const tx of state.transactions) {
+    if (tx.source !== "allowance") continue;
+    if (linked.has(tx.id)) continue;
+    const entry = window.DuitKuWallet.eventForTransaction(tx, "cash");
+    state.ledgerEvents.push(entry);
+    newEntries.push(entry);
+    linked.add(tx.id);
+    patched++;
+  }
+  if (patched > 0) {
+    saveLocal();
+    console.log(`[migration] Backfilled ${patched} orphan allowance ledger event(s)`);
+    // Sync backfilled entries to cloud in background
+    if (state.mode === "cloud" && state.user && state.sb) {
+      for (const e of newEntries) syncWalletEvent(e);
+    }
+  }
 }
 function saveLocal() {
   try {
@@ -3407,6 +3435,7 @@ async function loadAllCloud() {
       state.dailySpendLimit = Math.max(0, Number(d.daily_spend_limit) || 50000);
     }
     if (!cats.length) await pushSeedCategories();
+    migrateOrphanAllowanceTx();
     saveLocal();
     flushQueue();
   } catch (err) {
