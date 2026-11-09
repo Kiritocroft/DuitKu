@@ -2186,23 +2186,23 @@ function switchToggle(checked, onChange, labelText) {
 }
 
 function openWalletMenu() {
-  openModal(state.lang === "en" ? "Manage Wallets" : "Transfer & Kelola Dompet", body => {
+  openModal(state.lang === "en" ? "Manage Wallets" : "Transfer & Kelola Dompet", (body, close) => {
     const list = el("div", { style: "display:flex;flex-direction:column;gap:8px;margin-top:8px;" }, [
       el("button", {
         type: "button", class: "btn full-width", style: "justify-content:flex-start;gap:12px;",
-        onclick: () => { closeModal(); openWalletAction("transfer"); }
+        onclick: () => { close(); setTimeout(() => openWalletAction("transfer"), 50); }
       }, [icon("repeat", 18), el("span", { text: t("wallet_action_transfer") })]),
       el("button", {
         type: "button", class: "btn full-width", style: "justify-content:flex-start;gap:12px;",
-        onclick: () => { closeModal(); openWalletAction("lend"); }
+        onclick: () => { close(); setTimeout(() => openWalletAction("lend"), 50); }
       }, [icon("arrowUpRight", 18), el("span", { text: t("wallet_action_lend") })]),
       el("button", {
         type: "button", class: "btn full-width", style: "justify-content:flex-start;gap:12px;",
-        onclick: () => { closeModal(); openWalletAction("repay"); }
+        onclick: () => { close(); setTimeout(() => openWalletAction("repay"), 50); }
       }, [icon("arrowDownLeft", 18), el("span", { text: t("wallet_action_repay") })]),
       el("button", {
         type: "button", class: "btn full-width", style: "justify-content:flex-start;gap:12px;",
-        onclick: () => { closeModal(); openWalletAction("adjust"); }
+        onclick: () => { close(); setTimeout(() => openWalletAction("adjust"), 50); }
       }, [icon("sliders", 18), el("span", { text: t("wallet_action_adjust") })]),
     ]);
     body.append(list);
