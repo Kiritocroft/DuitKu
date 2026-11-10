@@ -3071,6 +3071,8 @@ function loadLocal() {
     const p = scopeGet("pending");
     const le = scopeGet("ledgerEvents");
     state.ledgerEvents = le ? JSON.parse(le) : [];
+    const wo = scopeGet("walletOpening");
+    state.walletOpening = wo ? JSON.parse(wo) : null;
     state.categories = c ? JSON.parse(c) : [];
     state.transactions = txs ? JSON.parse(txs) : [];
     state.budgets = b ? JSON.parse(b) : [];
@@ -3128,6 +3130,7 @@ function saveLocal() {
     localStorage.setItem(P + "dailySpendLimit", String(state.dailySpendLimit));
     localStorage.setItem(P + "pending", JSON.stringify(state.pending));
     localStorage.setItem(P + "ledgerEvents", JSON.stringify(state.ledgerEvents));
+    if (state.walletOpening) localStorage.setItem(P + "walletOpening", JSON.stringify(state.walletOpening));
   } catch (err) {}
 }
 function clearScope(prefix) {
@@ -3697,7 +3700,7 @@ function balance() {
   return totalIncome() - totalExpense();
 }
 function walletBalances() {
-  return window.DuitKuWallet.balances(state.transactions, state.ledgerEvents);
+  return window.DuitKuWallet.balances(state.transactions, state.ledgerEvents, state.walletOpening);
 }
 async function syncWalletEvent(event) {
   if (state.mode !== "cloud" || !state.user || !state.sb) return;
@@ -4579,6 +4582,16 @@ function openWalletAction(kind) {
     const reconcile = kind === "adjust";
     body.append(field(en ? "Wallet" : "Dompet", wallet));
     if (kind === "transfer") body.append(field(en ? "To" : "Ke", target));
+    if (reconcile) {
+      const before = walletBalances();
+      const curLabel = el("div", { class: "current-balance-hint", style: "font-size:0.85rem;opacity:0.7;margin:-8px 0 8px;padding-left:2px;" });
+      curLabel.textContent = (en ? "Current: Rp " : "Saat ini: Rp ") + formatThousands(String(before[wallet.value]));
+      wallet.addEventListener("change", () => {
+        const wb = walletBalances();
+        curLabel.textContent = (en ? "Current: Rp " : "Saat ini: Rp ") + formatThousands(String(wb[wallet.value]));
+      });
+      body.append(curLabel);
+    }
     body.append(field(reconcile ? (en ? "Actual balance" : "Saldo aktual") : (en ? "Amount" : "Jumlah"), amount), field(en ? "Note" : "Catatan", note));
     body.append(el("button", { type: "button", class: "btn btn-primary full-width", text: en ? "Save" : "Simpan", onclick: async () => {
       const value = Number(amount.value.replace(/\D/g, ""));
