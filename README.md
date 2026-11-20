@@ -23,7 +23,7 @@ Duitku dirancang khusus untuk alur tersebut.
 - **Pemisahan Saldo Tunai & DANA**: Catat pengeluaran langsung dari dompet yang sesuai, transfer saldo antar dompet, dan rekonsiliasi manual jika ada selisih uang fisik.
 - **Pencatatan Piutang**: Meminjamkan uang ke teman memotong saldo kas dan menambah saldo piutang. Ketika teman membayar kembali ke DANA atau tunai, saldo piutang berkurang tanpa tercatat sebagai pemasukan ganda pada laporan.
 - **Klaim Uang Saku Harian**: Tombol klaim satu ketukan untuk mencatat jatah harian (default Rp 20.000) agar tidak perlu input manual tiap pagi.
-- **Target Wishlist & Utang**: Atur target pembelian atau batas bayar utang lengkap dengan estimasi hari tercapai berdasarkan sisa uang saku harian.
+- **Target Wishlist & Utang**: Atur target pembelian atau batas bayar utang, lalu lunasi dengan pembayaran multi-dompet (mis. DANA + Tunai sekaligus). Setiap bagian pembayaran tercatat sebagai pengeluaran dompet asalnya, sehingga total saldo dan saldo dompet selalu turun bersamaan. Target yang lunas pindah ke daftar **Selesai** gabungan, dan statusnya ikut dihitung ulang bila transaksi pembayaran diubah atau dihapus.
 - **Mode Lokal & Cloud**: Bisa langsung dipakai tanpa login (data tersimpan di localStorage perangkat). Jika ingin data tersinkron antara HP dan laptop, cukup login akun Supabase. Cache tiap akun dan mode lokal terisolasi secara terpisah.
 - **PWA & Offline**: Mendukung pemasangan ke layar utama (Add to Home screen) di Android atau desktop, tetap bisa dibuka saat jaringan internet mati.
 - **Ekspor & Impor**: Dukungan ekspor/impor file CSV dan backup lengkap JSON.
@@ -36,6 +36,7 @@ Duitku dirancang khusus untuk alur tersebut.
 .
 ├── index.html              # Antarmuka, layout responsif, dan logika UI
 ├── wallet.js               # Modul logika perhitungan saldo dompet dan piutang
+├── goals.js                # Modul pembayaran wishlist/utang per dompet (leg)
 ├── sw.js                   # Service worker untuk caching dan mode offline
 ├── config.js               # Konfigurasi koneksi Supabase (URL & Anon Key)
 ├── vercel.json             # Pengaturan security headers (CSP, frame-ancestors, dll)
@@ -48,7 +49,9 @@ Duitku dirancang khusus untuk alur tersebut.
 │
 └── tests/
     ├── wallet.test.js      # Unit test perhitungan saldo, transfer, dan piutang
-    └── storage-scope.test.js # Unit test isolasi data lokal vs akun cloud
+    ├── goals.test.js       # Unit test leg pembayaran, validasi, dan status target
+    ├── storage-scope.test.js # Unit test isolasi data lokal vs akun cloud
+    └── config-and-sync.test.js # Unit test konfigurasi backend dan alur sinkron
 ```
 
 ---

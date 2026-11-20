@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="fonts/fonts.css">
 <script src="config.js"></script>
 <script src="wallet.js"></script>
+<script src="goals.js"></script>
 <script src="vendor/supabase.min.js"></script>
 <style>
 /* ==========================================================================
@@ -981,6 +982,99 @@ input::placeholder {
   padding: 4px 10px;
   border-radius: var(--radius-pill);
   margin-top: 8px;
+}
+
+/* Goal payment sheet */
+.pay-summary {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--card-elevated);
+  border: 1px solid var(--border);
+}
+.pay-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.pay-row strong {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.pay-row.total {
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+.pay-row.total strong { color: var(--accent); }
+
+.pay-wallet { margin-bottom: 12px; }
+.pay-wallet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.pay-wallet-bal {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.pay-wallet-input { display: flex; align-items: stretch; gap: 8px; }
+.pay-wallet-input input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 46px;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+.pay-wallet-input .btn {
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: 0 14px;
+}
+.pay-status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  margin: 2px 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card-elevated);
+}
+.pay-status strong { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.pay-status small { font-size: 0.78rem; line-height: 1.4; color: var(--text-muted); }
+.pay-status[data-state="ok"] { background: var(--income-soft); border-color: var(--income); }
+.pay-status[data-state="ok"] strong { color: var(--income); }
+.pay-status[data-state="partial"] { background: var(--accent-soft); border-color: var(--accent); }
+.pay-status[data-state="bad"] { background: var(--expense-soft); border-color: var(--expense); }
+.pay-status[data-state="bad"] strong { color: var(--expense); }
+.goal-legs {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.goal-card .btn-sm {
+  height: auto;
+  min-height: 40px;
+}
+.goal-card .btn-sm[aria-label] {
+  min-width: 40px;
+  padding: 0 10px;
 }
 
 /* Settings & Form Controls */
@@ -2591,6 +2685,31 @@ const I18N = {
     goal_add_btn: "Simpan Target",
     goal_wish_badge: "Wishlist",
     goal_debt_badge: "Utang",
+    goal_pay: "Bayar",
+    goal_pay_wish_title: "Bayar Wishlist",
+    goal_pay_debt_title: "Bayar Utang",
+    goal_pay_target: "Target",
+    goal_pay_paid: "Sudah dibayar",
+    goal_pay_left: "Sisa",
+    goal_pay_used: "Terpakai {paid} dari {remaining}",
+    goal_pay_pick: "Isi minimal satu dompet.",
+    goal_pay_over: "Kelebihan {amount} dari sisa.",
+    goal_pay_short: "Saldo dompet nggak cukup.",
+    goal_pay_full: "Pas. Target langsung selesai.",
+    goal_pay_part: "Pembayaran sebagian, sisa {amount}.",
+    goal_pay_auto: "Isi otomatis sisa",
+    goal_pay_all: "Semua",
+    goal_pay_note: "Catatan (opsional)",
+    goal_pay_done_toast: "Lunas! {name} pindah ke daftar Selesai.",
+    goal_pay_part_toast: "Pembayaran tercatat. Sisa {amount}.",
+    goal_pay_fail: "Gagal menyimpan pembayaran: ",
+    goal_pay_short_all: "Kurang {amount} dari saldo dompet.",
+    goal_spendable: "Saldo dompet: {amount}",
+    goal_done_title: "Selesai",
+    goal_done_empty: "Belum ada yang selesai. Wishlist atau utang yang lunas muncul di sini.",
+    goal_paid_from: "Dibayar dari {parts}",
+    goal_remaining: "Sisa {amount}",
+    goal_progress_paid: "Terbayar {paid} dari {target}",
     pwa_install: "Install ke Homescreen",
     pwa_hint: "Simpan Duitku ke homescreen HP biar kebuka seperti aplikasi.",
     pwa_installed: "Sudah terpasang di homescreen 🎉",
@@ -2765,6 +2884,31 @@ const I18N = {
     goal_add_btn: "Save Goal",
     goal_wish_badge: "Wishlist",
     goal_debt_badge: "Debt",
+    goal_pay: "Pay",
+    goal_pay_wish_title: "Pay Wishlist",
+    goal_pay_debt_title: "Pay Debt",
+    goal_pay_target: "Target",
+    goal_pay_paid: "Already paid",
+    goal_pay_left: "Left",
+    goal_pay_used: "Allocated {paid} of {remaining}",
+    goal_pay_pick: "Fill at least one wallet.",
+    goal_pay_over: "Over the remaining {amount}.",
+    goal_pay_short: "A wallet does not have enough balance.",
+    goal_pay_full: "Exact. This settles the target.",
+    goal_pay_part: "Partial payment, {amount} left.",
+    goal_pay_auto: "Auto-fill remaining",
+    goal_pay_all: "All",
+    goal_pay_note: "Note (optional)",
+    goal_pay_done_toast: "Paid off! {name} moved to Done.",
+    goal_pay_part_toast: "Payment saved. {amount} left.",
+    goal_pay_fail: "Could not save payment: ",
+    goal_pay_short_all: "Wallets are {amount} short.",
+    goal_spendable: "Wallet balance: {amount}",
+    goal_done_title: "Done",
+    goal_done_empty: "Nothing finished yet. Paid-off wishes and debts land here.",
+    goal_paid_from: "Paid from {parts}",
+    goal_remaining: "Left {amount}",
+    goal_progress_paid: "Paid {paid} of {target}",
     pwa_install: "Install to Home Screen",
     pwa_hint: "Add Duitku to your phone's home screen so it opens like an app.",
     pwa_installed: "Installed to home screen 🎉",
@@ -3091,6 +3235,7 @@ function loadLocal() {
     seedIfEmpty();
   }
   migrateOrphanAllowanceTx();
+  reconcileGoalStatuses();
 }
 /* Backfill ledger events for allowance transactions created before the fix.
    Those transactions have source="allowance" but no matching ledger event
@@ -3439,6 +3584,7 @@ async function loadAllCloud() {
     }
     if (!cats.length) await pushSeedCategories();
     migrateOrphanAllowanceTx();
+    reconcileGoalStatuses();
     saveLocal();
     flushQueue();
   } catch (err) {
@@ -3848,8 +3994,11 @@ function openGoalForm(kind, existing) {
           existing.due = due.value || null;
           existing.note = note.value.trim();
           existing.updated_at = nowIso();
+          const paidNow = window.DuitKuGoals.paid(existing, state.transactions);
+          existing.paid = paidNow;
+          existing.status = paidNow >= val && paidNow > 0 ? "done" : "active";
           saveLocal(); close(); render();
-          try { await cloudWrite("goals", "update", { name: existing.name, amount: existing.amount, due: existing.due, note: existing.note }, { id: existing.id }); } catch (e) { toast("Gagal memperbarui target: " + (e.message || e)); }
+          try { await cloudWrite("goals", "update", { name: existing.name, amount: existing.amount, due: existing.due, note: existing.note, paid: existing.paid, status: existing.status, updated_at: existing.updated_at }, { id: existing.id }); } catch (e) { toast("Gagal memperbarui target: " + (e.message || e)); }
         } else {
           const row = { id: uid(), name: name.value.trim(), amount: val, kind, status: "active", paid: 0, due: due.value || null, note: note.value.trim(), created_at: nowIso(), updated_at: nowIso() };
           state.goals.push(row);
@@ -3867,24 +4016,191 @@ function rollbackGoal(id) {
   saveLocal(); render();
 }
 async function approveGoal(g) {
+  openGoalPay(g);
+}
+function openGoalPay(g) {
   const isEn = state.lang === "en";
-  if (balance() < g.amount) return toast(isEn ? "Balance is not enough yet." : "Saldo belum cukup.");
-  if (!confirm(t("goal_confirm_approve", { name: g.name, amount: rp(g.amount) }))) return;
   const cat = goalExpenseCat();
-  const row = { id: uid(), date: localDate(), type: "expense", amount: Number(g.amount), category_id: cat.id, note: g.name, source: "goal", created_at: nowIso(), updated_at: nowIso() };
-  state.transactions.push(row);
-  g.status = "done";
-  g.paid = Number(g.amount);
-  g.tx_id = row.id;
+  const target = Math.max(0, Number(g.amount) || 0);
+  const already = window.DuitKuGoals.paid(g, state.transactions);
+  const left = Math.max(0, target - already);
+
+  openModal(g.kind === "debt" ? t("goal_pay_debt_title") : t("goal_pay_wish_title"), (body, close) => {
+    const balances = walletBalances();
+    body.append(el("div", { class: "pay-summary" }, [
+      el("div", { class: "small", style: "font-weight:700;color:var(--text);margin-bottom:2px;", text: g.name }),
+      payRow(t("goal_pay_target"), rp(target)),
+      payRow(t("goal_pay_paid"), rp(already)),
+      payRow(t("goal_pay_left"), rp(left), "total"),
+    ]));
+
+    if (left <= 0) {
+      body.append(el("p", { class: "small muted", text: isEn ? "This target is already settled." : "Target ini sudah lunas." }));
+      body.append(el("button", { type: "button", class: "btn full-width", text: isEn ? "Close" : "Tutup", onclick: close }));
+      return;
+    }
+
+    const inputs = {};
+    for (const w of ["cash", "DANA"]) {
+      const label = w === "cash" ? (isEn ? "Cash" : "Tunai") : "DANA";
+      const input = el("input", { type: "text", inputmode: "numeric", placeholder: "0", "aria-label": label });
+      const all = el("button", { type: "button", class: "btn", text: t("goal_pay_all") });
+      input.addEventListener("input", () => {
+        input.value = formatThousands(input.value.replace(/\D/g, ""));
+        update();
+      });
+      all.addEventListener("click", () => {
+        input.value = formatThousands(String(balances[w] || 0));
+        playChime("pop");
+        update();
+      });
+      inputs[w] = input;
+      body.append(el("div", { class: "pay-wallet" }, [
+        el("div", { class: "pay-wallet-head" }, [
+          el("span", { text: label }),
+          el("span", { class: "pay-wallet-bal", text: rp(balances[w] || 0) }),
+        ]),
+        el("div", { class: "pay-wallet-input" }, [input, all]),
+      ]));
+    }
+
+    const statusMain = el("strong");
+    const statusHint = el("small");
+    const status = el("div", { class: "pay-status", role: "status", "aria-live": "polite" }, [statusMain, statusHint]);
+    body.append(status);
+
+    const auto = el("button", { type: "button", class: "btn full-width", text: t("goal_pay_auto") });
+    auto.addEventListener("click", () => {
+      const { plan, short } = window.DuitKuGoals.allocate(left, balances);
+      inputs.cash.value = plan.cash ? formatThousands(String(plan.cash)) : "";
+      inputs.DANA.value = plan.DANA ? formatThousands(String(plan.DANA)) : "";
+      playChime("pop");
+      update();
+      if (short > 0) toast(t("goal_pay_short_all", { amount: rp(short) }));
+    });
+    body.append(auto);
+
+    const note = el("input", { type: "text", maxlength: "120", placeholder: g.name });
+    body.append(field(t("goal_pay_note"), note));
+
+    const save = el("button", { type: "button", class: "btn btn-primary full-width", text: t("goal_pay") });
+    body.append(save);
+
+    function readPlan() {
+      const num = v => Number(String(v).replace(/\D/g, "")) || 0;
+      return { cash: num(inputs.cash.value), DANA: num(inputs.DANA.value) };
+    }
+    function update() {
+      const plan = readPlan();
+      const res = window.DuitKuGoals.validate(left, plan, balances);
+      const total = plan.cash + plan.DANA;
+      status.dataset.state = res.ok ? (res.code === "FULL" ? "ok" : "partial") : "bad";
+      statusMain.textContent = t("goal_pay_used", { paid: rp(total), remaining: rp(left) });
+      if (res.code === "EMPTY") statusHint.textContent = t("goal_pay_pick");
+      else if (res.code === "OVERPAY") statusHint.textContent = t("goal_pay_over", { amount: rp(total - left) });
+      else if (res.code === "INSUFFICIENT") statusHint.textContent = t("goal_pay_short");
+      else if (res.code === "FULL") statusHint.textContent = t("goal_pay_full");
+      else statusHint.textContent = t("goal_pay_part", { amount: rp(left - total) });
+    }
+    update();
+
+    save.addEventListener("click", async () => {
+      const plan = readPlan();
+      const res = window.DuitKuGoals.validate(left, plan, balances);
+      if (!res.ok) {
+        if (res.code === "OVERPAY") return toast(t("goal_pay_over", { amount: rp(plan.cash + plan.DANA - left) }));
+        if (res.code === "INSUFFICIENT") return toast(t("goal_pay_short"));
+        return toast(t("goal_pay_pick"));
+      }
+      const ts = nowIso();
+      const legs = window.DuitKuGoals.buildLegs(g, res.entries, {
+        ids: res.entries.map(() => uid()),
+        categoryId: cat.id,
+        date: localDate(),
+        timestamp: ts,
+        note: note.value.trim() || g.name,
+      });
+      const next = window.DuitKuGoals.afterPayment(g, state.transactions, legs, ts);
+      const prev = { paid: g.paid, status: g.status, tx_id: g.tx_id, updated_at: g.updated_at };
+      const events = legs.map(leg => window.DuitKuWallet.eventForTransaction(leg, leg.wallet));
+
+      for (const leg of legs) state.transactions.push(leg);
+      for (const ev of events) state.ledgerEvents.push(ev);
+      g.paid = next.paid;
+      g.status = next.status;
+      g.tx_id = legs[legs.length - 1].id;
+      g.updated_at = ts;
+      saveLocal();
+      playChime(next.status === "done" ? "coin" : "pop");
+      close();
+      render();
+      if (next.status === "done") toast(t("goal_pay_done_toast", { name: g.name }));
+      else toast(t("goal_pay_part_toast", { amount: rp(next.remaining) }));
+
+      try {
+        for (let i = 0; i < legs.length; i++) {
+          await cloudWrite("transactions", "insert", legs[i]);
+          await syncWalletEvent(events[i]);
+        }
+        await cloudWrite("goals", "update", {
+          status: g.status, paid: g.paid, tx_id: g.tx_id, updated_at: g.updated_at,
+        }, { id: g.id });
+      } catch (err) {
+        const ids = new Set(legs.map(l => l.id));
+        state.transactions = state.transactions.filter(t => !ids.has(t.id));
+        const eventIds = new Set(events.map(e => e.id));
+        state.ledgerEvents = state.ledgerEvents.filter(e => !eventIds.has(e.id));
+        Object.assign(g, prev);
+        saveLocal();
+        render();
+        toast(t("goal_pay_fail") + (err.message || err));
+      }
+    });
+  });
+}
+function payRow(label, value, cls) {
+  return el("div", { class: "pay-row" + (cls ? " " + cls : "") }, [
+    el("span", { text: label }),
+    el("strong", { text: value }),
+  ]);
+}
+function goalLegAmount(tx) {
+  if (!tx || tx.type !== "expense") return 0;
+  return window.DuitKuGoals.goalIdFromSource(tx.source) ? Math.max(0, Number(tx.amount) || 0) : 0;
+}
+function recalcGoal(g, opts) {
+  if (!g) return false;
+  const o = opts || {};
+  const legs = window.DuitKuGoals.legsFor(g.id, state.transactions);
+  const legsSum = legs.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+  const target = Math.max(0, Number(g.amount) || 0);
+  const total = Math.max(0, Number(g.paid || 0) + (Number(o.delta) || 0), legsSum);
+  const status = target > 0 && total >= target ? "done" : "active";
+  const txId = legs.length ? legs[legs.length - 1].id : null;
+  if (total === Number(g.paid || 0) && status === g.status && (g.tx_id || null) === (txId || null)) return false;
+  g.paid = total;
+  g.status = status;
+  g.tx_id = txId;
   g.updated_at = nowIso();
-  saveLocal();
-  playChime("coin");
-  render();
-  try {
-    await cloudWrite("transactions", "insert", row);
-    await cloudWrite("goals", "update", { status: "done", paid: g.paid, tx_id: g.tx_id }, { id: g.id });
-    toast(isEn ? "Goal realized!" : "Target terealisasi!");
-  } catch (e) { toast("Gagal sinkron target: " + (e.message || e)); }
+  if (o.sync && state.mode === "cloud" && state.sb) {
+    cloudWrite("goals", "update", { paid: g.paid, status: g.status, tx_id: g.tx_id, updated_at: g.updated_at }, { id: g.id }).catch(() => {});
+  }
+  return true;
+}
+function recalcGoalById(id, opts) {
+  if (!id) return false;
+  return recalcGoal(state.goals.find(x => x.id === id), opts);
+}
+/* Boot-time repair: a leg can be saved while the goal row update fails
+   (offline, RLS hiccup, tab closed between writes). Rebuilding here keeps
+   "done" and the Done list honest after a reload, without a cloud write. */
+function reconcileGoalStatuses() {
+  let changed = false;
+  for (const g of state.goals) {
+    if (recalcGoal(g, {})) changed = true;
+  }
+  if (changed) saveLocal();
+  return changed;
 }
 async function deleteGoal(g) {
   const i = state.goals.findIndex(x => x.id === g.id);
@@ -3894,7 +4210,8 @@ async function deleteGoal(g) {
 }
 
 function studentRunwayWidget() {
-  const bal = balance();
+  const wallets = walletBalances();
+  const bal = wallets.total;
   const now = new Date();
   const dayOfMonth = Math.max(1, now.getDate());
   const list = txInMonth(state.month);
@@ -3925,8 +4242,13 @@ function studentRunwayWidget() {
   } else {
     const rawDays = Math.floor(bal / dailyBurn);
     const allowAmt = state.allowance?.enabled ? Number(state.allowance.amount || 0) : 0;
+    const covered = allowAmt > 0 && allowAmt >= dailyBurn;
 
-    if (rawDays >= 20) {
+    if (covered) {
+      iconEmoji = "🌱";
+      statusBadge = isEn ? "Safe" : "Aman";
+      badgeCls = "ok";
+    } else if (rawDays >= 20) {
       iconEmoji = "🌟";
       statusBadge = isEn ? "Very Safe" : "Sangat Sehat";
       badgeCls = "ok";
@@ -3974,7 +4296,8 @@ function renderDashboard() {
   const list = txInMonth(key);
   const income = sumType(list, "income");
   const expense = sumType(list, "expense");
-  const bal = balance();
+  const wallets = walletBalances();
+  const bal = wallets.total;
   const spentMap = spentByCat(key);
   const activeCount = activeGoals("wish").length + activeGoals("debt").length;
 
@@ -4011,7 +4334,6 @@ function renderDashboard() {
   hero.append(hpills);
   colLeft.append(hero);
 
-  const wallets = walletBalances();
   const walletCard = el("div", { class: "card wallet-card" });
   walletCard.append(el("h2", { class: "card-title", text: state.lang === "en" ? "Wallets" : "Dompet Kas" }));
   const walletGrid = el("div", { class: "wallet-grid" });
@@ -4540,11 +4862,13 @@ function deleteTx(tRow) {
   const idx = state.transactions.findIndex(x => x.id === tRow.id);
   if (idx < 0) return;
   const copy = state.transactions[idx];
+  const goalId = window.DuitKuGoals.goalIdFromSource(copy.source);
+  const goalDelta = goalLegAmount(copy);
   const walletEntry = state.ledgerEvents.find(e => e.tx_id === copy.id);
   state.transactions.splice(idx, 1);
   state.ledgerEvents = state.ledgerEvents.filter(e => e.tx_id !== copy.id);
+  recalcGoalById(goalId, { delta: -goalDelta, sync: true });
   saveLocal();
-  if (walletEntry && state.mode === "cloud" && state.sb) state.sb.from("ledger_events").delete().eq("id", walletEntry.id).then(({ error }) => { if (error) console.error("Wallet event delete sync failed:", error.message); });
   render();
   let undone = false;
   toast(t("toast_tx_deleted"), {
@@ -4552,14 +4876,27 @@ function deleteTx(tRow) {
     fn: () => {
       undone = true;
       state.transactions.push(copy);
+      if (walletEntry && !state.ledgerEvents.some(e => e.id === walletEntry.id)) state.ledgerEvents.push(walletEntry);
+      recalcGoalById(goalId, { delta: goalDelta, sync: true });
       saveLocal();
       render();
     }
   });
   setTimeout(async () => {
     if (undone) return;
-    try { await cloudWrite("transactions", "delete", copy, { id: copy.id }); }
-    catch (err) { state.transactions.push(copy); saveLocal(); render(); toast("Gagal menghapus: " + (err.message || err)); }
+    try {
+      await cloudWrite("transactions", "delete", copy, { id: copy.id });
+      if (walletEntry && state.mode === "cloud" && state.sb) {
+        const { error } = await state.sb.from("ledger_events").delete().eq("id", walletEntry.id);
+        if (error) console.error("Wallet event delete sync failed:", error.message);
+      }
+    }
+    catch (err) {
+      state.transactions.push(copy);
+      if (walletEntry && !state.ledgerEvents.some(e => e.id === walletEntry.id)) state.ledgerEvents.push(walletEntry);
+      recalcGoalById(goalId, { delta: goalDelta, sync: true });
+      saveLocal(); render(); toast("Gagal menghapus: " + (err.message || err));
+    }
   }, 6000);
 }
 
@@ -4755,7 +5092,10 @@ function openTxForm(existing) {
           created_at: existing?.created_at || nowIso(),
           updated_at: nowIso(),
         };
+        if (existing?.source) row.source = existing.source;
         const prev = existing ? { ...existing } : null;
+        const beforeGoalAmount = goalLegAmount(prev);
+        const goalId = window.DuitKuGoals.goalIdFromSource(row.source);
         let existingWalletEntry = null;
         if (isEdit) {
           const i = state.transactions.findIndex(t => t.id === row.id);
@@ -4766,6 +5106,7 @@ function openTxForm(existing) {
         const walletEntry = window.DuitKuWallet.eventForTransaction(row, row.wallet);
         if (existingWalletEntry) walletEntry.id = existingWalletEntry.id;
         state.ledgerEvents.push(walletEntry);
+        recalcGoalById(goalId, { delta: goalLegAmount(row) - beforeGoalAmount, sync: true });
         saveLocal();
         syncWalletEvent(walletEntry);
         playChime(draft.type === "income" ? "coin" : "pop");
@@ -4779,6 +5120,7 @@ function openTxForm(existing) {
             const i = state.transactions.findIndex(t => t.id === row.id);
             if (i >= 0) state.transactions[i] = prev;
           } else rollbackTx(row.id);
+          recalcGoalById(goalId, { delta: goalLegAmount(prev) - goalLegAmount(row), sync: true });
           toast("Gagal menyimpan: " + (err.message || err));
         }
       }}),
@@ -4800,43 +5142,50 @@ function field(label, control) {
 
 /* ---------- goals (wishlist & debt) ---------- */
 function goalCard(g) {
+  const isEn = state.lang === "en";
   const card = el("div", { class: "card goal-card" });
+  const done = g.status === "done";
   const head = el("div", { style: "display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;" });
   head.append(
     el("strong", { style: "font-weight:700;", text: g.name }),
-    el("span", { class: "tag " + (g.kind === "debt" ? "over" : "ok"), text: g.kind === "debt" ? t("goal_debt_badge") : t("goal_wish_badge") })
+    el("div", { style: "display:flex;gap:4px;flex-shrink:0;" }, [
+      el("span", { class: "tag " + (done ? "" : (g.kind === "debt" ? "over" : "ok")), text: g.kind === "debt" ? t("goal_debt_badge") : t("goal_wish_badge") }),
+      done ? el("span", { class: "tag ok", text: t("goal_done_title") }) : null,
+    ].filter(Boolean))
   );
   card.append(head);
 
-  const bal = balance();
-  const target = Number(g.amount);
-  const progress = Math.max(0, Math.min(bal, target));
-  const pct = target > 0 ? Math.min(100, Math.round(bal / target * 100)) : 0;
-  const reached = bal >= target;
+  const target = Math.max(0, Number(g.amount) || 0);
+  const paidNow = window.DuitKuGoals.paid(g, state.transactions);
+  const left = Math.max(0, target - paidNow);
+  const pct = target > 0 ? Math.min(100, Math.round(paidNow / target * 100)) : 0;
 
-  if (g.due) card.append(el("div", { class: "small muted", text: (state.lang === "en" ? "Due " : "Tenggat ") + g.due }));
-  card.append(el("div", { class: "muted small", style: "margin-bottom:8px;", text: t("goal_progress", { progress: rp(progress), target: rp(target) }) }));
+  if (g.due && !done) card.append(el("div", { class: "small muted", text: (isEn ? "Due " : "Tenggat ") + g.due }));
+  card.append(el("div", { class: "muted small", style: "margin-bottom:8px;", text: t("goal_progress_paid", { paid: rp(paidNow), target: rp(target) }) }));
   const track = el("div", { class: "bar-track", style: "margin-bottom:10px;" });
-  track.append(el("div", { class: "bar-fill " + (g.kind === "debt" && g.status !== "done" ? "over" : "ok"), style: "width:" + Math.max(2, pct) + "%" }));
+  track.append(el("div", { class: "bar-fill " + (g.kind === "debt" && !done ? "over" : "ok"), style: "width:" + Math.max(2, pct) + "%" }));
   card.append(track);
 
-  if (g.status === "done") {
-    card.append(el("span", { class: "tag ok", text: t("goal_done") }));
+  if (done) {
+    const parts = window.DuitKuGoals.breakdown(g.id, state.transactions);
+    const labels = [];
+    for (const w of ["cash", "DANA"]) {
+      if (parts[w] > 0) labels.push((w === "cash" ? (isEn ? "Cash" : "Tunai") : "DANA") + " " + rp(parts[w]));
+    }
+    if (labels.length) card.append(el("div", { class: "goal-legs", text: t("goal_paid_from", { parts: labels.join(" · ") }) }));
   } else {
     const btnRow = el("div", { style: "display:flex;gap:8px;flex-wrap:wrap;" });
     btnRow.append(
-      el("button", { type: "button", class: "btn btn-primary btn-sm", text: g.kind === "debt" ? t("goal_approve_debt") : t("goal_approve_wish"), onclick: () => approveGoal(g) }),
-      el("button", { type: "button", class: "btn btn-sm", "aria-label": state.lang === "en" ? "Edit" : "Ubah", onclick: () => openGoalForm(g.kind, g) }, [icon("edit", 14)]),
+      el("button", { type: "button", class: "btn btn-primary btn-sm", text: t("goal_pay"), onclick: () => openGoalPay(g) }),
+      el("button", { type: "button", class: "btn btn-sm", "aria-label": isEn ? "Edit" : "Ubah", onclick: () => openGoalForm(g.kind, g) }, [icon("edit", 14)]),
       el("button", { type: "button", class: "btn btn-danger btn-sm", "aria-label": t("goal_delete"), onclick: () => deleteGoal(g) }, [icon("trash", 14)])
     );
     card.append(btnRow);
-    if (reached) {
-      card.append(el("div", { class: "small", style: "margin-top:8px;color:var(--ok);font-weight:600;", text: t("goal_reached") }));
-    } else if (state.allowance?.enabled && Number(state.allowance.amount) > 0) {
-      const remain = target - Math.max(0, bal);
-      const days = Math.ceil(remain / Number(state.allowance.amount));
+    if (left > 0) card.append(el("div", { class: "small muted", style: "margin-top:8px;", text: t("goal_remaining", { amount: rp(left) }) }));
+    if (state.allowance?.enabled && Number(state.allowance.amount) > 0 && left > 0) {
+      const days = Math.ceil(left / Number(state.allowance.amount));
       if (days > 0 && days < 999) {
-        card.append(el("div", { class: "small muted", style: "margin-top:8px;", text: t("goal_est_days", { days: String(days) }) }));
+        card.append(el("div", { class: "small muted", style: "margin-top:4px;", text: t("goal_est_days", { days: String(days) }) }));
       }
     }
   }
@@ -4846,23 +5195,23 @@ function goalCard(g) {
 function renderGoals() {
   const wishes = activeGoals("wish");
   const debts = activeGoals("debt");
-  const doneW = doneGoals("wish");
-  const doneD = doneGoals("debt");
+  const done = doneGoals("wish").concat(doneGoals("debt")).sort((a, b) =>
+    String(b.updated_at || b.created_at || "").localeCompare(String(a.updated_at || a.created_at || ""))
+  );
+  const wallets = walletBalances();
 
   main.append(el("h1", { style: "font-size:1.35rem;font-weight:800;margin:0 0 4px;", text: t("title_goals") }));
-
-
+  main.append(el("p", { class: "small muted", style: "margin:0 0 16px;", text: t("goal_spendable", { amount: rp(wallets.total) }) }));
 
   const wishCard = el("div", { class: "card" });
   const wishHead = el("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;" });
   wishHead.append(el("h2", { class: "card-title", style: "margin:0;", text: t("goal_wish") }));
   wishHead.append(el("button", { type: "button", class: "btn btn-primary btn-sm", onclick: () => openGoalForm("wish") }, [icon("plus", 14), el("span", { text: t("goal_add_wish") })]));
   wishCard.append(wishHead);
-  if (!wishes.length && !doneW.length) {
+  if (!wishes.length) {
     wishCard.append(el("p", { class: "muted small", text: t("goal_empty_wish") }));
   } else {
     for (const g of wishes) wishCard.append(goalCard(g));
-    for (const g of doneW) wishCard.append(goalCard(g));
   }
   main.append(wishCard);
 
@@ -4871,13 +5220,24 @@ function renderGoals() {
   debtHead.append(el("h2", { class: "card-title", style: "margin:0;", text: t("goal_debt") }));
   debtHead.append(el("button", { type: "button", class: "btn btn-primary btn-sm", onclick: () => openGoalForm("debt") }, [icon("plus", 14), el("span", { text: t("goal_add_debt") })]));
   debtCard.append(debtHead);
-  if (!debts.length && !doneD.length) {
+  if (!debts.length) {
     debtCard.append(el("p", { class: "muted small", text: t("goal_empty_debt") }));
   } else {
     for (const g of debts) debtCard.append(goalCard(g));
-    for (const g of doneD) debtCard.append(goalCard(g));
   }
   main.append(debtCard);
+
+  const doneCard = el("div", { class: "card" });
+  const doneHead = el("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;" });
+  doneHead.append(el("h2", { class: "card-title", style: "margin:0;", text: t("goal_done_title") }));
+  if (done.length) doneHead.append(el("span", { class: "tag muted", text: String(done.length) }));
+  doneCard.append(doneHead);
+  if (!done.length) {
+    doneCard.append(el("p", { class: "muted small", text: t("goal_done_empty") }));
+  } else {
+    for (const g of done) doneCard.append(goalCard(g));
+  }
+  main.append(doneCard);
 }
 
 /* ---------- settings ---------- */
@@ -5496,6 +5856,7 @@ function startJsonRestore(file) {
       if (Array.isArray(data.goals)) state.goals = data.goals;
       if (Array.isArray(data.budgets)) state.budgets = data.budgets;
       if (data.allowance && typeof data.allowance === "object") state.allowance = data.allowance;
+      reconcileGoalStatuses();
       saveLocal();
       render();
       if (state.mode === "cloud" && state.user && state.sb) {

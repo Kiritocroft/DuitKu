@@ -1,13 +1,14 @@
-// Duitku Service Worker v15
+// Duitku Service Worker v20
 // HTML & config: network-first (always fresh, offline fallback).
 // Assets & fonts: cache-first (offline-ready).
 
-const CACHE_NAME = 'duitku-v19';
+const CACHE_NAME = 'duitku-v20';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/config.js',
   '/wallet.js',
+  '/goals.js',
   '/vendor/supabase.min.js',
   '/fonts/fonts.css',
   '/fonts/JetBrainsMono-500-latin.woff2',
